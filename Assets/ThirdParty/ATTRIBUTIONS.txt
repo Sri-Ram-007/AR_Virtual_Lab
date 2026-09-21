@@ -1,0 +1,26 @@
+# Laboratory 3D Assets Attributions
+
+All 3D laboratory equipment models in Assets/Models/ (Bunsen Burner, Crucible Tongs, Watch Glass,
+Laboratory Table, Sandpaper, Magnesium Ribbon, MgO Residue, MgO Powder) were procedurally
+generated and custom modeled for this virtual chemistry laboratory.
+
+- Bunsen Burner:       Custom procedural PBR low-poly model — brass/olive-gold aged metal finish
+- Crucible Tongs:      Custom scissor-pivot dark-charcoal steel laboratory tongs model
+- Watch Glass:         Custom curved transparent laboratory dish model — high-transparency glass
+- Sandpaper:           Custom textured warm-brown abrasive pad model
+- Magnesium Ribbon:    Custom thin silver metallic ribbon model with enlarged interaction collider
+- MgO Powder:          Custom white powdery ash reaction product model
+- MgO Residue:         Custom white solid ash reaction product model
+
+Visual Overhaul (August 2026):
+- Extended burning duration (6 s), heating (2.5 s), cleaning (0.45 acc divisor)
+- Added white smoke/particulate particle system during combustion
+- Dark charcoal tongs material matching reference images
+- Cleaning progress bar, equipment tooltip labels
+- Burning status info panel with Bunsen ON/OFF status, ribbon state, observation
+- Persistent equation panel: 2Mg + O2 -> 2MgO
+- Previous/Next navigation buttons
+- MgO correctly labeled as white solid ash / particulate (not a gas)
+- EquipmentLabelPositioner MonoBehaviour for world-to-screen label projection
+
+License: MIT / CC-BY-4.0 Compatible (Internal AR Virtual Lab Assets)
