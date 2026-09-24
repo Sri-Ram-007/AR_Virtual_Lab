@@ -624,41 +624,64 @@ namespace ARVirtualLab.AR
     {
         public string Source { get; private set; } = "none";
         private static readonly List<UnityEngine.XR.InputDevice> _xrDevices = new List<UnityEngine.XR.InputDevice>();
+        private float _enabledAt;
+        private bool _loggedDevices;
 
-        private void OnEnable() { Application.onBeforeRender += Apply; }
+        private void OnEnable() { _enabledAt = Time.unscaledTime; Application.onBeforeRender += Apply; }
         private void OnDisable() { Application.onBeforeRender -= Apply; }
-        private void Update() { Apply(); }
+        private void Update()
+        {
+            Apply();
+            if (!_loggedDevices && Source == "none" && Time.unscaledTime - _enabledAt > 3f) LogDevices();
+        }
 
         private void Apply()
         {
-            // 1) the AR handheld device exposed by ARFoundation through the Input System
+            // 1) Input System: any device with a device pose. The layout name differs between setups
+            //    (e.g. HandheldARInputDevice, or a generated XRInputV1 layout when the AR layout isn't matched).
             foreach (var d in UnityEngine.InputSystem.InputSystem.devices)
             {
-                if (d.layout != "HandheldARInputDevice") continue;
                 var pc = d.TryGetChildControl<Vector3Control>("devicePosition");
                 var rc = d.TryGetChildControl<QuaternionControl>("deviceRotation");
                 if (pc == null || rc == null) continue;
                 Quaternion r = rc.ReadValue();
                 if (r.x == 0f && r.y == 0f && r.z == 0f && r.w == 0f) continue;      // no data yet
                 transform.SetLocalPositionAndRotation(pc.ReadValue(), r);
-                Source = "HandheldARInputDevice";
+                Source = d.layout;
                 return;
             }
 
-            // 2) the classic XR input device (ARCore's tracked device)
-            UnityEngine.XR.InputDevices.GetDevicesWithCharacteristics(UnityEngine.XR.InputDeviceCharacteristics.TrackedDevice, _xrDevices);
+            // 2) Legacy XR input: any device reporting a pose, whatever its characteristics
+            UnityEngine.XR.InputDevices.GetDevices(_xrDevices);
             foreach (var dev in _xrDevices)
             {
                 Vector3 pos; Quaternion rot;
                 if (dev.TryGetFeatureValue(UnityEngine.XR.CommonUsages.devicePosition, out pos) &&
-                    dev.TryGetFeatureValue(UnityEngine.XR.CommonUsages.deviceRotation, out rot))
+                    dev.TryGetFeatureValue(UnityEngine.XR.CommonUsages.deviceRotation, out rot) &&
+                    !(rot.x == 0f && rot.y == 0f && rot.z == 0f && rot.w == 0f))
                 {
                     transform.SetLocalPositionAndRotation(pos, rot);
-                    Source = "XR InputDevice";
+                    Source = "XR:" + dev.name;
                     return;
                 }
             }
             Source = "none";
+        }
+
+        private void LogDevices()
+        {
+            _loggedDevices = true;
+            var sb = new System.Text.StringBuilder("[ARMode] no camera pose after 3s. Input System devices:");
+            foreach (var d in UnityEngine.InputSystem.InputSystem.devices)
+                sb.Append("\n  layout=").Append(d.layout).Append(" name=").Append(d.name)
+                  .Append(" hasPose=").Append(d.TryGetChildControl("devicePosition") != null);
+            UnityEngine.XR.InputDevices.GetDevices(_xrDevices);
+            sb.Append("\nXR input devices: ").Append(_xrDevices.Count);
+            foreach (var dev in _xrDevices)
+                sb.Append("\n  name=").Append(dev.name).Append(" characteristics=").Append(dev.characteristics);
+            var loader = UnityEngine.XR.Management.XRGeneralSettings.Instance?.Manager?.activeLoader;
+            sb.Append("\nactive XR loader: ").Append(loader != null ? loader.name : "none");
+            Debug.Log(sb.ToString());
         }
     }
 }
