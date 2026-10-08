@@ -219,6 +219,15 @@ namespace ARVirtualLab.Lab
         // Equation panel (persistent bottom)
         private GameObject      _equationPanel;
 
+        // Landscape HUD (floating cards at the edges; the middle of the screen stays clear for the lab)
+        private const float     HudMargin = 40f;                 // canvas units on the 1920 x 1080 reference
+        private RectTransform   _stepCardRT, _rightColumnRT;
+        private GameObject      _stepPillRow;
+        private TMP_Text        _stepToggleLabel;
+        private bool            _stepCardCollapsed;
+        private bool            _hudInAR;
+        private readonly List<Image> _arTranslucent = new List<Image>();
+
         // Equipment label GameObjects
         private readonly List<GameObject> _equipLabels = new List<GameObject>();
 
@@ -263,6 +272,7 @@ namespace ARVirtualLab.Lab
         // ═════════════════════════════════════════════════════
         private void Awake()
         {
+            ARVirtualLab.AppShell.LabOrientation.Landscape(this);
             BuildCameraAndLighting();
             CreateMaterials();
             BuildSceneEquipment();
@@ -332,12 +342,32 @@ namespace ARVirtualLab.Lab
             _hint.SetVisible(_dragging == null && !_heatingOrBurning);
         }
 
+        private void OnDestroy()
+        {
+            ARVirtualLab.AppShell.LabOrientation.Portrait();
+        }
+
         private void Update()
         {
             UpdateHint();
             ARVirtualLab.UI.CameraFit.Apply(_cam, 48f);   // keep the same width of view on tall phones
+            UpdateHudForAR();
             HandleInput();
             AnimateFlame();
+        }
+
+        /// <summary>In AR the cards become see-through and Reset/Safety step up to make room for the AR buttons.</summary>
+        private void UpdateHudForAR()
+        {
+            bool inAR = ARVirtualLab.AR.ARExperimentMode.Active;
+            if (inAR == _hudInAR) return;
+            _hudInAR = inAR;
+            foreach (var img in _arTranslucent)
+            {
+                if (img == null) continue;
+                var c = img.color; c.a = inAR ? 0.86f : 1f; img.color = c;
+            }
+            if (_rightColumnRT != null) _rightColumnRT.anchoredPosition = new Vector2(-HudMargin, inAR ? 32f + 96f : 32f);
         }
 
         private void AnimateFlame()
@@ -2336,7 +2366,7 @@ namespace ARVirtualLab.Lab
 
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080f, 1920f);
+            scaler.referenceResolution = new Vector2(1920f, 1080f);   // the experiment runs in landscape
             scaler.matchWidthOrHeight  = 0.5f;
 
             canvasGO.AddComponent<GraphicRaycaster>();
@@ -2377,8 +2407,8 @@ namespace ARVirtualLab.Lab
             // Center card
             var card = MakePanel(rootRT, "Card", new Color(0.06f, 0.10f, 0.20f, 0.98f));
             var cardRT = card.GetComponent<RectTransform>();
-            cardRT.anchorMin = new Vector2(0.05f, 0.10f);
-            cardRT.anchorMax = new Vector2(0.95f, 0.92f);
+            cardRT.anchorMin = new Vector2(0.22f, 0.04f);
+            cardRT.anchorMax = new Vector2(0.78f, 0.96f);
             var cardImg = card.GetComponent<Image>();
             if (cardImg != null) cardImg.raycastTarget = true;
 
@@ -2471,47 +2501,69 @@ namespace ARVirtualLab.Lab
             aboutLink.onClick.AddListener(() => TogglePanel(_aboutPanel));
         }
 
+        private const float StepCardExpandedH = 340f, StepCardCollapsedH = 152f;
+        private const float StepTextWidth = 592f, StepTextMaxH = 220f;
+
+        // Landscape layout on a 1920 x 1080 canvas: Back + name and the step card top-left, AR toggle and equation
+        // top-right, Reset/Safety bottom-right (above the AR buttons when in AR), step buttons bottom-centre.
         private void BuildHUDPanel(RectTransform root)
         {
             _hudPanel = MakePanel(root, "HUD", Color.clear);
+            _hudPanel.AddComponent<ARVirtualLab.AppShell.SafeAreaHelper>();
             _hudPanel.SetActive(false);
+            var hud = _hudPanel.GetComponent<RectTransform>();
+            const float M = HudMargin;
 
-            // ── Top Header Card (safe-area aware) ──────────────
-            var topBar = MakePanel(_hudPanel.GetComponent<RectTransform>(), "TopHeaderCard",
-                new Color(0.04f, 0.08f, 0.16f, 0.95f));
-            var topRT = topBar.GetComponent<RectTransform>();
-            topRT.anchorMin = new Vector2(0.03f, 0.81f);
-            topRT.anchorMax = new Vector2(0.97f, 0.985f);
-            var tbOut = topBar.AddComponent<Outline>();
-            tbOut.effectColor = new Color(0.15f, 0.45f, 0.85f, 0.60f);
-            tbOut.effectDistance = new Vector2(1.5f, -1.5f);
+            // ── Top-left: Back + experiment name ──────────────
+            var backBtn = HudButton(hud, "BackButton", "Back", new Color(0.12f, 0.22f, 0.38f), 30f);
+            UiKit.Pin(Rt(backBtn), 0f, 1f, M, -32f, 170f, 80f);
+            backBtn.onClick.AddListener(() => ARVirtualLab.AppShell.AppNavigation.GoToHome());
 
-            // Row 1: Back Button, App Header & AR Button
-            var backBtn = MakeButton(topRT, "BackButton", "← Back",
-                new Vector2(0.03f, 0.79f), new Vector2(0.24f, 0.97f),
-                new Color(0.12f, 0.22f, 0.38f));
-            backBtn.onClick.AddListener(() => {
-                ARVirtualLab.AppShell.AppNavigation.GoToHome();
-            });
+            // name on its own chip so it stays readable over the camera feed in AR
+            // (layout components size the chip to its text whenever it is shown; measuring while the HUD was hidden gave 0)
+            var chip = MakePanel(hud, "AppLabelChip", new Color(0.04f, 0.08f, 0.16f, 0.95f));
+            var chipRT = UiKit.Pin(chip.GetComponent<RectTransform>(), 0f, 1f, M + 186f, -44f, 300f, 56f);
+            AddBorder(chip);
+            _arTranslucent.Add(chip.GetComponent<Image>());
+            var chipLayout = chip.AddComponent<HorizontalLayoutGroup>();
+            chipLayout.padding = new RectOffset(20, 20, 0, 0);
+            chipLayout.childAlignment = TextAnchor.MiddleCenter;
+            chipLayout.childControlWidth = chipLayout.childControlHeight = true;
+            chipLayout.childForceExpandWidth = chipLayout.childForceExpandHeight = false;
+            chip.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            var appLabel = Fixed(MakeText(chipRT, "AppLabel", "MAGNESIUM RIBBON", Vector2.zero, Vector2.one,
+                24, new Color(0.35f, 0.85f, 1f), FontStyles.Bold, TextAlignmentOptions.Center), 24f);
+            appLabel.textWrappingMode = TextWrappingModes.NoWrap;
 
-            MakeText(topRT, "AppLabel", "MAGNESIUM RIBBON",
-                new Vector2(0.26f, 0.82f), new Vector2(0.70f, 0.97f),
-                20, new Color(0.35f, 0.85f, 1f), FontStyles.Bold, TextAlignmentOptions.Left);
+            // ── Top-right: AR toggle ──────────────────────────
+            var arBtn = HudButton(hud, "ARButton", "AR LAB", new Color(0.32f, 0.24f, 0.72f), 30f);
+            UiKit.Pin(Rt(arBtn), 1f, 1f, -M, -32f, 220f, 80f);
+            arBtn.onClick.AddListener(ToggleUnifiedAR);
 
-            var arBtn = MakeButton(topRT, "ARButton", "AR LAB",
-                new Vector2(0.72f, 0.79f), new Vector2(0.97f, 0.97f),
-                new Color(0.32f, 0.24f, 0.72f));
-            arBtn.onClick.AddListener(() => {
-                ToggleUnifiedAR();
-            });
+            // ── Step card: badge + Hide/Show, title, progress pills, instruction ──
+            var card = MakePanel(hud, "StepCard", new Color(0.04f, 0.08f, 0.16f, 0.95f));
+            _stepCardRT = UiKit.Pin(card.GetComponent<RectTransform>(), 0f, 1f, M, -128f, 640f, StepCardExpandedH);
+            AddBorder(card);
+            _arTranslucent.Add(card.GetComponent<Image>());
 
-            // Row 2: 9-Step Progress Indicators (Pills)
-            var pillRow = new GameObject("StepPillRow", typeof(RectTransform));
-            pillRow.transform.SetParent(topRT, false);
-            var prRT = pillRow.GetComponent<RectTransform>();
-            prRT.anchorMin = new Vector2(0.04f, 0.69f);
-            prRT.anchorMax = new Vector2(0.96f, 0.76f);
-            prRT.offsetMin = prRT.offsetMax = Vector2.zero;
+            var stepBadge = MakePanel(_stepCardRT, "StepBadge", new Color(0.10f, 0.28f, 0.58f, 0.95f));
+            UiKit.Pin(stepBadge.GetComponent<RectTransform>(), 0f, 1f, 20f, -18f, 220f, 52f);
+            _stepNumberBadge = Fixed(MakeText(stepBadge.GetComponent<RectTransform>(), "BadgeText", "STEP 1 OF 9",
+                Vector2.zero, Vector2.one, 22, Color.white, FontStyles.Bold, TextAlignmentOptions.Center), 22f);
+
+            var toggle = HudButton(_stepCardRT, "StepToggle", "Hide", new Color(0.18f, 0.24f, 0.36f), 24f);
+            UiKit.Pin(Rt(toggle), 1f, 1f, -20f, -18f, 120f, 52f);
+            _stepToggleLabel = toggle.GetComponentInChildren<TMP_Text>();
+            toggle.onClick.AddListener(() => SetStepCardCollapsed(!_stepCardCollapsed));
+
+            _stepTitle = MakeText(_stepCardRT, "StepTitle", "Select Magnesium Ribbon", Vector2.zero, Vector2.zero,
+                32, Color.white, FontStyles.Bold, TextAlignmentOptions.MidlineLeft);
+            FitText(_stepTitle, 24f, 32f);
+            UiKit.Pin(_stepTitle.rectTransform, 0f, 1f, 24f, -80f, 592f, 60f);
+
+            _stepPillRow = new GameObject("StepPillRow", typeof(RectTransform));
+            _stepPillRow.transform.SetParent(_stepCardRT, false);
+            var prRT = UiKit.Pin(_stepPillRow.GetComponent<RectTransform>(), 0f, 1f, 24f, -152f, 592f, 12f);
 
             _stepPillIndicators.Clear();
             float stepWidth = 1.0f / 9.0f;
@@ -2520,47 +2572,29 @@ namespace ARVirtualLab.Lab
                 var pill = new GameObject($"Pill_{i + 1}", typeof(RectTransform), typeof(Image));
                 pill.transform.SetParent(prRT, false);
                 var pRT = pill.GetComponent<RectTransform>();
-                pRT.anchorMin = new Vector2(i * stepWidth + 0.012f, 0f);
-                pRT.anchorMax = new Vector2((i + 1) * stepWidth - 0.012f, 1f);
+                pRT.anchorMin = new Vector2(i * stepWidth + 0.008f, 0f);
+                pRT.anchorMax = new Vector2((i + 1) * stepWidth - 0.008f, 1f);
                 pRT.offsetMin = pRT.offsetMax = Vector2.zero;
                 var pImg = pill.GetComponent<Image>();
                 pImg.color = (i == 0) ? ARVirtualLab.UI.EduTheme.PillActive : ARVirtualLab.UI.EduTheme.PillIdle;
                 _stepPillIndicators.Add(pImg);
             }
 
-            // Row 3: Step Badge & Title
-            var stepBadge = MakePanel(topRT, "StepBadge", new Color(0.10f, 0.28f, 0.58f, 0.95f));
-            var sbrt = stepBadge.GetComponent<RectTransform>();
-            sbrt.anchorMin = new Vector2(0.04f, 0.44f);
-            sbrt.anchorMax = new Vector2(0.32f, 0.63f);
-            _stepNumberBadge = MakeText(sbrt, "BadgeText", "STEP 1 OF 9",
-                new Vector2(0f, 0f), new Vector2(1f, 1f),
-                14, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
+            _stepDesc = Fixed(MakeText(_stepCardRT, "StepDesc", "Tap the silver magnesium ribbon on the table.", Vector2.zero, Vector2.zero,
+                26, new Color(0.85f, 0.92f, 0.98f), FontStyles.Normal, TextAlignmentOptions.TopLeft), 26f);
+            UiKit.Pin(_stepDesc.rectTransform, 0f, 1f, 24f, -180f, StepTextWidth, 144f);
 
-            _stepTitle = MakeText(topRT, "StepTitle", "Select Magnesium Ribbon",
-                new Vector2(0.35f, 0.44f), new Vector2(0.96f, 0.65f),
-                21, Color.white, FontStyles.Bold, TextAlignmentOptions.Left);
-
-            // Row 4: Instruction Description
-            _stepDesc = MakeText(topRT, "StepDesc", "Tap the silver magnesium ribbon on the table.",
-                new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.42f),
-                18, new Color(0.85f, 0.92f, 0.98f), FontStyles.Normal, TextAlignmentOptions.Left);
-
-            // ── Cleaning progress bar (hidden unless Step2) ───
+            // ── Cleaning progress bar (Step 2 only), top-centre ──
             _cleaningBarRoot = new GameObject("CleaningBarRoot", typeof(RectTransform));
-            _cleaningBarRoot.transform.SetParent(_hudPanel.GetComponent<RectTransform>(), false);
-            var cbRootRT = _cleaningBarRoot.GetComponent<RectTransform>();
-            cbRootRT.anchorMin = new Vector2(0.04f, 0.77f);
-            cbRootRT.anchorMax = new Vector2(0.96f, 0.805f);
-            cbRootRT.offsetMin = cbRootRT.offsetMax = Vector2.zero;
+            _cleaningBarRoot.transform.SetParent(hud, false);
+            var cbRootRT = UiKit.Pin(_cleaningBarRoot.GetComponent<RectTransform>(), 0.5f, 1f, 0f, -40f, 600f, 56f);
 
             var cbBg = new GameObject("BarBg", typeof(RectTransform), typeof(Image));
             cbBg.transform.SetParent(cbRootRT, false);
             var cbBgRT = cbBg.GetComponent<RectTransform>();
             cbBgRT.anchorMin = Vector2.zero; cbBgRT.anchorMax = Vector2.one;
             cbBgRT.offsetMin = cbBgRT.offsetMax = Vector2.zero;
-            var cbBgImg = cbBg.GetComponent<Image>();
-            cbBgImg.color = new Color(0.08f, 0.14f, 0.25f, 0.95f);
+            cbBg.GetComponent<Image>().color = new Color(0.08f, 0.14f, 0.25f, 0.95f);
 
             var cbFill = new GameObject("BarFill", typeof(RectTransform), typeof(Image));
             cbFill.transform.SetParent(cbRootRT, false);
@@ -2574,122 +2608,167 @@ namespace ARVirtualLab.Lab
             _cleaningBarFill.fillMethod = Image.FillMethod.Horizontal;
             _cleaningBarFill.fillAmount = 0f;
 
-            _cleaningPctText = MakeText(cbRootRT, "PctText", "CLEANING: 0%",
-                new Vector2(0f, 0f), new Vector2(1f, 1f),
-                14, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
+            _cleaningPctText = Fixed(MakeText(cbRootRT, "PctText", "CLEANING: 0%",
+                Vector2.zero, Vector2.one, 22, Color.white, FontStyles.Bold, TextAlignmentOptions.Center), 22f);
 
             _cleaningBarRoot.SetActive(false);
 
-            // ── Toast Feedback ────────────────────────────────
-            var toastBg = MakePanel(_hudPanel.GetComponent<RectTransform>(), "Toast",
-                new Color(0.04f, 0.10f, 0.22f, 0.94f));
-            var toastRT = toastBg.GetComponent<RectTransform>();
-            toastRT.anchorMin = new Vector2(0.08f, 0.11f);
-            toastRT.anchorMax = new Vector2(0.92f, 0.18f);
-            var tOut = toastBg.AddComponent<Outline>();
-            tOut.effectColor = new Color(0.20f, 0.70f, 1.0f, 0.70f);
-            tOut.effectDistance = new Vector2(1.5f, -1.5f);
+            // ── Toast feedback, bottom-centre above the step buttons ──
+            var toastBg = MakePanel(hud, "Toast", new Color(0.04f, 0.10f, 0.22f, 0.94f));
+            var toastRT = UiKit.Pin(toastBg.GetComponent<RectTransform>(), 0.5f, 0f, 60f, 130f, 700f, 100f);
+            AddBorder(toastBg);
+            _arTranslucent.Add(toastBg.GetComponent<Image>());
             _feedbackText = MakeText(toastRT, "FeedbackText", "",
                 new Vector2(0.04f, 0.05f), new Vector2(0.96f, 0.95f),
-                18, new Color(0.92f, 0.97f, 1f), FontStyles.Normal, TextAlignmentOptions.Center);
+                26, new Color(0.92f, 0.97f, 1f), FontStyles.Normal, TextAlignmentOptions.Center);
+            FitText(_feedbackText, 20f, 26f);
             toastBg.SetActive(false);
 
-            // ── Bottom Action Bar (Floating Capsule) ──────────
-            var botBar = MakePanel(_hudPanel.GetComponent<RectTransform>(), "BotBar",
-                new Color(0.04f, 0.08f, 0.16f, 0.95f));
-            var bbRT = botBar.GetComponent<RectTransform>();
-            bbRT.anchorMin = new Vector2(0.04f, 0.02f);
-            bbRT.anchorMax = new Vector2(0.96f, 0.085f);
-            var bbOut = botBar.AddComponent<Outline>();
-            bbOut.effectColor = new Color(0.18f, 0.45f, 0.85f, 0.50f);
-            bbOut.effectDistance = new Vector2(1.5f, -1.5f);
+            // ── Bottom-centre: step navigation and end-of-experiment buttons (only the active ones show) ──
+            var row = new GameObject("BottomRow", typeof(RectTransform));
+            row.transform.SetParent(hud, false);
+            var rowRT = UiKit.Pin(row.GetComponent<RectTransform>(), 0.5f, 0f, 60f, 32f, 960f, 80f);
+            var hlg = row.AddComponent<HorizontalLayoutGroup>();
+            hlg.spacing = 16f;
+            hlg.childAlignment = TextAnchor.MiddleCenter;
+            hlg.childControlWidth = hlg.childControlHeight = false;
+            hlg.childForceExpandWidth = hlg.childForceExpandHeight = false;
 
-            // Reset
-            _resetBtn = MakeButton(bbRT, "Reset", "Reset",
-                new Vector2(0.02f, 0.12f), new Vector2(0.22f, 0.88f),
-                new Color(0.48f, 0.12f, 0.16f));
+            _prevBtn = SizedButton(rowRT, "Prev", "Previous", new Color(0.18f, 0.24f, 0.36f), 220f);
+            _prevBtn.onClick.AddListener(GoBack);
+            _prevBtn.gameObject.SetActive(false);
+
+            _nextBtn = SizedButton(rowRT, "Next", "Next", new Color(0.02f, 0.50f, 0.88f), 220f);
+            _nextBtn.onClick.AddListener(AdvanceStep);
+            _nextBtn.gameObject.SetActive(false);
+
+            _obsBtn = SizedButton(rowRT, "Obs", "Observation", new Color(0.06f, 0.45f, 0.28f), 220f);
+            _obsBtn.onClick.AddListener(() => TogglePanel(_obsPanel));
+            _obsBtn.gameObject.SetActive(false);
+
+            _eqBtn = SizedButton(rowRT, "Eq", "Equation", new Color(0.35f, 0.20f, 0.65f), 220f);
+            _eqBtn.onClick.AddListener(() => TogglePanel(_eqPanel));
+            _eqBtn.gameObject.SetActive(false);
+
+            _resultBtn = SizedButton(rowRT, "Result", "Result", new Color(0.08f, 0.48f, 0.62f), 220f);
+            _resultBtn.onClick.AddListener(() => TogglePanel(_resultPanel));
+            _resultBtn.gameObject.SetActive(false);
+
+            // ── Bottom-right: Reset / Safety (lifted above Move lab / Exit AR while in AR) ──
+            var column = new GameObject("RightColumn", typeof(RectTransform));
+            column.transform.SetParent(hud, false);
+            _rightColumnRT = UiKit.Pin(column.GetComponent<RectTransform>(), 1f, 0f, -M, 32f, 200f, 172f);
+            var vlg = column.AddComponent<VerticalLayoutGroup>();
+            vlg.spacing = 12f;
+            vlg.childAlignment = TextAnchor.LowerCenter;
+            vlg.childControlWidth = vlg.childControlHeight = false;
+            vlg.childForceExpandWidth = vlg.childForceExpandHeight = false;
+
+            _resetBtn = SizedButton(_rightColumnRT, "Reset", "Reset", new Color(0.48f, 0.12f, 0.16f), 200f);
             _resetBtn.onClick.AddListener(() => {
                 if (_resetConfirmDialog != null) _resetConfirmDialog.SetActive(true);
                 else ResetExperiment();
             });
 
-            // Safety
-            _safetyBtn = MakeButton(bbRT, "Safety", "Safety",
-                new Vector2(0.25f, 0.12f), new Vector2(0.45f, 0.88f),
-                new Color(0.55f, 0.35f, 0.05f));
+            _safetyBtn = SizedButton(_rightColumnRT, "Safety", "Safety", new Color(0.55f, 0.35f, 0.05f), 200f);
             _safetyBtn.onClick.AddListener(() => TogglePanel(_safetyPanel));
-
-            // Previous
-            _prevBtn = MakeButton(bbRT, "Prev", "Previous",
-                new Vector2(0.48f, 0.12f), new Vector2(0.70f, 0.88f),
-                new Color(0.18f, 0.24f, 0.36f));
-            _prevBtn.onClick.AddListener(GoBack);
-            _prevBtn.gameObject.SetActive(false);
-
-            // Next
-            _nextBtn = MakeButton(bbRT, "Next", "Next",
-                new Vector2(0.73f, 0.12f), new Vector2(0.98f, 0.88f),
-                new Color(0.02f, 0.50f, 0.88f));
-            _nextBtn.onClick.AddListener(AdvanceStep);
-            _nextBtn.gameObject.SetActive(false);
-
-            // Observation / Equation / Result (appear at end)
-            _obsBtn = MakeButton(bbRT, "Obs", "Observation",
-                new Vector2(0.48f, 0.12f), new Vector2(0.64f, 0.88f),
-                new Color(0.06f, 0.45f, 0.28f));
-            _obsBtn.onClick.AddListener(() => TogglePanel(_obsPanel));
-            _obsBtn.gameObject.SetActive(false);
-
-            _eqBtn = MakeButton(bbRT, "Eq", "Equation",
-                new Vector2(0.66f, 0.12f), new Vector2(0.82f, 0.88f),
-                new Color(0.35f, 0.20f, 0.65f));
-            _eqBtn.onClick.AddListener(() => TogglePanel(_eqPanel));
-            _eqBtn.gameObject.SetActive(false);
-
-            _resultBtn = MakeButton(bbRT, "Result", "Result",
-                new Vector2(0.84f, 0.12f), new Vector2(0.98f, 0.88f),
-                new Color(0.08f, 0.48f, 0.62f));
-            _resultBtn.onClick.AddListener(() => TogglePanel(_resultPanel));
-            _resultBtn.gameObject.SetActive(false);
         }
 
+        private void SetStepCardCollapsed(bool collapsed)
+        {
+            _stepCardCollapsed = collapsed;
+            if (_stepPillRow != null) _stepPillRow.SetActive(!collapsed);
+            if (_stepDesc != null) _stepDesc.gameObject.SetActive(!collapsed);
+            if (_stepToggleLabel != null) _stepToggleLabel.text = collapsed ? "Show" : "Hide";
+            RefreshStepCardHeight();
+        }
+
+        // The card grows with the instruction text instead of reserving space for the longest one
+        private void RefreshStepCardHeight()
+        {
+            if (_stepCardRT == null || _stepDesc == null) return;
+            float h = StepCardCollapsedH;
+            if (!_stepCardCollapsed)
+            {
+                float textH = Mathf.Clamp(_stepDesc.GetPreferredValues(_stepDesc.text, StepTextWidth, 0f).y, 34f, StepTextMaxH);
+                _stepDesc.rectTransform.sizeDelta = new Vector2(StepTextWidth, textH);
+                h = 180f + textH + 22f;
+            }
+            _stepCardRT.sizeDelta = new Vector2(_stepCardRT.sizeDelta.x, h);
+        }
+
+        private static RectTransform Rt(Component c) { return c.GetComponent<RectTransform>(); }
+
+        // MobileText auto-grows every label to fill its box, which made neighbouring labels different sizes.
+        private static TMP_Text Fixed(TMP_Text t, float size)
+        {
+            t.enableAutoSizing = false;
+            t.fontSize = size;
+            return t;
+        }
+
+        private static void FitText(TMP_Text t, float min, float max)
+        {
+            t.enableAutoSizing = true;
+            t.fontSizeMin = min;
+            t.fontSizeMax = max;
+        }
+
+        private static Button HudButton(RectTransform parent, string name, string label, Color col, float fontSize)
+        {
+            var b = MakeButton(parent, name, label, Vector2.zero, Vector2.one, col);
+            Fixed(b.GetComponentInChildren<TMP_Text>(), fontSize);
+            return b;
+        }
+
+        private static Button SizedButton(RectTransform parent, string name, string label, Color col, float width)
+        {
+            var b = HudButton(parent, name, label, col, 28f);
+            Rt(b).sizeDelta = new Vector2(width, 80f);
+            return b;
+        }
+
+        private static void AddBorder(GameObject panel)
+        {
+            var o = panel.AddComponent<Outline>();
+            o.effectColor = new Color(0.15f, 0.45f, 0.85f, 0.60f);
+            o.effectDistance = new Vector2(1.5f, -1.5f);
+        }
+
+        // Heating status, bottom-left (steps 6-7)
         private void BuildBurningInfoPanel(RectTransform root)
         {
-            _burningInfoPanel = MakePanel(root, "BurningInfoPanel",
+            _burningInfoPanel = MakePanel(_hudPanel.GetComponent<RectTransform>(), "BurningInfoPanel",
                 new Color(0.04f, 0.08f, 0.18f, 0.95f));
-            var bRT = _burningInfoPanel.GetComponent<RectTransform>();
-            bRT.anchorMin = new Vector2(0.04f, 0.10f);
-            bRT.anchorMax = new Vector2(0.96f, 0.34f);
-            var bOut = _burningInfoPanel.AddComponent<Outline>();
-            bOut.effectColor = new Color(0.20f, 0.60f, 1.0f, 0.60f);
-            bOut.effectDistance = new Vector2(1.5f, -1.5f);
+            var bRT = UiKit.Pin(_burningInfoPanel.GetComponent<RectTransform>(), 0f, 0f, HudMargin, 32f, 640f, 290f);
+            AddBorder(_burningInfoPanel);
+            _arTranslucent.Add(_burningInfoPanel.GetComponent<Image>());
 
-            _burnerStatusText = MakeText(bRT, "BurnerStatus", "Bunsen Burner: <color=#2E8B4E>ON</color>",
+            _burnerStatusText = Fixed(MakeText(bRT, "BurnerStatus", "Bunsen Burner: <color=#2E8B4E>ON</color>",
                 new Vector2(0.04f, 0.76f), new Vector2(0.96f, 0.95f),
-                20, Color.white, FontStyles.Bold, TextAlignmentOptions.Left);
+                28, Color.white, FontStyles.Bold, TextAlignmentOptions.Left), 28f);
 
-            _ribbonStatusText = MakeText(bRT, "RibbonStatus", "Ribbon: Heating...",
+            _ribbonStatusText = Fixed(MakeText(bRT, "RibbonStatus", "Ribbon: Heating...",
                 new Vector2(0.04f, 0.58f), new Vector2(0.96f, 0.76f),
-                18, Color.white, FontStyles.Normal, TextAlignmentOptions.Left);
+                26, Color.white, FontStyles.Normal, TextAlignmentOptions.Left), 26f);
 
-            _observationText = MakeText(bRT, "Observation", "Observation: —",
-                new Vector2(0.04f, 0.42f), new Vector2(0.96f, 0.58f),
-                17, new Color(0.85f, 0.92f, 0.98f), FontStyles.Normal, TextAlignmentOptions.Left);
+            _observationText = Fixed(MakeText(bRT, "Observation", "Observation: —",
+                new Vector2(0.04f, 0.40f), new Vector2(0.96f, 0.58f),
+                24, new Color(0.85f, 0.92f, 0.98f), FontStyles.Normal, TextAlignmentOptions.Left), 24f);
 
-            var trRT = bRT;
-            _heatingTimerText = MakeText(trRT, "TimerText",
+            _heatingTimerText = MakeText(bRT, "TimerText",
                 "Keep the ribbon in the flame for a little longer...",
-                new Vector2(0.04f, 0.22f), new Vector2(0.96f, 0.38f),
-                16, new Color(0.75f, 0.85f, 0.98f), FontStyles.Italic, TextAlignmentOptions.Left);
+                new Vector2(0.04f, 0.20f), new Vector2(0.96f, 0.40f),
+                22, new Color(0.75f, 0.85f, 0.98f), FontStyles.Italic, TextAlignmentOptions.Left);
+            FitText(_heatingTimerText, 18f, 22f);
 
             var barTrack = new GameObject("BarTrack", typeof(RectTransform), typeof(Image));
             barTrack.transform.SetParent(bRT, false);
             var btRT = barTrack.GetComponent<RectTransform>();
             btRT.anchorMin = new Vector2(0.04f, 0.06f);
-            btRT.anchorMax = new Vector2(0.96f, 0.18f);
+            btRT.anchorMax = new Vector2(0.96f, 0.16f);
             btRT.offsetMin = btRT.offsetMax = Vector2.zero;
-            var btImg = barTrack.GetComponent<Image>();
-            btImg.color = new Color(0.08f, 0.14f, 0.28f, 1f);
+            barTrack.GetComponent<Image>().color = new Color(0.08f, 0.14f, 0.28f, 1f);
 
             var barFillGO = new GameObject("BarFill", typeof(RectTransform), typeof(Image));
             barFillGO.transform.SetParent(btRT, false);
@@ -2706,28 +2785,28 @@ namespace ARVirtualLab.Lab
             _burningInfoPanel.SetActive(false);
         }
 
+        // Reaction equation, top-right under the AR toggle (steps 7-9)
         private void BuildEquationPanel(RectTransform root)
         {
-            _equationPanel = MakePanel(root, "EquationPanel",
+            _equationPanel = MakePanel(_hudPanel.GetComponent<RectTransform>(), "EquationPanel",
                 new Color(0.04f, 0.07f, 0.16f, 0.95f));
-            var eRT = _equationPanel.GetComponent<RectTransform>();
-            eRT.anchorMin = new Vector2(0.04f, 0.10f);
-            eRT.anchorMax = new Vector2(0.96f, 0.22f);
-            var eOut = _equationPanel.AddComponent<Outline>();
-            eOut.effectColor = new Color(0.20f, 0.60f, 1.0f, 0.50f);
-            eOut.effectDistance = new Vector2(1.5f, -1.5f);
+            var eRT = UiKit.Pin(_equationPanel.GetComponent<RectTransform>(), 1f, 1f, -HudMargin, -128f, 560f, 150f);
+            AddBorder(_equationPanel);
+            _arTranslucent.Add(_equationPanel.GetComponent<Image>());
 
-            MakeText(eRT, "ReactionLabel", "Reaction:",
-                new Vector2(0.04f, 0.65f), new Vector2(0.96f, 0.92f),
-                18, new Color(0.40f, 0.85f, 1f), FontStyles.Bold, TextAlignmentOptions.Left);
+            Fixed(MakeText(eRT, "ReactionLabel", "Reaction:",
+                new Vector2(0.05f, 0.70f), new Vector2(0.95f, 0.94f),
+                22, new Color(0.40f, 0.85f, 1f), FontStyles.Bold, TextAlignmentOptions.Left), 22f);
 
-            MakeText(eRT, "Equation", "2Mg(s) + O\u2082(g) \u2192 2MgO(s)",
-                new Vector2(0.04f, 0.28f), new Vector2(0.96f, 0.65f),
-                26, Color.white, FontStyles.Bold, TextAlignmentOptions.Left);
+            var eq = MakeText(eRT, "Equation", "2Mg(s) + O₂(g) → 2MgO(s)",
+                new Vector2(0.05f, 0.30f), new Vector2(0.95f, 0.70f),
+                32, Color.white, FontStyles.Bold, TextAlignmentOptions.Left);
+            FitText(eq, 24f, 32f);
 
-            MakeText(eRT, "Sub", "(Magnesium + Oxygen \u2192 Magnesium Oxide)",
-                new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.28f),
-                16, new Color(0.75f, 0.85f, 0.95f), FontStyles.Normal, TextAlignmentOptions.Left);
+            var sub = MakeText(eRT, "Sub", "(Magnesium + Oxygen → Magnesium Oxide)",
+                new Vector2(0.05f, 0.06f), new Vector2(0.95f, 0.30f),
+                20, new Color(0.75f, 0.85f, 0.95f), FontStyles.Normal, TextAlignmentOptions.Left);
+            FitText(sub, 16f, 20f);
 
             _equationPanel.SetActive(false);
         }
@@ -2735,23 +2814,21 @@ namespace ARVirtualLab.Lab
         private void BuildEquipmentLabels(RectTransform root)
         {
             Color labelBg = new Color(0.06f, 0.10f, 0.20f, 0.85f);
-            Color labelText = Color.white;
-
-            CreateEquipLabel(root, "TongsLabel",       POS_TONGS,      new Vector2( 70f,  20f), "Tongs",              labelBg, labelText);
-            CreateEquipLabel(root, "SandpaperLabel",    POS_SANDPAPER,  new Vector2(-72f,  22f), "Sandpaper\nPad",     labelBg, labelText);
-            CreateEquipLabel(root, "RibbonLabel",       POS_RIBBON,     new Vector2(-72f,  22f), "Magnesium\nRibbon",  labelBg, labelText);
-            CreateEquipLabel(root, "WatchGlassLabel",   POS_WATCHGLASS, new Vector2( 72f,  22f), "Watch Glass",        labelBg, labelText);
-            CreateEquipLabel(root, "BurnerLabel",       POS_BURNER,     new Vector2( 72f, -30f), "Bunsen Burner",      labelBg, labelText);
+            CreateEquipLabel(root, "TongsLabel",      _tongs,      "Tongs",            labelBg);
+            CreateEquipLabel(root, "SandpaperLabel",  _sandpaper,  "Sandpaper",        labelBg);
+            CreateEquipLabel(root, "RibbonLabel",     _ribbon,     "Magnesium Ribbon", labelBg);
+            CreateEquipLabel(root, "WatchGlassLabel", _watchGlass, "Watch Glass",      labelBg);
+            CreateEquipLabel(root, "BurnerLabel",     _burner,     "Bunsen Burner",    labelBg);
         }
 
-        private void CreateEquipLabel(RectTransform root, string name, Vector3 worldPos, Vector2 offset,
-            string text, Color bg, Color col)
+        // One-line label of a fixed text size, sitting just above its object and following it when it moves
+        private void CreateEquipLabel(RectTransform root, string name, GameObject target, string text, Color bg)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Image));
             go.transform.SetParent(root, false);
             var rt = go.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(130f, 42f);
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0f);
 
             var img = go.GetComponent<Image>();
             img.color = bg;
@@ -2761,13 +2838,13 @@ namespace ARVirtualLab.Lab
             outl.effectColor = new Color(0.20f, 0.50f, 0.85f, 0.60f);
             outl.effectDistance = new Vector2(1f, -1f);
 
-            MakeText(rt, "Lbl", text,
-                new Vector2(0.04f, 0.05f), new Vector2(0.96f, 0.95f),
-                15f, col, FontStyles.Bold, TextAlignmentOptions.Center);
+            var lbl = Fixed(MakeText(rt, "Lbl", text, Vector2.zero, Vector2.one,
+                22f, Color.white, FontStyles.Bold, TextAlignmentOptions.Center), 22f);
+            lbl.textWrappingMode = TextWrappingModes.NoWrap;
+            rt.sizeDelta = new Vector2(lbl.GetPreferredValues(text, 2000f, 100f).x + 28f, 42f);
 
-            go.AddComponent<EquipmentLabelPositioner>()
-                .Init(_cam, worldPos + Vector3.up * 0.022f, offset, root);
-
+            go.AddComponent<EquipmentLabelPositioner>().Init(_cam, target != null ? target.transform : null, root);
+            go.transform.SetAsFirstSibling();       // drawn behind the HUD cards and dialogs, never on top of them
             _equipLabels.Add(go);
         }
 
@@ -2838,8 +2915,8 @@ namespace ARVirtualLab.Lab
             var bg = MakePanel(_resetConfirmDialog.GetComponent<RectTransform>(), "Bg",
                 new Color(0.06f, 0.10f, 0.20f, 0.98f));
             var bgRT = bg.GetComponent<RectTransform>();
-            bgRT.anchorMin = new Vector2(0.08f, 0.35f);
-            bgRT.anchorMax = new Vector2(0.92f, 0.65f);
+            bgRT.anchorMin = new Vector2(0.30f, 0.28f);
+            bgRT.anchorMax = new Vector2(0.70f, 0.72f);
             bgRT.offsetMin = bgRT.offsetMax = Vector2.zero;
 
             var bgOut = bg.AddComponent<Outline>();
@@ -2879,8 +2956,8 @@ namespace ARVirtualLab.Lab
             var bg = MakePanel(overlay.GetComponent<RectTransform>(), "Bg",
                 new Color(0.05f, 0.09f, 0.18f, 0.98f));
             var bgRT = bg.GetComponent<RectTransform>();
-            bgRT.anchorMin = new Vector2(0.06f, 0.10f);
-            bgRT.anchorMax = new Vector2(0.94f, 0.90f);
+            bgRT.anchorMin = new Vector2(0.22f, 0.06f);
+            bgRT.anchorMax = new Vector2(0.78f, 0.94f);
             bgRT.offsetMin = bgRT.offsetMax = Vector2.zero;
 
             var bgOut = bg.AddComponent<Outline>();
@@ -2961,6 +3038,7 @@ namespace ARVirtualLab.Lab
             if (_stepTitle)     _stepTitle.text     = MobileText.Clean(title);
             if (_stepDesc)      _stepDesc.text      = MobileText.Clean(desc);
             if (_progressLabel) _progressLabel.text = MobileText.Clean(progress);
+            RefreshStepCardHeight();
 
             int stepIdx = (int)_state;
             if (_stepNumberBadge != null)
@@ -3226,18 +3304,53 @@ namespace ARVirtualLab.Lab
     public class EquipmentLabelPositioner : MonoBehaviour
     {
         private Camera _cam;
-        private Vector3 _worldPos;
-        private Vector2 _offset;
+        private Transform _target;
+        private readonly List<Renderer> _renderers = new List<Renderer>();
         private RectTransform _canvasRT;
         private RectTransform _rt;
+        private const float LabelGap = 10f;      // canvas units between the object's top and the label
 
-        public void Init(Camera cam, Vector3 worldPos, Vector2 offset, RectTransform canvasRT)
+        public void Init(Camera cam, Transform target, RectTransform canvasRT)
         {
             _cam      = cam;
-            _worldPos = worldPos;
-            _offset   = offset;
+            _target   = target;
             _canvasRT = canvasRT;
             _rt       = GetComponent<RectTransform>();
+        }
+
+        // Screen point just above the object's on-screen outline, so the label never covers the object itself.
+        // Particles are excluded: smoke bounds would push the label off screen.
+        private bool TryGetScreenAnchor(out Vector3 screen)
+        {
+            screen = Vector3.zero;
+            if (_target == null || !_target.gameObject.activeInHierarchy) return false;
+            if (_renderers.Count == 0)
+                foreach (var r in _target.GetComponentsInChildren<Renderer>(true))
+                    if (r is MeshRenderer || r is SkinnedMeshRenderer) _renderers.Add(r);
+
+            bool any = false;
+            Bounds b = default;
+            foreach (var r in _renderers)
+            {
+                if (r == null || !r.enabled || !r.gameObject.activeInHierarchy) continue;
+                if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds);
+            }
+            if (!any) return false;
+
+            Vector3 centre = _cam.WorldToScreenPoint(b.center);
+            if (centre.z < 0f) return false;
+            float top = float.MinValue;
+            for (int i = 0; i < 8; i++)
+            {
+                var corner = new Vector3(
+                    (i & 1) == 0 ? b.min.x : b.max.x,
+                    (i & 2) == 0 ? b.min.y : b.max.y,
+                    (i & 4) == 0 ? b.min.z : b.max.z);
+                Vector3 s = _cam.WorldToScreenPoint(corner);
+                if (s.z > 0f && s.y > top) top = s.y;
+            }
+            screen = new Vector3(centre.x, top, centre.z);
+            return true;
         }
 
         private CanvasGroup _cg;
@@ -3251,7 +3364,6 @@ namespace ARVirtualLab.Lab
         {
             if (_cam == null || !_cam.gameObject.activeInHierarchy) _cam = Camera.main;
             if (_cam == null || _rt == null) return;
-            Vector3 screen = _cam.WorldToScreenPoint(_worldPos);
             // fade instead of SetActive: an inactive label would never get another LateUpdate to come back
             if (_cg == null)
             {
@@ -3259,13 +3371,14 @@ namespace ARVirtualLab.Lab
                 if (_cg == null) _cg = gameObject.AddComponent<CanvasGroup>();
                 _cg.blocksRaycasts = false; _cg.interactable = false;
             }
-            bool visible = screen.z >= 0f && !ARVirtualLab.AR.ARExperimentMode.BlockSceneInput;    // hidden until the AR lab is placed
+            bool visible = TryGetScreenAnchor(out Vector3 screen)
+                           && !ARVirtualLab.AR.ARExperimentMode.BlockSceneInput;    // hidden until the AR lab is placed
             _cg.alpha = visible ? 1f : 0f;
             if (!visible) return;
 
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 _canvasRT, screen, null, out Vector2 local);
-            _rt.anchoredPosition = local + _offset;
+            _rt.anchoredPosition = local + new Vector2(0f, LabelGap);
         }
     }
 }

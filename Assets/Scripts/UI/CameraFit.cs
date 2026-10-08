@@ -16,7 +16,9 @@ namespace ARVirtualLab.UI
 
         /// <param name="referenceVerticalFov">The vertical FOV the scene was designed with at a 9:16 screen.</param>
         /// <param name="zoomOut">1 = the original framing; 1.15 shows 15% more width.</param>
-        public static void Apply(Camera cam, float referenceVerticalFov = 48f, float zoomOut = 1.15f)
+        /// <param name="landscapeVerticalFov">Used instead when the screen is wider than tall: the HUD sits at the sides,
+        /// so the apparatus can fill most of the (now short) screen height.</param>
+        public static void Apply(Camera cam, float referenceVerticalFov = 48f, float zoomOut = 1.15f, float landscapeVerticalFov = 20f)
         {
             if (cam == null || cam.GetComponent<ARCameraManager>() != null) return;
 
@@ -24,6 +26,11 @@ namespace ARVirtualLab.UI
                 ? (float)cam.targetTexture.width / cam.targetTexture.height
                 : (float)Screen.width / Mathf.Max(1, Screen.height);
             if (aspect <= 0.01f) return;
+            if (aspect > 1f)
+            {
+                cam.fieldOfView = landscapeVerticalFov;
+                return;
+            }
 
             float halfWidthTan = Mathf.Tan(referenceVerticalFov * 0.5f * Mathf.Deg2Rad) * ReferenceAspect * zoomOut;
             float fov = 2f * Mathf.Atan(halfWidthTan / aspect) * Mathf.Rad2Deg;

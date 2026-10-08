@@ -31,6 +31,15 @@ namespace ARVirtualLab.UI
             rt.offsetMin = rt.offsetMax = Vector2.zero;
         }
 
+        /// <summary>Fixed-size box pinned to a point of its parent: (ax, ay) is both anchor and pivot, (x, y) the offset from it.</summary>
+        public static RectTransform Pin(RectTransform rt, float ax, float ay, float x, float y, float w, float h)
+        {
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(ax, ay);
+            rt.anchoredPosition = new Vector2(x, y);
+            rt.sizeDelta = new Vector2(w, h);
+            return rt;
+        }
+
         /// <summary>Flat filled rectangle; radius &gt; 0 gives softly rounded corners.</summary>
         public static Image Box(Transform parent, string name, Color color, int radius = 0)
         {

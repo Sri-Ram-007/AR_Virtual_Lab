@@ -76,6 +76,8 @@ namespace ARVirtualLab.AR
 
         // UI
         private GameObject _canvasGO;
+        private CanvasScaler _scaler;
+        private bool _layoutLandscape;
         private Image _statusBg;
         private TextMeshProUGUI _statusText;
         private Button _placeBtn, _moveBtn, _cancelBtn, _exitBtn;
@@ -349,6 +351,7 @@ namespace ARVirtualLab.AR
         private void Update()
         {
             if (_statusHideAt > 0f && Time.unscaledTime >= _statusHideAt) { _statusBg.gameObject.SetActive(false); _statusHideAt = -1f; }
+            if (_scaler != null && IsLandscape() != _layoutLandscape) ApplyLayout(IsLandscape());   // the phone was turned
             if (_arCamera == null || _raycastManager == null) return;
             if (_phase == Phase.Failed || _phase == Phase.Starting) return;
 
@@ -561,16 +564,15 @@ namespace ARVirtualLab.AR
             var canvas = _canvasGO.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 30;
-            var scaler = _canvasGO.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080f, 1920f);
-            scaler.matchWidthOrHeight = 0.5f;
+            _scaler = _canvasGO.AddComponent<CanvasScaler>();
+            _scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            _scaler.matchWidthOrHeight = 0.5f;
             _canvasGO.AddComponent<GraphicRaycaster>();
             var safe = UiKit.Node(_canvasGO.transform, "Safe");
             UiKit.Fill(safe);
+            safe.gameObject.AddComponent<ARVirtualLab.AppShell.SafeAreaHelper>();
 
             _statusBg = UiKit.Box(safe, "Status", EduTheme.Paper, 28);
-            UiKit.Anchor(_statusBg.rectTransform, 0.06f, 0.715f, 0.94f, 0.795f);
             _statusBg.raycastTarget = false;
             _statusText = UiKit.Text(_statusBg.transform, "Text", "", 30, EduTheme.Ink, FontStyles.Bold, TextAlignmentOptions.Center);
             UiKit.Fill(_statusText.rectTransform);
@@ -579,23 +581,52 @@ namespace ARVirtualLab.AR
             _statusText.enableAutoSizing = true; _statusText.fontSizeMin = 24f; _statusText.fontSizeMax = 32f;
 
             _placeBtn = UiKit.Button(safe, "PlaceHere", "Place lab here", EduTheme.Teal, Color.white, 38, 22);
-            UiKit.Anchor(_placeBtn.GetComponent<RectTransform>(), 0.20f, 0.20f, 0.80f, 0.265f);
             _placeBtn.onClick.AddListener(() => { if (_reticleOnPlane) PlaceLab(_reticlePose); });
             _placeBtn.gameObject.SetActive(false);
 
             _moveBtn = UiKit.Button(safe, "MoveLab", "Move lab", EduTheme.Neutral, EduTheme.Ink, 32, 18);
-            UiKit.Anchor(_moveBtn.GetComponent<RectTransform>(), 0.05f, 0.105f, 0.47f, 0.165f);
             _moveBtn.onClick.AddListener(() => { _phase = Phase.Repositioning; _blockPlacing = true; RefreshButtons(); SetStatus("Aim at a new spot and tap to move the lab", false); });
 
             _cancelBtn = UiKit.Button(safe, "CancelMove", "Keep here", EduTheme.Neutral, EduTheme.Ink, 32, 18);
-            UiKit.Anchor(_cancelBtn.GetComponent<RectTransform>(), 0.05f, 0.105f, 0.47f, 0.165f);
             _cancelBtn.onClick.AddListener(() => { _phase = Phase.Placed; _blockPlacing = false; _blockPinch = false; _reticle.SetActive(false); RefreshButtons(); _statusBg.gameObject.SetActive(false); });
 
             _exitBtn = UiKit.Button(safe, "ExitAR", "Exit AR", EduTheme.Red, Color.white, 32, 18);
-            UiKit.Anchor(_exitBtn.GetComponent<RectTransform>(), 0.53f, 0.105f, 0.95f, 0.165f);
             _exitBtn.onClick.AddListener(Stop);
 
+            ApplyLayout(IsLandscape());
             RefreshButtons();
+        }
+
+        private static bool IsLandscape() { return Screen.width > Screen.height; }
+
+        /// <summary>
+        /// Landscape matches the experiments' landscape HUD: top-centre and bottom-centre are free, and the
+        /// bottom-right corner is reserved for the AR buttons (the experiment lifts its own buttons above them).
+        /// </summary>
+        private void ApplyLayout(bool landscape)
+        {
+            _layoutLandscape = landscape;
+            _scaler.referenceResolution = landscape ? new Vector2(1920f, 1080f) : new Vector2(1080f, 1920f);
+            var place = _placeBtn.GetComponent<RectTransform>();
+            var move = _moveBtn.GetComponent<RectTransform>();
+            var cancel = _cancelBtn.GetComponent<RectTransform>();
+            var exit = _exitBtn.GetComponent<RectTransform>();
+            if (landscape)
+            {
+                UiKit.Pin(_statusBg.rectTransform, 0.5f, 1f, 0f, -40f, 600f, 110f);
+                UiKit.Pin(place, 0.5f, 0f, 0f, 40f, 440f, 96f);
+                UiKit.Pin(move, 1f, 0f, -256f, 32f, 200f, 80f);
+                UiKit.Pin(cancel, 1f, 0f, -256f, 32f, 200f, 80f);
+                UiKit.Pin(exit, 1f, 0f, -40f, 32f, 200f, 80f);
+            }
+            else
+            {
+                UiKit.Anchor(_statusBg.rectTransform, 0.06f, 0.715f, 0.94f, 0.795f);
+                UiKit.Anchor(place, 0.20f, 0.20f, 0.80f, 0.265f);
+                UiKit.Anchor(move, 0.05f, 0.105f, 0.47f, 0.165f);
+                UiKit.Anchor(cancel, 0.05f, 0.105f, 0.47f, 0.165f);
+                UiKit.Anchor(exit, 0.53f, 0.105f, 0.95f, 0.165f);
+            }
         }
 
         private void RefreshButtons()
