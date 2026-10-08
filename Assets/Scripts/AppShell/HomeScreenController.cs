@@ -29,6 +29,13 @@ namespace ARVirtualLab.AppShell
 
         private void Start()
         {
+            if (_reopenSettings)
+            {
+                _reopenSettings = false;
+                _splash.gameObject.SetActive(false);
+                _settingsPanel.SetActive(true);
+                return;
+            }
             StartCoroutine(SplashRoutine());
         }
 
@@ -78,6 +85,7 @@ namespace ARVirtualLab.AppShell
             BuildScanBar(safe);
 
             BuildLoadingOverlay(canvasGO.transform);
+            BuildSettingsPanel(safe);
             BuildSplash(canvasGO.transform);
         }
 
@@ -94,9 +102,79 @@ namespace ARVirtualLab.AppShell
             line.rectTransform.anchoredPosition = Vector2.zero;
 
             var title = UiKit.Text(header.transform, "Title", "Virtual Science Lab", 54, EduTheme.Ink, FontStyles.Bold, TextAlignmentOptions.BottomLeft);
-            UiKit.Anchor(title.rectTransform, 0.05f, 0.42f, 0.95f, 0.92f);
+            UiKit.Anchor(title.rectTransform, 0.05f, 0.42f, 0.84f, 0.92f);
             var sub = UiKit.Text(header.transform, "Subtitle", "Class 10  ·  Physical Science  ·  Andhra Pradesh", 29, EduTheme.InkSoft, FontStyles.Normal, TextAlignmentOptions.TopLeft);
-            UiKit.Anchor(sub.rectTransform, 0.05f, 0.10f, 0.95f, 0.42f);
+            UiKit.Anchor(sub.rectTransform, 0.05f, 0.10f, 0.84f, 0.42f);
+
+            var gear = UiKit.Button(header.transform, "SettingsButton", "", EduTheme.Neutral, EduTheme.Ink, 30, 52);
+            UiKit.Pin(gear.GetComponent<RectTransform>(), 1f, 0.5f, -40f, 4f, 104f, 104f);
+            var icon = UiKit.Box(gear.transform, "Icon", EduTheme.InkSoft);
+            icon.sprite = UiKit.GearSprite();
+            UiKit.Fill(icon.rectTransform);
+            icon.rectTransform.offsetMin = new Vector2(22f, 22f);
+            icon.rectTransform.offsetMax = new Vector2(-22f, -22f);
+            gear.onClick.AddListener(() => _settingsPanel.SetActive(true));
+        }
+
+        // ── settings ──────────────────────────────────────────
+        private GameObject _settingsPanel;
+        private static bool _reopenSettings;      // a change rebuilds the screen; keep the panel open across it
+
+        private void BuildSettingsPanel(Transform parent)
+        {
+            var scrim = UiKit.Box(parent, "SettingsScrim", new Color(0.05f, 0.08f, 0.10f, 0.60f));
+            UiKit.Fill(scrim.rectTransform);
+            scrim.raycastTarget = true;
+            var closeOutside = scrim.gameObject.AddComponent<Button>();
+            closeOutside.transition = Selectable.Transition.None;
+            closeOutside.onClick.AddListener(() => _settingsPanel.SetActive(false));
+            _settingsPanel = scrim.gameObject;
+
+            var fill = UiKit.Card(scrim.transform, "SettingsCard", 32);
+            var border = fill.transform.parent.GetComponent<Image>();
+            border.raycastTarget = true;              // taps on the card must not bubble up to the scrim and close it
+            border.gameObject.AddComponent<Button>().transition = Selectable.Transition.None;
+            UiKit.Pin(border.rectTransform, 0.5f, 0.5f, 0f, 0f, 920f, 520f);
+            var card = fill.rectTransform;
+
+            var title = UiKit.Text(card, "Title", "Settings", 48, EduTheme.Ink, FontStyles.Bold, TextAlignmentOptions.MidlineLeft);
+            UiKit.Pin(title.rectTransform, 0f, 1f, 50f, -36f, 600f, 90f);
+
+            AddChoiceRow(card, -170f, "Theme", "Light", "Dark", AppSettings.DarkMode, dark =>
+            {
+                if (dark == AppSettings.DarkMode) return;
+                AppSettings.DarkMode = dark;
+                Rebuild();
+            });
+
+            var close = UiKit.Button(card, "Close", "Close", EduTheme.Neutral, EduTheme.Ink, 32, 18);
+            UiKit.Pin(close.GetComponent<RectTransform>(), 0.5f, 0f, 0f, 40f, 300f, 96f);
+            close.onClick.AddListener(() => _settingsPanel.SetActive(false));
+
+            _settingsPanel.SetActive(false);
+        }
+
+        // Label on the left, two options on the right; the selected one is filled teal
+        private static void AddChoiceRow(RectTransform card, float y, string label, string first, string second,
+            bool secondSelected, System.Action<bool> onPick)
+        {
+            var lab = UiKit.Text(card, label + "Label", label, 36, EduTheme.Ink, FontStyles.Bold, TextAlignmentOptions.MidlineLeft);
+            UiKit.Pin(lab.rectTransform, 0f, 1f, 50f, y, 330f, 96f);
+            for (int i = 0; i < 2; i++)
+            {
+                bool isSecond = i == 1;
+                bool selected = isSecond == secondSelected;
+                var btn = UiKit.Button(card, label + "Option" + i, isSecond ? second : first,
+                    selected ? EduTheme.Teal : EduTheme.Neutral, selected ? Color.white : EduTheme.Ink, 32, 18);
+                UiKit.Pin(btn.GetComponent<RectTransform>(), 1f, 1f, isSecond ? -50f : -290f, y, 220f, 96f);
+                btn.onClick.AddListener(() => onPick(isSecond));
+            }
+        }
+
+        private static void Rebuild()
+        {
+            _reopenSettings = true;
+            UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
         }
 
         private void BuildBody(Transform parent)
@@ -242,7 +320,8 @@ namespace ARVirtualLab.AppShell
         // ── loading + splash ──────────────────────────────────
         private void BuildLoadingOverlay(Transform parent)
         {
-            var overlay = UiKit.Box(parent, "LoadingOverlay", new Color(1f, 1f, 1f, 0.97f));
+            var paper = EduTheme.Paper;
+            var overlay = UiKit.Box(parent, "LoadingOverlay", new Color(paper.r, paper.g, paper.b, 0.97f));
             UiKit.Fill(overlay.rectTransform);
             overlay.raycastTarget = true;
             _loadingOverlay = overlay.gameObject;

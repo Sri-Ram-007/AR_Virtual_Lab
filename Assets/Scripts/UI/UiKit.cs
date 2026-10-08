@@ -106,6 +106,30 @@ namespace ARVirtualLab.UI
             return fill;      // children go on the white fill; its parent is the border
         }
 
+        private static Sprite _gear;
+
+        /// <summary>White gear icon (tint it through Image.color).</summary>
+        public static Sprite GearSprite()
+        {
+            if (_gear != null) return _gear;
+            const int N = 128;
+            var tex = new Texture2D(N, N, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            float px = 2f / N;                                                  // one pixel, for anti-aliasing
+            for (int y = 0; y < N; y++)
+            for (int x = 0; x < N; x++)
+            {
+                float dx = (x + 0.5f) / N * 2f - 1f, dy = (y + 0.5f) / N * 2f - 1f;
+                float r = Mathf.Sqrt(dx * dx + dy * dy);
+                float tooth = Mathf.Clamp01((Mathf.Cos(Mathf.Atan2(dy, dx) * 8f) - 0.35f) * 3f);   // 8 flat-topped teeth
+                float body = Mathf.Clamp01((0.70f + 0.20f * tooth - r) / px + 0.5f);
+                float hole = Mathf.Clamp01((r - 0.30f) / px + 0.5f);
+                tex.SetPixel(x, y, new Color(1f, 1f, 1f, body * hole));
+            }
+            tex.Apply();
+            _gear = Sprite.Create(tex, new Rect(0f, 0f, N, N), new Vector2(0.5f, 0.5f), 100f);
+            return _gear;
+        }
+
         public static LayoutElement Size(Component c, float width = -1f, float height = -1f)
         {
             var le = c.GetComponent<LayoutElement>();

@@ -418,7 +418,9 @@ namespace ARVirtualLab.Lab
             _cam.transform.position = new Vector3(0f, 1.05f, -0.84f);
             _cam.transform.rotation = Quaternion.Euler(51f, 0f, 0f);
             _cam.fieldOfView        = 48f;
-            _cam.backgroundColor    = new Color(0.70f, 0.77f, 0.80f, 1f);   // a softer, less glaring backdrop than the other labs
+            _cam.backgroundColor    = ARVirtualLab.UI.EduTheme.Dark
+                ? new Color(0.13f, 0.17f, 0.20f, 1f)
+                : new Color(0.70f, 0.77f, 0.80f, 1f);   // a softer, less glaring backdrop than the other labs
             _cam.clearFlags         = CameraClearFlags.SolidColor;
             _cam.nearClipPlane      = 0.01f;
             _cam.farClipPlane       = 100f;

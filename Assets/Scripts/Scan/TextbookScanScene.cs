@@ -139,7 +139,8 @@ namespace ARVirtualLab.Scan
 
         private void BuildTopBar(Transform parent)
         {
-            var bar = UiKit.Box(parent, "TopBar", new Color(1f, 1f, 1f, 0.96f));
+            var paper = EduTheme.Paper;
+            var bar = UiKit.Box(parent, "TopBar", new Color(paper.r, paper.g, paper.b, 0.96f));
             UiKit.Anchor(bar.rectTransform, 0f, 0.925f, 1f, 1f);
             bar.raycastTarget = true;
             var line = UiKit.Box(bar.transform, "Line", EduTheme.Teal);

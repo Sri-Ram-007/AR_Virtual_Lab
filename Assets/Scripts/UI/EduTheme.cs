@@ -16,31 +16,45 @@ namespace ARVirtualLab.UI
     public static class EduTheme
     {
         // ── Palette ────────────────────────────────────────────
-        public static readonly Color Page      = new Color32(0xF1, 0xF6, 0xF7, 0xFF);   // screen background
-        public static readonly Color Paper     = new Color32(0xFF, 0xFF, 0xFF, 0xFF);   // cards
-        public static readonly Color PaperTint = new Color32(0xEC, 0xF2, 0xF4, 0xFF);   // boxes inside cards
-        public static readonly Color Border    = new Color32(0xCF, 0xDA, 0xDF, 0xFF);
-        public static readonly Color Ink       = new Color32(0x1F, 0x29, 0x33, 0xFF);   // main text
-        public static readonly Color InkSoft   = new Color32(0x4B, 0x5B, 0x68, 0xFF);   // secondary text
-        public static readonly Color InkFaint  = new Color32(0x7B, 0x87, 0x94, 0xFF);
+        // Every colour has a light and a dark value; screens read them when built, so a theme change takes
+        // effect when the screen is rebuilt (the settings panel reloads the scene).
+        public static bool Dark { get { return ARVirtualLab.AppShell.AppSettings.DarkMode; } }
 
-        public static readonly Color Teal      = new Color32(0x2B, 0x9A, 0xA0, 0xFF);   // textbook footer bar
-        public static readonly Color TealDark  = new Color32(0x1E, 0x7A, 0x80, 0xFF);
-        public static readonly Color TealTint  = new Color32(0xE3, 0xF2, 0xF3, 0xFF);
-        public static readonly Color Blue      = new Color32(0x1E, 0x7F, 0xC0, 0xFF);   // "Activity" bars
-        public static readonly Color BlueDark  = new Color32(0x1A, 0x62, 0x98, 0xFF);
-        public static readonly Color BlueTint  = new Color32(0xE4, 0xF0, 0xF9, 0xFF);
-        public static readonly Color Orange    = new Color32(0xD9, 0x7A, 0x22, 0xFF);
-        public static readonly Color Green     = new Color32(0x3B, 0x94, 0x58, 0xFF);
-        public static readonly Color Red       = new Color32(0xC4, 0x47, 0x3A, 0xFF);
-        public static readonly Color Neutral   = new Color32(0xE2, 0xEA, 0xEE, 0xFF);   // quiet buttons
+        private static Color Pick(uint light, uint dark)
+        {
+            uint v = Dark ? dark : light;
+            return new Color32((byte)(v >> 16), (byte)(v >> 8), (byte)v, 0xFF);
+        }
+
+        public static Color Page      { get { return Pick(0xF1F6F7, 0x11181B); } }   // screen background
+        public static Color Paper     { get { return Pick(0xFFFFFF, 0x1B2429); } }   // cards
+        public static Color PaperTint { get { return Pick(0xECF2F4, 0x243038); } }   // boxes inside cards
+        public static Color Border    { get { return Pick(0xCFDADF, 0x33434C); } }
+        public static Color Ink       { get { return Pick(0x1F2933, 0xE6EDF0); } }   // main text
+        public static Color InkSoft   { get { return Pick(0x4B5B68, 0xAEBBC4); } }   // secondary text
+        public static Color InkFaint  { get { return Pick(0x7B8794, 0x84929C); } }
+
+        public static Color Teal      { get { return Pick(0x2B9AA0, 0x2B9AA0); } }   // textbook footer bar
+        public static Color TealDark  { get { return Pick(0x1E7A80, 0x5CC3C8); } }   // also used for headings, so lighter in dark
+        public static Color TealTint  { get { return Pick(0xE3F2F3, 0x173A3D); } }
+        public static Color Blue      { get { return Pick(0x1E7FC0, 0x2B88C8); } }   // "Activity" bars
+        public static Color BlueDark  { get { return Pick(0x1A6298, 0x8CC2EC); } }
+        public static Color BlueTint  { get { return Pick(0xE4F0F9, 0x1B3346); } }
+        public static Color Orange    { get { return Pick(0xD97A22, 0xD97A22); } }
+        public static Color Green     { get { return Pick(0x3B9458, 0x3B9458); } }
+        public static Color Red       { get { return Pick(0xC4473A, 0xC4473A); } }
+        public static Color Neutral   { get { return Pick(0xE2EAEE, 0x2D3A42); } }   // quiet buttons
 
         // step-progress pills
-        public static readonly Color PillIdle   = new Color32(0xD5, 0xDF, 0xE4, 0xFF);
-        public static readonly Color PillActive = Teal;
-        public static readonly Color PillDone   = Green;
+        public static Color PillIdle   { get { return Pick(0xD5DFE4, 0x34434B); } }
+        public static Color PillActive { get { return Teal; } }
+        public static Color PillDone   { get { return Green; } }
 
-        public static readonly Color CameraBackground = new Color32(0xE9, 0xF0, 0xF2, 0xFF);
+        public static Color CameraBackground { get { return Pick(0xE9F0F2, 0x151D21); } }
+
+        // coloured headings on paper
+        private static Color HeadingOrange { get { return Pick(0xB85F12, 0xF0A35E); } }
+        private static Color HeadingGreen  { get { return Pick(0x2E8B4E, 0x6CC88C); } }
 
         public const string GreenHex = "#2E8B4E";
         public const string RedHex   = "#C4473A";
@@ -127,9 +141,13 @@ namespace ARVirtualLab.UI
         {
             Color c = t.color;
             float h, s, v; Color.RGBToHSV(c, out h, out s, out v);
-            float bgLum = Luminance(EffectiveBackground(t.transform));
+            Color bg = EffectiveBackground(t.transform);
+            float bh, bs, bv; Color.RGBToHSV(bg, out bh, out bs, out bv);
 
-            if (bgLum < 0.62f)                        // sits on a saturated button / chip
+            // sits on a saturated button / chip. (In dark mode the cards themselves are dark, so luminance
+            // alone would turn every label white; saturation tells a coloured chip from a dark card.)
+            bool onChip = Dark ? (bs > 0.35f && bv > 0.3f) : Luminance(bg) < 0.62f;
+            if (onChip)
             {
                 t.color = Color.white;
                 return;
@@ -138,8 +156,8 @@ namespace ARVirtualLab.UI
             if (s > 0.35f && v > 0.5f)                // a coloured heading
             {
                 if (h < 0.04f || h > 0.94f) t.color = Red;
-                else if (h < 0.16f) t.color = new Color32(0xB8, 0x5F, 0x12, 0xFF);
-                else if (h < 0.46f) t.color = new Color32(0x2E, 0x8B, 0x4E, 0xFF);
+                else if (h < 0.16f) t.color = HeadingOrange;
+                else if (h < 0.46f) t.color = HeadingGreen;
                 else if (h < 0.56f) t.color = TealDark;
                 else if (h < 0.68f) t.color = BlueDark;
                 else t.color = TealDark;
@@ -153,7 +171,8 @@ namespace ARVirtualLab.UI
             }
             else if (v <= 0.5f && c.a > 0.5f && Luminance(c) < 0.3f)
             {
-                // already dark (e.g. set explicitly) – leave alone
+                // already dark (e.g. set explicitly): fine on paper, unreadable on dark paper
+                if (Dark) t.color = Ink;
             }
         }
 
