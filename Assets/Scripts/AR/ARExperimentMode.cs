@@ -36,7 +36,7 @@ namespace ARVirtualLab.AR
         public GameObject Bench;                    // the virtual table, hidden in AR (the real table is used)
         public float BenchSurfaceY;                 // world height of the bench top
         public float BenchCenterZ;                  // world z of the middle of the apparatus
-        public float DefaultScale = 1.6f;           // how much larger than life the lab is shown
+        public float DefaultScale = 0f;             // 0 = size the lab to the table automatically (FitScale)
         public Action<Camera> OnStarted;            // hand the experiment the AR camera
         public Action<Camera> OnStopped;            // hand it back the normal camera
     }
@@ -87,7 +87,8 @@ namespace ARVirtualLab.AR
 
         // The lab is shown larger than life so it reads well on a phone: world = tracking x (1 / _arScale).
         private float _arScale = 1.6f;
-        private const float MinScale = 0.8f, MaxScale = 3.5f;
+        private const float MinScale = 0.25f, MaxScale = 3.5f;
+        private const float TargetFootprint = 0.40f;   // m of real table the apparatus first covers; pinch to change
         private Vector3 _anchorTracking;       // the tapped surface point, in tracking space
         private float _anchorYaw;
         private bool _pinching;
@@ -104,8 +105,30 @@ namespace ARVirtualLab.AR
             var go = new GameObject("ARExperimentMode");
             _instance = go.AddComponent<ARExperimentMode>();
             _instance._setup = setup;
-            _instance._arScale = setup.DefaultScale > 0f ? setup.DefaultScale : 1.6f;
+            _instance._arScale = setup.DefaultScale > 0f ? setup.DefaultScale : FitScale(setup);
             _instance.StartCoroutine(_instance.Run());
+        }
+
+        /// <summary>
+        /// The magnification that makes the apparatus (not the virtual bench) cover TargetFootprint of the real table,
+        /// so every experiment starts at a sensible size whatever the size of its models.
+        /// </summary>
+        private static float FitScale(ARExperimentSetup setup)
+        {
+            if (setup.SceneRoot == null) return 1f;
+            bool any = false;
+            Bounds b = default(Bounds);
+            foreach (var r in setup.SceneRoot.GetComponentsInChildren<Renderer>())
+            {
+                if (!(r is MeshRenderer || r is SkinnedMeshRenderer) || !r.enabled) continue;
+                if (setup.Bench != null && r.transform.IsChildOf(setup.Bench.transform)) continue;
+                if (r.GetComponentInParent<Canvas>() != null) continue;
+                if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds);
+            }
+            float footprint = any ? Mathf.Max(b.size.x, b.size.z) : 0f;
+            float scale = footprint > 0.01f ? TargetFootprint / footprint : 1f;
+            Debug.Log("[ARMode] apparatus footprint " + footprint.ToString("F2") + " m -> starting size x" + scale.ToString("F2"));
+            return Mathf.Clamp(scale, MinScale, MaxScale);
         }
 
         public static void End()
@@ -177,24 +200,10 @@ namespace ARVirtualLab.AR
 
         private IEnumerator RequestCameraPermission()
         {
-#if UNITY_ANDROID
-            if (Application.isEditor || Permission.HasUserAuthorizedPermission(Permission.Camera)) yield break;
-            bool granted = false, denied = false;
-            var cb = new PermissionCallbacks();
-            cb.PermissionGranted += _ => granted = true;
-            cb.PermissionDenied += _ => denied = true;
-            Permission.RequestUserPermission(Permission.Camera, cb);
-            float t = 0f;
-            while (!granted && !denied && t < 20f)
-            {
-                t += Time.unscaledDeltaTime;
-                if (Permission.HasUserAuthorizedPermission(Permission.Camera)) granted = true;
-                yield return null;
-            }
+            bool granted = false;
+            yield return ARVirtualLab.AppShell.CameraPermission.Request(
+                "EduAR uses the camera to place the lab on a real table in front of you.", g => granted = g);
             if (!granted) Fail("Camera permission is needed for AR. Allow it in the phone settings.");
-#else
-            yield break;
-#endif
         }
 
         private void Fail(string message)

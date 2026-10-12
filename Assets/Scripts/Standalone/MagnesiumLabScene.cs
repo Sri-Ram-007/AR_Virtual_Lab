@@ -316,7 +316,6 @@ namespace ARVirtualLab.Lab
                 Bench = _table,
                 BenchSurfaceY = 0f,
                 BenchCenterZ = 0f,
-                DefaultScale = 2.6f,        // its apparatus is much smaller than the other experiments
                 OnStarted = c => { _cam = c; },
                 OnStopped = c => { _cam = c; }
             });
@@ -2930,6 +2929,13 @@ namespace ARVirtualLab.Lab
 
             // Reset Confirmation Dialog
             BuildResetConfirmationDialog(root);
+
+            // Android back closes an open info panel before it leaves the experiment
+            foreach (var p in new[] { _obsPanel, _eqPanel, _resultPanel, _safetyPanel, _aboutPanel, _resetConfirmDialog })
+            {
+                var panel = p;
+                ARVirtualLab.AppShell.BackButton.Register(panel, () => { panel.SetActive(false); return true; });
+            }
         }
 
         private void BuildResetConfirmationDialog(RectTransform root)
