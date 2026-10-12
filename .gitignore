@@ -69,3 +69,6 @@ Desktop.ini
 # Localization tool output (regenerate with Tools/Localization/extract_strings.py)
 Tools/Localization/te_missing.txt
 Tools/Localization/te_missing_runtime.txt
+
+# Shared signing key for test builds: never commit it, pass it on privately (see AndroidBuildRunner.cs)
+/Signing/

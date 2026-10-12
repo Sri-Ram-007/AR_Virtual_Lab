@@ -13,6 +13,16 @@ namespace ARVirtualLab.Editor
 {
     public static class AndroidBuildRunner
     {
+        // ── App identity, applied on every build ──────────────
+        // The package name identifies the app on a phone: an APK with a different one installs as a separate app,
+        // and once the app is on the Play Store it can never change. Raise VersionCode for every APK handed out,
+        // otherwise Android refuses to install it over the previous one.
+        public const string AppName     = "EduAR";
+        public const string CompanyName = "EduAR";
+        public const string PackageName = "com.eduar.virtuallab";
+        public const string Version     = "0.2.0";
+        public const int    VersionCode = 2;
+
         // adb from the Android SDK Unity is configured with, so Build And Run works on Windows and macOS alike
         private static string ADB_PATH
         {
@@ -44,10 +54,18 @@ namespace ARVirtualLab.Editor
             // 1. Ensure build output directory
             string buildDir = "Builds/Android";
             if (!Directory.Exists(buildDir)) Directory.CreateDirectory(buildDir);
-            string apkPath = Path.GetFullPath(Path.Combine(buildDir, "ARVirtualLab.apk"));
+            string apkPath = Path.GetFullPath(Path.Combine(buildDir, AppName + "-" + Version + ".apk"));
 
             // 2. Configure Build Target & Settings
             EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
+
+            PlayerSettings.productName = AppName;
+            PlayerSettings.companyName = CompanyName;
+            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, PackageName);
+            PlayerSettings.bundleVersion = Version;
+            PlayerSettings.Android.bundleVersionCode = VersionCode;
+            ApplyIcons(sb);
+            ApplySigning(sb);
 
             ARPluginConfiguration.ConfigureXRAndARPlugins();
 
@@ -58,7 +76,7 @@ namespace ARVirtualLab.Editor
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android, false);
             PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, new[] { UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3 });
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
-            // Engine diagnostics are on in the project, and they need native symbols to read crash stack traces
+            // Native symbols stay on this computer (next to the APK): they turn a tester's crash log into readable stack traces
             UnityEditor.Android.UserBuildSettings.DebugSymbols.level = Unity.Android.Types.DebugSymbolLevel.SymbolTable;
 
             // 3. Configure Scenes
@@ -127,6 +145,62 @@ namespace ARVirtualLab.Editor
 
             UnityEngine.Debug.Log(sb.ToString());
             File.WriteAllText("android_build_report.txt", sb.ToString());
+        }
+
+        // Icons in Assets/Art/Icon: adaptive (background + foreground inside the safe zone), round and classic
+        private static void ApplyIcons(StringBuilder sb)
+        {
+            const string dir = "Assets/Art/Icon/";
+            var square = AssetDatabase.LoadAssetAtPath<Texture2D>(dir + "eduar_icon.png");
+            var round = AssetDatabase.LoadAssetAtPath<Texture2D>(dir + "eduar_icon_round.png");
+            var background = AssetDatabase.LoadAssetAtPath<Texture2D>(dir + "eduar_icon_background.png");
+            var foreground = AssetDatabase.LoadAssetAtPath<Texture2D>(dir + "eduar_icon_foreground.png");
+            if (square == null || round == null || background == null || foreground == null)
+            {
+                sb.AppendLine("[ICON] icon images missing in " + dir + ", keeping the current icons");
+                return;
+            }
+            var android = NamedBuildTarget.Android;
+            void Fill(PlatformIconKind kind, params Texture2D[] layers)
+            {
+                var icons = PlayerSettings.GetPlatformIcons(android, kind);
+                foreach (var icon in icons) icon.SetTextures(layers);
+                PlayerSettings.SetPlatformIcons(android, kind, icons);
+            }
+            Fill(UnityEditor.Android.AndroidPlatformIconKind.Adaptive, background, foreground);
+            Fill(UnityEditor.Android.AndroidPlatformIconKind.Round, round);
+            Fill(UnityEditor.Android.AndroidPlatformIconKind.Legacy, square);
+            sb.AppendLine("Icons: adaptive, round and legacy from " + dir);
+        }
+
+        // ── Signing ───────────────────────────────────────────
+        // Every computer has its own debug key, and Android refuses to install an APK signed with a different key over
+        // the one on the phone. Builds from different computers become interchangeable when they share one keystore.
+        // The keystore and its passwords stay OUT of git (Signing/ is ignored): pass them on privately.
+        //   Signing/eduar-test.keystore
+        //   Signing/signing.local.json  {"keystorePass": "...", "keyAlias": "eduar", "keyAliasPass": "..."}
+        private const string KeystorePath = "Signing/eduar-test.keystore";
+        private const string SigningConfigPath = "Signing/signing.local.json";
+
+        [Serializable]
+        private class SigningConfig { public string keystorePass; public string keyAlias; public string keyAliasPass; }
+
+        private static void ApplySigning(StringBuilder sb)
+        {
+            if (!File.Exists(KeystorePath) || !File.Exists(SigningConfigPath))
+            {
+                PlayerSettings.Android.useCustomKeystore = false;
+                sb.AppendLine("[SIGNING] no shared keystore in Signing/: signed with this computer's debug key " +
+                              "(phones with a build from another computer must uninstall it first)");
+                return;
+            }
+            var cfg = JsonUtility.FromJson<SigningConfig>(File.ReadAllText(SigningConfigPath));
+            PlayerSettings.Android.useCustomKeystore = true;
+            PlayerSettings.Android.keystoreName = Path.GetFullPath(KeystorePath);
+            PlayerSettings.Android.keystorePass = cfg.keystorePass;
+            PlayerSettings.Android.keyaliasName = cfg.keyAlias;
+            PlayerSettings.Android.keyaliasPass = cfg.keyAliasPass;
+            sb.AppendLine("Signing: shared keystore " + KeystorePath + " (alias " + cfg.keyAlias + ")");
         }
 
         private static void DeployAndLaunch(string apkPath, StringBuilder sb)
