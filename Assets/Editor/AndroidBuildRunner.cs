@@ -58,6 +58,8 @@ namespace ARVirtualLab.Editor
                 "Assets/Scenes/MagnesiumLabScene.unity",
                 "Assets/Scenes/HydrogenLabScene.unity",
                 "Assets/Scenes/HydrogenGasTestScene.unity",
+                "Assets/Scenes/ElectrolysisScene.unity",
+                "Assets/Scenes/AcidConductivityScene.unity",
                 "Assets/Scenes/TextbookScanScene.unity"
             };
             var scenes = new EditorBuildSettingsScene[scenePaths.Length];

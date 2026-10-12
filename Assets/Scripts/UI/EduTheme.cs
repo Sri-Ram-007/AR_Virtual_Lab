@@ -44,6 +44,7 @@ namespace ARVirtualLab.UI
         public static Color Green     { get { return Pick(0x3B9458, 0x3B9458); } }
         public static Color Red       { get { return Pick(0xC4473A, 0xC4473A); } }
         public static Color Neutral   { get { return Pick(0xE2EAEE, 0x2D3A42); } }   // quiet buttons
+        public static Color PurpleAR  { get { return Pick(0x6D4AA8, 0x6D4AA8); } }   // "AR Lab" buttons
 
         // step-progress pills
         public static Color PillIdle   { get { return Pick(0xD5DFE4, 0x34434B); } }

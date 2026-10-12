@@ -18,6 +18,12 @@ EditorBuildSettings:
     path: Assets/Scenes/HydrogenGasTestScene.unity
     guid: e4a71b29d84f47e2a9b3c51f98d02e65
   - enabled: 1
+    path: Assets/Scenes/ElectrolysisScene.unity
+    guid: dcc517c0d0ad03d48afb68f4b8b9b7d8
+  - enabled: 1
+    path: Assets/Scenes/AcidConductivityScene.unity
+    guid: 95c161176a2af3c47a08f68384d3aab7
+  - enabled: 1
     path: Assets/Scenes/TextbookScanScene.unity
     guid: 57e07196b5c6ca748b5cb6e0aff33c7d
   m_configObjects:
