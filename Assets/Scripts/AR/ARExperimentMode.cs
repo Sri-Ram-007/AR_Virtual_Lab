@@ -79,10 +79,12 @@ namespace ARVirtualLab.AR
         private CanvasScaler _scaler;
         private bool _layoutLandscape;
         private Image _statusBg;
-        private TextMeshProUGUI _statusText;
+        private TextMeshProUGUI _statusText, _diagText;
+        private Image _diagBg;
+        private float _scanStart, _nextTip;
         private Button _placeBtn, _moveBtn, _cancelBtn, _exitBtn;
         private float _statusHideAt = -1f;
-        private float _nextLog;
+        private float _nextLog, _nextDiag;
         private static Texture2D _ringTex;
 
         // The lab is shown larger than life so it reads well on a phone: world = tracking x (1 / _arScale).
@@ -194,6 +196,7 @@ namespace ARVirtualLab.AR
             if (_setup.OnStarted != null) _setup.OnStarted(_arCamera);
 
             _phase = Phase.Scanning;
+            _scanStart = Time.unscaledTime;
             Debug.Log("[ARMode] scanning for a flat surface");
             SetStatus("Move your phone slowly over a table or the floor to find a flat surface", false);
         }
@@ -359,6 +362,15 @@ namespace ARVirtualLab.AR
         private void Update()
         {
             if (_statusHideAt > 0f && Time.unscaledTime >= _statusHideAt) { _statusBg.gameObject.SetActive(false); _statusHideAt = -1f; }
+            if (_diagBg != null) _diagBg.gameObject.SetActive(_phase != Phase.Placed);    // only needed while setting up
+            if (_diagText != null && Time.unscaledTime >= _nextDiag)
+            {
+                _nextDiag = Time.unscaledTime + 0.5f;
+                string loader = "none";
+                try { var m = UnityEngine.XR.Management.XRGeneralSettings.Instance?.Manager; if (m != null && m.activeLoader != null) loader = m.activeLoader.name; } catch { }
+                _diagText.text = "session " + ARSession.state + "  |  pose " + (_poseDriver != null ? _poseDriver.Source : "-") +
+                                 "  |  planes " + (_planeManager != null ? _planeManager.trackables.count : 0) + "  |  xr " + loader + "  |  " + _phase;
+            }
             if (_scaler != null && IsLandscape() != _layoutLandscape) ApplyLayout(IsLandscape());   // the phone was turned
             if (_arCamera == null || _raycastManager == null) return;
             if (_phase == Phase.Failed || _phase == Phase.Starting) return;
@@ -391,6 +403,11 @@ namespace ARVirtualLab.AR
                 {
                     _phase = Phase.Ready;
                     SetStatus("Surface found. Aim at the spot you want and tap to place the lab", false);
+                }
+                else if (_phase == Phase.Scanning && Time.unscaledTime - _scanStart > 8f && Time.unscaledTime >= _nextTip)
+                {
+                    _nextTip = Time.unscaledTime + 8f;
+                    SetStatus("Still searching. Sweep the phone slowly side to side over a plain, well-lit table or floor, about 1 metre away", false);
                 }
                 if (_placeBtn != null) _placeBtn.gameObject.SetActive(_reticleOnPlane);
 
@@ -588,6 +605,16 @@ namespace ARVirtualLab.AR
             _statusText.rectTransform.offsetMax = new Vector2(-24f, -6f);
             _statusText.enableAutoSizing = true; _statusText.fontSizeMin = 24f; _statusText.fontSizeMax = 32f;
 
+            // small always-on read-out of what AR is doing, so a screenshot of a misbehaving phone says why
+            var diagBg = UiKit.Box(safe, "AR Diagnostics", new Color(0f, 0f, 0f, 0.55f), 10);
+            UiKit.Anchor(diagBg.rectTransform, 0.02f, 0.30f, 0.98f, 0.345f);   // above the buttons so it never covers them
+            _diagBg = diagBg;
+            diagBg.raycastTarget = false;
+            _diagText = UiKit.Text(diagBg.transform, "Text", "AR starting...", 22, Color.white, FontStyles.Normal, TextAlignmentOptions.Center);
+            UiKit.Fill(_diagText.rectTransform);
+            _diagText.enableAutoSizing = true; _diagText.fontSizeMin = 14f; _diagText.fontSizeMax = 22f;
+            _diagText.raycastTarget = false;
+
             _placeBtn = UiKit.Button(safe, "PlaceHere", "Place lab here", EduTheme.Teal, Color.white, 38, 22);
             _placeBtn.onClick.AddListener(() => { if (_reticleOnPlane) PlaceLab(_reticlePose); });
             _placeBtn.gameObject.SetActive(false);
@@ -626,6 +653,7 @@ namespace ARVirtualLab.AR
                 UiKit.Pin(move, 1f, 0f, -256f, 32f, 200f, 80f);
                 UiKit.Pin(cancel, 1f, 0f, -256f, 32f, 200f, 80f);
                 UiKit.Pin(exit, 1f, 0f, -40f, 32f, 200f, 80f);
+                if (_diagBg != null) UiKit.Pin(_diagBg.rectTransform, 0f, 0f, 24f, 24f, 900f, 44f);
             }
             else
             {
@@ -634,6 +662,7 @@ namespace ARVirtualLab.AR
                 UiKit.Anchor(move, 0.05f, 0.105f, 0.47f, 0.165f);
                 UiKit.Anchor(cancel, 0.05f, 0.105f, 0.47f, 0.165f);
                 UiKit.Anchor(exit, 0.53f, 0.105f, 0.95f, 0.165f);
+                if (_diagBg != null) UiKit.Anchor(_diagBg.rectTransform, 0.02f, 0.30f, 0.98f, 0.345f);
             }
         }
 

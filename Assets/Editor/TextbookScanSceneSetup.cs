@@ -49,6 +49,8 @@ namespace ARVirtualLab.Editor
                 "Assets/Scenes/MagnesiumLabScene.unity",
                 "Assets/Scenes/HydrogenLabScene.unity",
                 "Assets/Scenes/HydrogenGasTestScene.unity",
+                "Assets/Scenes/ElectrolysisScene.unity",
+                "Assets/Scenes/AcidConductivityScene.unity",
                 SCENE_PATH
             };
             var list = new System.Collections.Generic.List<EditorBuildSettingsScene>();

@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3064457381403968200, guid: dd5d1387ff72e9e46a7d10beb303019b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 16c4f780be3916c48a1a4960db5608d1, type: 2}
     - target: {fileID: 4506147045173030055, guid: dd5d1387ff72e9e46a7d10beb303019b, type: 3}
       propertyPath: m_Name
       value: SulfuricAcidBottleModel

@@ -16,6 +16,8 @@ namespace ARVirtualLab.AppShell
         public const string LAB_SCENE       = "MagnesiumLabScene";
         public const string HYDROGEN_SCENE          = "HydrogenLabScene";
         public const string HYDROGEN_GAS_TEST_SCENE = "HydrogenGasTestScene";
+        public const string ELECTROLYSIS_SCENE       = "ElectrolysisScene";
+        public const string ACID_CONDUCTIVITY_SCENE  = "AcidConductivityScene";
         public const string SCAN_SCENE              = "TextbookScanScene";
 
         /// <summary>

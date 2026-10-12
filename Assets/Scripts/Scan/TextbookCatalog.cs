@@ -55,6 +55,22 @@ namespace ARVirtualLab.Scan
                 Chapter = "Acids, Bases and Salts",
                 Summary = "Pass the gas into soap solution and bring a burning candle near a hydrogen-filled bubble.",
                 SceneName = AppNavigation.HYDROGEN_GAS_TEST_SCENE
+            },
+            new TextbookPage
+            {
+                Id = "page20_electrolysis", PageNumber = 20, FigureWidthFraction = 0.52f, Activity = "Activity 1.7",
+                Title = "Electrolysis of Water",
+                Chapter = "Chemical Reactions and Equations",
+                Summary = "Pass current through acidified water using carbon electrodes and collect hydrogen and oxygen gas separately.",
+                SceneName = AppNavigation.ELECTROLYSIS_SCENE
+            },
+            new TextbookPage
+            {
+                Id = "page48_conductivity", PageNumber = 48, FigureWidthFraction = 0.45f, Activity = "Activity 2.8",
+                Title = "Do Solutions Conduct Electricity?",
+                Chapter = "Acids, Bases and Salts",
+                Summary = "Test dilute acids, glucose and alcohol solutions in a circuit with a bulb to see which ones conduct electricity.",
+                SceneName = AppNavigation.ACID_CONDUCTIVITY_SCENE
             }
         };
 

@@ -79,7 +79,7 @@ namespace ARVirtualLab.HydrogenGasTest
             public Vector3 basePos, drift;
         }
         private readonly List<HBubble> _bubbles = new List<HBubble>();
-        private const int MAX_BUBBLES = 6;
+        private const int MAX_BUBBLES = 9;
         private float _bubbleTimer;
         private bool _bubblesEmitting;
         private float _liquidSurfaceY;
@@ -157,7 +157,11 @@ namespace ARVirtualLab.HydrogenGasTest
         private Vector3 _dragOffset;
         private bool _acidAdded       = false;
         private bool _candleLit       = false;
-        private bool _popTriggered    = false;
+        private bool _popTriggered    = false;      // true once the test is over (enough bubbles burned / student finished)
+        private int   _popCount;                     // bubbles burned so far — the student can burn as many as they like
+        private float _popCooldown;
+        private const int POPS_TO_FINISH = 4;
+        private Coroutine _starRoutine;
 
         // === Zones ===
         private GameObject _standClampZone;
@@ -1554,7 +1558,7 @@ namespace ARVirtualLab.HydrogenGasTest
                 if (_bubbleTimer <= 0f)
                 {
                     SpawnBubble();
-                    _bubbleTimer = UnityEngine.Random.Range(0.7f, 1.3f);
+                    _bubbleTimer = UnityEngine.Random.Range(0.45f, 0.9f);
                 }
             }
 
@@ -1575,7 +1579,8 @@ namespace ARVirtualLab.HydrogenGasTest
             }
 
             // A lit candle flame touching any hydrogen bubble makes it burn with a pop
-            if (_step == HydrogenGasTestStep.Step8_HydrogenCandlePopTest && _candleLit && !_popTriggered &&
+            if (_popCooldown > 0f) _popCooldown -= Time.deltaTime;
+            if (_step == HydrogenGasTestStep.Step8_HydrogenCandlePopTest && _candleLit && !_popTriggered && _popCooldown <= 0f &&
                 _candleFlame != null && _candleFlame.activeInHierarchy)
             {
                 // The candle is dragged in a plane parallel to the screen, so "touching" is judged along the line of
@@ -2394,21 +2399,39 @@ namespace ARVirtualLab.HydrogenGasTest
         private void PopAt(Vector3 popPos)
         {
             if (_popTriggered) return;
-            _popTriggered = true;
-            _bubblesEmitting = false;
+            _popCount++;
+            _popCooldown = 0.3f;
 
             if (_popPS != null)
             {
+                _popPS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
                 _popPS.transform.position = popPos;
                 var em = _popPS.emission;
                 em.enabled = true;
                 _popPS.Play();
             }
             if (_popLight != null) _popLight.transform.position = popPos;
-            StartCoroutine(StarBurstRoutine(popPos));
+            if (_starRoutine != null) StopCoroutine(_starRoutine);
+            _starRoutine = StartCoroutine(StarBurstRoutine(popPos));
             StartCoroutine(FlashLight());
             PlayPopSound();
-            ShowFeedback("💥 \"Pop!\" — Hydrogen gas burns with a characteristic pop sound!");
+
+            if (_popCount >= POPS_TO_FINISH)
+            {
+                ShowFeedback("💥 \"Pop!\" — every hydrogen bubble burns with a pop. Test complete!");
+                FinishTest();
+            }
+            else
+            {
+                ShowFeedback("💥 \"Pop!\" (" + _popCount + " burned) — hydrogen burns with a pop. Burn more bubbles, or press Next to finish.");
+            }
+        }
+
+        private void FinishTest()
+        {
+            if (_popTriggered) return;
+            _popTriggered = true;
+            _bubblesEmitting = false;
             StartCoroutine(FinishAfterPop());
         }
 
@@ -2496,7 +2519,8 @@ namespace ARVirtualLab.HydrogenGasTest
                     }
                     if (!_popTriggered)
                     {
-                        TriggerCandlePop();
+                        if (_popCount >= 1) FinishTest();       // already burned some bubbles: Next ends the test
+                        else TriggerCandlePop();
                         return;
                     }
                     break;
@@ -2572,6 +2596,8 @@ namespace ARVirtualLab.HydrogenGasTest
             _acidAdded       = false;
             _candleLit       = false;
             _popTriggered    = false;
+            _popCount        = 0;
+            _popCooldown     = 0f;
             _isCompleted     = false;
             _draggingObject  = null;
 
@@ -3290,7 +3316,7 @@ namespace ARVirtualLab.HydrogenGasTest
                 case HydrogenGasTestStep.Step7_SoapBubbles:
                     return "Hydrogen gas passes into the soap solution basin, forming bubbles filled with hydrogen that rise into the air.";
                 case HydrogenGasTestStep.Step8_HydrogenCandlePopTest:
-                    return "Tap the candle to light the flame, then drag the burning candle near a rising soap bubble to test the gas.";
+                    return "Tap the candle to light it, then drag the flame to the rising soap bubbles — burn as many as you like, then press Next.";
                 case HydrogenGasTestStep.Step8_Results:
                     return "Hydrogen gas burns with a characteristic pop sound! Tap Observation, Equation, or Result below to review.";
                 case HydrogenGasTestStep.Completed:
