@@ -149,15 +149,14 @@ namespace ARVirtualLab.Editor
             File.WriteAllText("android_build_report.txt", sb.ToString());
         }
 
-        // Icons in Assets/Art/Icon: adaptive (background + foreground inside the safe zone), round and classic
+        // Icon in Assets/Art/Icon: adaptive (background + foreground inside the safe zone). eduar_icon.png and
+        // eduar_icon_round.png are the same artwork flattened, for store listings and sharing.
         private static void ApplyIcons(StringBuilder sb)
         {
             const string dir = "Assets/Art/Icon/";
-            var square = AssetDatabase.LoadAssetAtPath<Texture2D>(dir + "eduar_icon.png");
-            var round = AssetDatabase.LoadAssetAtPath<Texture2D>(dir + "eduar_icon_round.png");
             var background = AssetDatabase.LoadAssetAtPath<Texture2D>(dir + "eduar_icon_background.png");
             var foreground = AssetDatabase.LoadAssetAtPath<Texture2D>(dir + "eduar_icon_foreground.png");
-            if (square == null || round == null || background == null || foreground == null)
+            if (background == null || foreground == null)
             {
                 sb.AppendLine("[ICON] icon images missing in " + dir + ", keeping the current icons");
                 return;
@@ -169,10 +168,9 @@ namespace ARVirtualLab.Editor
                 foreach (var icon in icons) icon.SetTextures(layers);
                 PlayerSettings.SetPlatformIcons(android, kind, icons);
             }
+            // min SDK 26 (Android 8): every supported phone uses the adaptive icon, Unity marks round/legacy obsolete
             Fill(UnityEditor.Android.AndroidPlatformIconKind.Adaptive, background, foreground);
-            Fill(UnityEditor.Android.AndroidPlatformIconKind.Round, round);
-            Fill(UnityEditor.Android.AndroidPlatformIconKind.Legacy, square);
-            sb.AppendLine("Icons: adaptive, round and legacy from " + dir);
+            sb.AppendLine("Icons: adaptive from " + dir);
         }
 
         // ── Signing ───────────────────────────────────────────
