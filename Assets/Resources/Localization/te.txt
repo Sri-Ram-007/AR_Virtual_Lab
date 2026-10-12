@@ -1,0 +1,382 @@
+# Telugu translations for the AR Virtual Lab, one row per line:  English<TAB>Telugu
+# The English is exactly what the app shows (its own key). {0} {1} ... stand for numbers, filled in at runtime.
+# \n is a line break. Keep tags such as <sub>2</sub> and <color=#2E8B4E>...</color> as they are.
+# Find text that still needs Telugu:  python3 Tools/Localization/extract_strings.py
+# Terms follow the AP SCERT Class 10 Telugu-medium textbook (కృత్యం, క్రియాజనకాలు, సజల ఆమ్లం ...).
+
+# ── Home screen and settings ────────────────────────────────────
+Virtual Science Lab	వర్చువల్ సైన్స్ ల్యాబ్
+Class {0}  ·  Physical Science  ·  Andhra Pradesh	{0}వ తరగతి  ·  భౌతిక రసాయన శాస్త్రం  ·  ఆంధ్రప్రదేశ్
+Class {0}  ·  Physical Science	{0}వ తరగతి  ·  భౌతిక రసాయన శాస్త్రం
+Settings	సెట్టింగ్‌లు
+Language	భాష
+English	English
+Theme	థీమ్
+Light	లేత రంగు
+Dark	ముదురు రంగు
+Close	మూసివేయండి
+Experiments in your textbook	మీ పాఠ్యపుస్తకంలోని ప్రయోగాలు
+Your teacher can help with any activity marked with a caution in the book.	పుస్తకంలో జాగ్రత్త గుర్తు ఉన్న ఏ కృత్యానికైనా మీ ఉపాధ్యాయులు సహాయం చేస్తారు.
+Scan your textbook	మీ పాఠ్యపుస్తకాన్ని స్కాన్ చేయండి
+Point the camera at an experiment page and the matching experiment opens.	ప్రయోగం ఉన్న పేజీ వైపు కెమెరాను చూపించండి, ఆ ప్రయోగం తెరుచుకుంటుంది.
+Open the page	పేజీని తెరవండి
+Point the camera	కెమెరాను చూపించండి
+Experiment opens	ప్రయోగం తెరుచుకుంటుంది
+Page {0}  ·  Activity {1}	పేజీ {0}  ·  కృత్యం {1}
+Start experiment	ప్రయోగం ప్రారంభించండి
+AR mode	AR మోడ్
+Lab safety	ప్రయోగశాల భద్రత
+•  Wear safety goggles and keep your face away from the flame.	•  రక్షణ కళ్లద్దాలు ధరించండి, ముఖాన్ని మంటకు దూరంగా ఉంచండి.
+•  Hold the burning ribbon with tongs, never with your fingers.	•  మండుతున్న రిబ్బన్‌ను పటకారుతోనే పట్టుకోండి, వేళ్లతో ఎప్పుడూ పట్టుకోవద్దు.
+•  Handle acids carefully and rinse spills with plenty of water.	•  ఆమ్లాలను జాగ్రత్తగా వాడండి, ఒలికితే ఎక్కువ నీటితో కడగండి.
+•  Do these activities with your teacher's help.	•  ఈ కృత్యాలను మీ ఉపాధ్యాయుల సహాయంతో చేయండి.
+Scan textbook page	పాఠ్యపుస్తకం పేజీని స్కాన్ చేయండి
+Opening experiment...	ప్రయోగం తెరుస్తోంది...
+Opening AR mode...	AR మోడ్ తెరుస్తోంది...
+Opening Activity {0}...	కృత్యం {0} తెరుస్తోంది...
+
+# ── Textbook catalogue ──────────────────────────────────────────
+Activity {0}	కృత్యం {0}
+Burning of a Magnesium Ribbon in Air	గాలిలో మెగ్నీషియం రిబ్బన్‌ను మండించడం
+Chemical Reactions and Equations	రసాయన చర్యలు - సమీకరణాలు
+Clean the ribbon, hold it with tongs, burn it in the flame and collect the white ash in a watch-glass.	రిబ్బన్‌ను శుభ్రం చేసి, పటకారుతో పట్టుకుని, మంటలో మండించి, తెల్లని బూడిదను వాచ్ గ్లాస్‌లో సేకరించండి.
+Zinc Granules with Dilute Acid	సజల ఆమ్లంతో జింక్ ముక్కలు
+Add dilute acid to zinc granules in a conical flask and watch hydrogen gas bubble out.	శంఖాకార కుప్పెలోని జింక్ ముక్కలకు సజల ఆమ్లం కలిపి, హైడ్రోజన్ వాయువు బుడగలుగా వెలువడటం గమనించండి.
+Testing Hydrogen Gas by Burning	మండించి హైడ్రోజన్ వాయువును పరీక్షించడం
+Acids, Bases and Salts	ఆమ్లాలు, క్షారాలు మరియు లవణాలు
+Pass the gas into soap solution and bring a burning candle near a hydrogen-filled bubble.	వాయువును సబ్బు ద్రావణంలోకి పంపి, హైడ్రోజన్ నిండిన బుడగ దగ్గరకు మండుతున్న కొవ్వొత్తిని తీసుకురండి.
+
+# ── Textbook scan screen ────────────────────────────────────────
+Camera preview	కెమెరా ప్రివ్యూ
+Back	వెనుకకు
+Can't scan? Choose your page	స్కాన్ కావడం లేదా? మీ పేజీని ఎంచుకోండి
+Camera permission is needed to scan. Choose your page below instead.	స్కాన్ చేయడానికి కెమెరా అనుమతి కావాలి. బదులుగా కింద మీ పేజీని ఎంచుకోండి.
+This phone cannot scan pages. Choose your page below instead.	ఈ ఫోన్ పేజీలను స్కాన్ చేయలేదు. బదులుగా కింద మీ పేజీని ఎంచుకోండి.
+Getting the pages ready...	పేజీలను సిద్ధం చేస్తోంది...
+Could not load the textbook pages. Choose your page below instead.	పాఠ్యపుస్తకం పేజీలు లోడ్ కాలేదు. బదులుగా కింద మీ పేజీని ఎంచుకోండి.
+Point the camera at an experiment page	ప్రయోగం ఉన్న పేజీ వైపు కెమెరాను చూపించండి
+Hold steady...	కదలకుండా పట్టుకోండి...
+Found	దొరికింది
+Scanning works on a phone. Choose a page below to try the app.	స్కానింగ్ ఫోన్‌లో పనిచేస్తుంది. యాప్‌ను ప్రయత్నించడానికి కింద ఒక పేజీని ఎంచుకోండి.
+
+# ── AR mode (all experiments) ───────────────────────────────────
+Starting the camera...	కెమెరా ప్రారంభమవుతోంది...
+AR needs a phone with ARCore. Use the on-screen experiment here.	AR కోసం ARCore ఉన్న ఫోన్ కావాలి. ఇక్కడ తెరపై ప్రయోగాన్ని ఉపయోగించండి.
+This phone does not support AR (ARCore). The experiment stays on screen.	ఈ ఫోన్ AR (ARCore)కు సపోర్ట్ చేయదు. ప్రయోగం తెరపైనే ఉంటుంది.
+Move your phone slowly over a table or the floor to find a flat surface	చదునైన ఉపరితలం కనుగొనడానికి ఫోన్‌ను బల్ల లేదా నేలపై నెమ్మదిగా కదిలించండి
+Camera permission is needed for AR. Allow it in the phone settings.	AR కోసం కెమెరా అనుమతి కావాలి. ఫోన్ సెట్టింగ్‌లలో అనుమతించండి.
+Surface found. Aim at the spot you want and tap to place the lab	ఉపరితలం దొరికింది. కావలసిన చోటు వైపు చూపించి, ల్యాబ్‌ను ఉంచడానికి నొక్కండి
+Lab placed. Pinch with two fingers to resize it. Follow the steps to do the experiment	ల్యాబ్ ఉంచబడింది. పరిమాణం మార్చడానికి రెండు వేళ్లతో పించ్ చేయండి. ప్రయోగం చేయడానికి దశలను అనుసరించండి
+Place lab here	ల్యాబ్‌ను ఇక్కడ ఉంచండి
+Move lab	ల్యాబ్‌ను జరపండి
+Aim at a new spot and tap to move the lab	కొత్త చోటు వైపు చూపించి, ల్యాబ్‌ను జరపడానికి నొక్కండి
+Keep here	ఇక్కడే ఉంచండి
+Exit AR	AR నుండి బయటకు
+Placed	ఉంచబడింది
+Drag to Place	ఉంచడానికి లాగండి
+
+# ── Shared experiment controls ──────────────────────────────────
+AR LAB	AR ల్యాబ్
+AR Lab	AR ల్యాబ్
+STEP {0} OF {1}	దశ {0} / {1}
+Reset	మళ్లీ మొదలు
+Safety	భద్రత
+Previous	మునుపటి
+Next	తరువాత
+Observation	పరిశీలన
+Equation	సమీకరణం
+Result	ఫలితం
+Hide	దాచు
+Show	చూపించు
+Cancel	రద్దు
+About	వివరాలు
+← Home	← హోమ్
+← Back	← వెనుకకు
+Start Experiment	ప్రయోగం ప్రారంభించండి
+COMPLETE	పూర్తయింది
+START	ప్రారంభం
+Done	పూర్తయింది
+VIRTUAL CHEMISTRY LABORATORY	వర్చువల్ రసాయన ప్రయోగశాల
+Interactive Chemistry Experiment	ఇంటరాక్టివ్ రసాయన ప్రయోగం
+EXPERIMENT OVERVIEW	ప్రయోగం సారాంశం
+OBSERVATION	పరిశీలన
+CHEMICAL EQUATION	రసాయన సమీకరణం
+EXPERIMENT RESULT	ప్రయోగ ఫలితం
+EXPERIMENT CONCLUSION:	ప్రయోగ నిర్ధారణ:
+SAFETY PRECAUTIONS	భద్రతా జాగ్రత్తలు
+LABORATORY SAFETY GUIDELINES:	ప్రయోగశాల భద్రతా సూచనలు:
+ABOUT EXPERIMENT	ప్రయోగం గురించి
+Reactants:	క్రియాజనకాలు:
+Products:	క్రియాజన్యాలు:
+Product:	క్రియాజన్యం:
+Key Conclusions:	ముఖ్య నిర్ధారణలు:
+Learning Objectives:	అభ్యసన లక్ష్యాలు:
+Apparatus:	పరికరాలు:
+Reset Experiment?	ప్రయోగాన్ని మళ్లీ మొదలుపెట్టాలా?
+Your current experiment progress will be cleared.\nAre you sure you want to restart?	ఇప్పటివరకు చేసిన ప్రయోగం తుడిచివేయబడుతుంది.\nమళ్లీ మొదలుపెట్టాలనుకుంటున్నారా?
+Developed for Virtual & Augmented Reality Science Education.	వర్చువల్ & ఆగ్మెంటెడ్ రియాలిటీ సైన్స్ విద్య కోసం రూపొందించబడింది.
+
+# ── Magnesium ribbon (Activity 1.1) ─────────────────────────────
+MAGNESIUM RIBBON	మెగ్నీషియం రిబ్బన్
+Tongs	పటకారు
+Sandpaper	గరుకు కాగితం
+Magnesium Ribbon	మెగ్నీషియం రిబ్బన్
+Watch Glass	వాచ్ గ్లాస్
+Bunsen Burner	బున్సెన్ బర్నర్
+Select Magnesium Ribbon	మెగ్నీషియం రిబ్బన్‌ను ఎంచుకోండి
+Reaction:	చర్య:
+2Mg(s) + O<sub>2</sub>(g) → 2MgO(s)	2Mg(s) + O<sub>2</sub>(g) → 2MgO(s)
+(Magnesium + Oxygen → Magnesium Oxide)	(మెగ్నీషియం + ఆక్సిజన్ → మెగ్నీషియం ఆక్సైడ్)
+Step {0}: Select Ribbon	దశ {0}: రిబ్బన్‌ను ఎంచుకోండి
+Tap the silver magnesium ribbon on the table.	బల్లపై ఉన్న వెండి రంగు మెగ్నీషియం రిబ్బన్‌ను నొక్కండి.
+Step {0}: Clean Ribbon	దశ {0}: రిబ్బన్‌ను శుభ్రం చేయండి
+Drag the magnesium ribbon back and forth on the sandpaper\npad to remove the oxide layer.\nCleaning Progress: {0}%	ఆక్సైడ్ పొరను తొలగించడానికి మెగ్నీషియం రిబ్బన్‌ను గరుకు\nకాగితంపై ముందుకు వెనుకకు లాగండి.\nశుభ్రత: {0}%
+CLEANING: {0}%	శుభ్రపరచడం: {0}%
+Step {0}: Pick Up with Tongs	దశ {0}: పటకారుతో పట్టుకోండి
+Drag the crucible tongs to the ribbon to grip it.	రిబ్బన్‌ను పట్టుకోవడానికి పటకారును రిబ్బన్ వద్దకు లాగండి.
+Step {0}: Light Bunsen Burner	దశ {0}: బున్సెన్ బర్నర్ వెలిగించండి
+Tap the Bunsen burner to ignite the flame.	మంట వెలిగించడానికి బున్సెన్ బర్నర్‌ను నొక్కండి.
+Step {0}: Heat in Flame	దశ {0}: మంటలో వేడి చేయండి
+Hold the magnesium ribbon with tongs and place the\nribbon tip into the Bunsen burner flame.\nObserve the burning.	మెగ్నీషియం రిబ్బన్‌ను పటకారుతో పట్టుకుని, దాని\nకొనను బున్సెన్ బర్నర్ మంటలో ఉంచండి.\nమండటాన్ని గమనించండి.
+Drag the tongs to place the ribbon tip into the flame.	రిబ్బన్ కొనను మంటలో ఉంచడానికి పటకారును లాగండి.
+Step {0}: Combustion Reaction	దశ {0}: దహన చర్య
+Magnesium burns with an intense white flame!\n2Mg + O<sub>2</sub> → 2MgO	మెగ్నీషియం తీవ్రమైన తెల్లని మంటతో మండుతుంది!\n2Mg + O<sub>2</sub> → 2MgO
+Step {0}: Cooling Product	దశ {0}: క్రియాజన్యం చల్లారడం
+Magnesium Oxide (MgO) ash formed — a white powdery solid.\nAllow to cool before collection.	మెగ్నీషియం ఆక్సైడ్ (MgO) బూడిద ఏర్పడింది — ఇది తెల్లని పొడి ఘనపదార్థం.\nసేకరించే ముందు చల్లారనివ్వండి.
+Step {0}: Collect MgO	దశ {0}: MgO సేకరించండి
+Drag tongs over the watch glass to collect\nthe Magnesium Oxide (MgO) ash.	మెగ్నీషియం ఆక్సైడ్ (MgO) బూడిదను సేకరించడానికి\nపటకారును వాచ్ గ్లాస్ మీదకు లాగండి.
+Experiment Complete!	ప్రయోగం పూర్తయింది!
+MgO ash collected! Review Observation, Equation, and Result.	MgO బూడిద సేకరించబడింది! పరిశీలన, సమీకరణం మరియు ఫలితం చూడండి.
+Drag the ribbon back and forth on the sandpaper to clean it!	శుభ్రం చేయడానికి రిబ్బన్‌ను గరుకు కాగితంపై ముందుకు వెనుకకు లాగండి!
+Drag the tongs toward the ribbon to grip it!	రిబ్బన్‌ను పట్టుకోవడానికి పటకారును దాని వైపు లాగండి!
+Clean the ribbon with sandpaper first, then grip with tongs.	ముందు రిబ్బన్‌ను గరుకు కాగితంతో శుభ్రం చేసి, తరువాత పటకారుతో పట్టుకోండి.
+First grip the cleaned ribbon with tongs!	ముందు శుభ్రం చేసిన రిబ్బన్‌ను పటకారుతో పట్టుకోండి!
+Follow the steps — clean and grip the ribbon first.	దశలను అనుసరించండి — ముందు రిబ్బన్‌ను శుభ్రం చేసి పట్టుకోండి.
+Drag the ribbon across the sandpaper to remove the oxide layer.	ఆక్సైడ్ పొరను తొలగించడానికి రిబ్బన్‌ను గరుకు కాగితంపై లాగండి.
+Ribbon cleaned! Drag the tongs to the ribbon to grip it.	రిబ్బన్ శుభ్రమైంది! దాన్ని పట్టుకోవడానికి పటకారును రిబ్బన్ వద్దకు లాగండి.
+Magnesium ribbon gripped in tongs! Tap the Bunsen burner to ignite the flame.	మెగ్నీషియం రిబ్బన్ పటకారులో పట్టుబడింది! మంట వెలిగించడానికి బున్సెన్ బర్నర్‌ను నొక్కండి.
+Bunsen burner ON! Drag the tongs to place the ribbon into the flame.	బున్సెన్ బర్నర్ వెలిగింది! రిబ్బన్‌ను మంటలో ఉంచడానికి పటకారును లాగండి.
+Bunsen burner ON! Grip the cleaned ribbon with tongs first.	బున్సెన్ బర్నర్ వెలిగింది! ముందు శుభ్రం చేసిన రిబ్బన్‌ను పటకారుతో పట్టుకోండి.
+Bunsen burner OFF.	బున్సెన్ బర్నర్ ఆరిపోయింది.
+Keep the ribbon in the flame for a little longer...	రిబ్బన్‌ను ఇంకొంచెం సేపు మంటలో ఉంచండి...
+Almost there...	దాదాపు అయిపోయింది...
+Ribbon: Heating...	రిబ్బన్: వేడెక్కుతోంది...
+Ribbon: Burning...	రిబ్బన్: మండుతోంది...
+Ribbon: Waiting...	రిబ్బన్: వేచి ఉంది...
+Observation: Bright white light with white smoke	పరిశీలన: తెల్లని పొగతో ప్రకాశవంతమైన తెల్లని కాంతి
+Observation: —	పరిశీలన: —
+Burning... ({0}s remaining)	మండుతోంది... (ఇంకా {0} సెకన్లు)
+Combustion complete!	దహనం పూర్తయింది!
+Magnesium oxide (MgO) ash formed! Allow to cool...	మెగ్నీషియం ఆక్సైడ్ (MgO) బూడిద ఏర్పడింది! చల్లారనివ్వండి...
+Product cooled. Drag the tongs over the watch glass to collect the MgO ash.	క్రియాజన్యం చల్లారింది. MgO బూడిదను సేకరించడానికి పటకారును వాచ్ గ్లాస్ మీదకు లాగండి.
+Magnesium oxide (MgO) ash collected in watch glass!	మెగ్నీషియం ఆక్సైడ్ (MgO) బూడిద వాచ్ గ్లాస్‌లో సేకరించబడింది!
+Bunsen Burner: <color=#2E8B4E>ON</color>	బున్సెన్ బర్నర్: <color=#2E8B4E>వెలుగుతోంది</color>
+Bunsen Burner: <color=#C4473A>OFF</color>	బున్సెన్ బర్నర్: <color=#C4473A>ఆరిపోయింది</color>
+Keep rubbing! Clean the ribbon more before proceeding.	రుద్దుతూ ఉండండి! ముందుకు వెళ్లే ముందు రిబ్బన్‌ను ఇంకా శుభ్రం చేయండి.
+Drag the tongs to the ribbon to grip it first.	ముందు రిబ్బన్‌ను పట్టుకోవడానికి పటకారును దాని వద్దకు లాగండి.
+Tap the Bunsen burner to light it.	బున్సెన్ బర్నర్‌ను వెలిగించడానికి దాన్ని నొక్కండి.
+Move the tongs into the flame.	పటకారును మంటలోకి జరపండి.
+Experiment complete! Press Reset to start again.	ప్రయోగం పూర్తయింది! మళ్లీ మొదలుపెట్టడానికి 'మళ్లీ మొదలు' నొక్కండి.
+White Smoke:\nMagnesium Oxide\n(MgO)	తెల్లని పొగ:\nమెగ్నీషియం ఆక్సైడ్\n(MgO)
+{0}. Clean ribbon with sandpaper to expose reactive metal	{0}. చర్యాశీల లోహం కనిపించేలా రిబ్బన్‌ను గరుకు కాగితంతో శుభ్రం చేయండి
+{0}. Hold securely using laboratory crucible tongs	{0}. ప్రయోగశాల పటకారుతో గట్టిగా పట్టుకోండి
+{0}. Ignite Bunsen burner and place ribbon into flame	{0}. బున్సెన్ బర్నర్ వెలిగించి, రిబ్బన్‌ను మంటలో ఉంచండి
+{0}. Observe dazzling combustion & energy release	{0}. మిరుమిట్లు గొలిపే దహనాన్ని, శక్తి విడుదలను గమనించండి
+{0}. Collect white Magnesium Oxide (MgO) powder	{0}. తెల్లని మెగ్నీషియం ఆక్సైడ్ (MgO) పొడిని సేకరించండి
+• The magnesium ribbon burns with a dazzling, intense bright white flame.	• మెగ్నీషియం రిబ్బన్ మిరుమిట్లు గొలిపే తీవ్రమైన తెల్లని మంటతో మండుతుంది.
+• A large amount of thermal and light energy (UV) is released.	• ఎక్కువ మొత్తంలో ఉష్ణ శక్తి, కాంతి శక్తి (UV) విడుదలవుతాయి.
+• A white powder / ash — Magnesium Oxide (MgO) — forms and is collected in the watch glass.	• తెల్లని పొడి / బూడిద — మెగ్నీషియం ఆక్సైడ్ (MgO) — ఏర్పడి వాచ్ గ్లాస్‌లో సేకరించబడుతుంది.
+• White smoke particulate: finely dispersed MgO solid particles rise into the air.	• తెల్లని పొగ: సూక్ష్మంగా చెదిరిన MgO ఘన కణాలు గాలిలోకి లేస్తాయి.
+• Reaction Type: Combination / Oxidation reaction.	• చర్య రకం: సంయోగ / ఆక్సీకరణ చర్య.
+NOTE: MgO is a WHITE SOLID (ash), not a gas.	గమనిక: MgO తెల్లని ఘనపదార్థం (బూడిద), వాయువు కాదు.
+Magnesium + Oxygen → Magnesium Oxide	మెగ్నీషియం + ఆక్సిజన్ → మెగ్నీషియం ఆక్సైడ్
+2Mg(s)   +   O<sub>2</sub>(g)   →   2MgO(s)	2Mg(s)   +   O<sub>2</sub>(g)   →   2MgO(s)
+• Magnesium (Mg) — Silvery-white metal strip	• మెగ్నీషియం (Mg) — వెండి లాంటి తెల్లని లోహపు పట్టీ
+• Oxygen (O<sub>2</sub>) — Atmospheric gas	• ఆక్సిజన్ (O<sub>2</sub>) — వాతావరణంలోని వాయువు
+• Magnesium Oxide (MgO) — White solid ash	• మెగ్నీషియం ఆక్సైడ్ (MgO) — తెల్లని ఘన బూడిద
+Classification: Exothermic Synthesis / Oxidation Reaction	వర్గీకరణ: ఉష్ణమోచక సంయోగ / ఆక్సీకరణ చర్య
+Magnesium reacts vigorously with atmospheric oxygen at high temperatures to form magnesium oxide.	అధిక ఉష్ణోగ్రత వద్ద మెగ్నీషియం గాలిలోని ఆక్సిజన్‌తో తీవ్రంగా చర్య జరిపి మెగ్నీషియం ఆక్సైడ్‌ను ఏర్పరుస్తుంది.
+{0}. Combination Reaction: Mg + O<sub>2</sub> combine to produce MgO.	{0}. సంయోగ చర్య: Mg, O<sub>2</sub> కలిసి MgO ఏర్పడుతుంది.
+{0}. Exothermic Reaction: Dazzling white light and heat are released.	{0}. ఉష్ణమోచక చర్య: మిరుమిట్లు గొలిపే తెల్లని కాంతి, ఉష్ణం విడుదలవుతాయి.
+{0}. Product: Magnesium Oxide (MgO) — basic white solid ash.	{0}. క్రియాజన్యం: మెగ్నీషియం ఆక్సైడ్ (MgO) — క్షార స్వభావం గల తెల్లని ఘన బూడిద.
+{0}. White smoke = finely dispersed MgO particulate, NOT a gas.	{0}. తెల్లని పొగ = సూక్ష్మంగా చెదిరిన MgO కణాలు, వాయువు కాదు.
+Equation: 2Mg(s) + O<sub>2</sub>(g) → 2MgO(s)	సమీకరణం: 2Mg(s) + O<sub>2</sub>(g) → 2MgO(s)
+{0}. Wear certified safety goggles at all times to protect your eyes.	{0}. కళ్ల రక్షణ కోసం ఎప్పుడూ రక్షణ కళ్లద్దాలు ధరించండి.
+{0}. Perform this experiment only under teacher / adult supervision.	{0}. ఈ ప్రయోగాన్ని ఉపాధ్యాయులు / పెద్దల పర్యవేక్షణలో మాత్రమే చేయండి.
+{0}. Do NOT look directly at the intense white flame (UV radiation).	{0}. తీవ్రమైన తెల్లని మంట వైపు నేరుగా చూడవద్దు (UV కిరణాలు).
+{0}. Always hold the burning ribbon with crucible tongs — never bare hands.	{0}. మండుతున్న రిబ్బన్‌ను ఎప్పుడూ పటకారుతోనే పట్టుకోండి — చేతులతో కాదు.
+{0}. Allow the hot ash to cool completely before collecting.	{0}. సేకరించే ముందు వేడి బూడిదను పూర్తిగా చల్లారనివ్వండి.
+{0}. Keep flammable substances away from the Bunsen burner flame.	{0}. మండే పదార్థాలను బున్సెన్ బర్నర్ మంటకు దూరంగా ఉంచండి.
+MAGNESIUM RIBBON BURNING EXPERIMENT	మెగ్నీషియం రిబ్బన్ దహన ప్రయోగం
+Curriculum Topic: Chemical Reactions & Equations	పాఠ్యాంశం: రసాయన చర్యలు - సమీకరణాలు
+Subject: Secondary School Chemistry	విషయం: ఉన్నత పాఠశాల రసాయన శాస్త్రం
+• Demonstrate combination & combustion reactions	• సంయోగ, దహన చర్యలను ప్రదర్శించడం
+• Understand oxidation of metals in air	• గాలిలో లోహాల ఆక్సీకరణను అర్థం చేసుకోవడం
+• Observe physical & chemical transformations	• భౌతిక, రసాయన మార్పులను గమనించడం
+
+# ── Zinc granules with dilute acid (Activity 1.3) ───────────────
+HYDROGEN GAS FROM ZINC	జింక్ నుండి హైడ్రోజన్ వాయువు
+Conical Flask	శంఖాకార కుప్పె
+Zinc Granules	జింక్ ముక్కలు
+Dil. H<sub>2</sub>SO<sub>4</sub>	సజల H<sub>2</sub>SO<sub>4</sub>
+Tube + Cork	నాళం + బిరడా
+Collection Jar	సేకరణ జాడీ
+Tube with Cork	బిరడాతో నాళం
+Sulfuric Acid	సల్ఫ్యూరిక్ ఆమ్లం
+{0}. Prepare Zinc	{0}. జింక్ సిద్ధం చేయండి
+{0}. Place Zinc in Flask	{0}. జింక్‌ను కుప్పెలో వేయండి
+{0}. Observe Reaction & Bubbling	{0}. చర్యను, బుడగలను గమనించండి
+{0}. Hydrogen Gas Evolution	{0}. హైడ్రోజన్ వాయువు వెలువడటం
+{0}. Hydrogen Gas Formation	{0}. హైడ్రోజన్ వాయువు ఏర్పడటం
+{0}. Observe Gas / Reaction Completion	{0}. వాయువు / చర్య పూర్తవడం గమనించండి
+{0}. Observation / Equation / Result	{0}. పరిశీలన / సమీకరణం / ఫలితం
+Step {0}: Prepare Zinc	దశ {0}: జింక్ సిద్ధం చేయండి
+Step {0}: Place Zinc in Flask	దశ {0}: జింక్‌ను కుప్పెలో వేయండి
+Step {0}: Seal with Cork	దశ {0}: బిరడాతో మూయండి
+Step {0}: Observe Reaction	దశ {0}: చర్యను గమనించండి
+Step {0}: Hydrogen Gas Evolution	దశ {0}: హైడ్రోజన్ వాయువు వెలువడటం
+Step {0}: Hydrogen Gas Formation	దశ {0}: హైడ్రోజన్ వాయువు ఏర్పడటం
+Step {0}: Observe Gas / Reaction Completion	దశ {0}: వాయువు / చర్య పూర్తవడం గమనించండి
+Step {0}: Observation / Equation / Result	దశ {0}: పరిశీలన / సమీకరణం / ఫలితం
+Tap the zinc granules on the table.	బల్లపై ఉన్న జింక్ ముక్కలను నొక్కండి.
+Tap the zinc granules on the table to inspect them.	బల్లపై ఉన్న జింక్ ముక్కలను పరిశీలించడానికి వాటిని నొక్కండి.
+Drag the zinc granules into the conical flask.	జింక్ ముక్కలను శంఖాకార కుప్పెలోకి లాగండి.
+Drag the dilute sulphuric acid bottle to add acid into the flask.	కుప్పెలో ఆమ్లం పోయడానికి సజల సల్ఫ్యూరిక్ ఆమ్లం సీసాను లాగండి.
+Drag the cork with delivery tube onto the flask neck to seal it.	కుప్పెను మూయడానికి వాహక నాళం ఉన్న బిరడాను కుప్పె మెడపైకి లాగండి.
+Chemical reaction begins! Observe effervescence and bubbles forming around the zinc granules.	రసాయన చర్య మొదలైంది! జింక్ ముక్కల చుట్టూ బుడగలు రావడం గమనించండి.
+Continuous formation of hydrogen gas discharging from the open end of the delivery tube.	వాహక నాళం తెరిచి ఉన్న చివర నుండి హైడ్రోజన్ వాయువు నిరంతరం వెలువడుతోంది.
+Observe the reaction completing as effervescence subsides.	బుడగలు తగ్గుతూ చర్య పూర్తవడం గమనించండి.
+Experiment complete! Tap Observation, Equation, or Result below to review.	ప్రయోగం పూర్తయింది! చూడటానికి కింద ఉన్న పరిశీలన, సమీకరణం లేదా ఫలితం నొక్కండి.
+Experiment complete! Tap Reset to repeat or Back to return to Home.	ప్రయోగం పూర్తయింది! మళ్లీ చేయడానికి 'మళ్లీ మొదలు', హోమ్‌కు వెళ్లడానికి 'వెనుకకు' నొక్కండి.
+Zinc granules selected! Drag them into the flask.	జింక్ ముక్కలు ఎంచుకోబడ్డాయి! వాటిని కుప్పెలోకి లాగండి.
+Drop zinc INTO the flask!	జింక్‌ను కుప్పె లోపలికి వేయండి!
+Tip the acid over the flask opening.	ఆమ్లాన్ని కుప్పె మూతి మీద వంచి పోయండి.
+Place the stopper on the flask neck.	బిరడాను కుప్పె మెడపై ఉంచండి.
+Zinc granules placed in the flask!	జింక్ ముక్కలు కుప్పెలో వేయబడ్డాయి!
+Dilute sulphuric acid added! The zinc starts to fizz.	సజల సల్ఫ్యూరిక్ ఆమ్లం పోయబడింది! జింక్ బుసబుసమనడం మొదలైంది.
+Flask sealed with cork and glass delivery tube!	కుప్పె బిరడా, గాజు వాహక నాళంతో మూయబడింది!
+Reaction active! Effervescence and bubbles forming around zinc granules.	చర్య జరుగుతోంది! జింక్ ముక్కల చుట్టూ బుడగలు ఏర్పడుతున్నాయి.
+Hydrogen gas (H<sub>2</sub>) moves upward through the glass delivery tube.	హైడ్రోజన్ వాయువు (H<sub>2</sub>) గాజు వాహక నాళం ద్వారా పైకి కదులుతోంది.
+Continuous formation of hydrogen gas discharging from the open delivery tube outlet.	తెరిచి ఉన్న వాహక నాళం చివర నుండి హైడ్రోజన్ వాయువు నిరంతరం వెలువడుతోంది.
+Reaction completion observed. Effervescence subsides as zinc reacts with the acid.	చర్య పూర్తవడం గమనించబడింది. జింక్ ఆమ్లంతో చర్య జరపడంతో బుడగలు తగ్గుతాయి.
+Experiment reset. Tap the zinc granules on the table.	ప్రయోగం మళ్లీ మొదలైంది. బల్లపై ఉన్న జింక్ ముక్కలను నొక్కండి.
+• Rapid bubbling (brisk effervescence) occurs around the zinc granules upon adding dilute sulphuric acid.	• సజల సల్ఫ్యూరిక్ ఆమ్లం పోయగానే జింక్ ముక్కల చుట్టూ వేగంగా బుడగలు వస్తాయి.
+• A colorless, odorless hydrogen gas (H<sub>2</sub>) evolves continuously from the flask.	• రంగు, వాసన లేని హైడ్రోజన్ వాయువు (H<sub>2</sub>) కుప్పె నుండి నిరంతరం వెలువడుతుంది.
+• The reaction is exothermic — thermal energy is released and the conical flask warms up.	• ఇది ఉష్ణమోచక చర్య — ఉష్ణం విడుదలై శంఖాకార కుప్పె వేడెక్కుతుంది.
+• Hydrogen gas travels upward through the glass delivery tube and discharges smoothly into the air from the tube outlet.	• హైడ్రోజన్ వాయువు గాజు వాహక నాళం ద్వారా పైకి వెళ్లి, నాళం చివర నుండి గాలిలోకి వెలువడుతుంది.
+• Zinc granules gradually dissolve as zinc sulphate (ZnSO<sub>4</sub>) is formed in the aqueous solution.	• జలద్రావణంలో జింక్ సల్ఫేట్ (ZnSO<sub>4</sub>) ఏర్పడుతూ జింక్ ముక్కలు క్రమంగా కరుగుతాయి.
+Zinc + Dilute Sulphuric Acid → Zinc Sulphate + Hydrogen Gas	జింక్ + సజల సల్ఫ్యూరిక్ ఆమ్లం → జింక్ సల్ఫేట్ + హైడ్రోజన్ వాయువు
+• Sulphuric Acid (H<sub>2</sub>SO<sub>4</sub>) — Colorless dilute acid solution	• సల్ఫ్యూరిక్ ఆమ్లం (H<sub>2</sub>SO<sub>4</sub>) — రంగులేని సజల ఆమ్ల ద్రావణం
+• Zinc Sulphate (ZnSO<sub>4</sub>) — Colorless aqueous solution	• జింక్ సల్ఫేట్ (ZnSO<sub>4</sub>) — రంగులేని జలద్రావణం
+• Hydrogen (H<sub>2</sub>) — Colorless, flammable diatomic gas	• హైడ్రోజన్ (H<sub>2</sub>) — రంగులేని, మండే ద్విపరమాణుక వాయువు
+Classification: Single Displacement (Redox) & Exothermic Reaction	వర్గీకరణ: ఏక స్థానభ్రంశ (రిడాక్స్) మరియు ఉష్ణమోచక చర్య
+Dilute sulphuric acid reacts with reactive zinc metal to produce aqueous zinc sulphate and evolve hydrogen gas.	సజల సల్ఫ్యూరిక్ ఆమ్లం చర్యాశీల జింక్ లోహంతో చర్య జరిపి, జింక్ సల్ఫేట్ జలద్రావణాన్ని ఏర్పరచి హైడ్రోజన్ వాయువును విడుదల చేస్తుంది.
+{0}. Single Displacement Reaction: Zinc displaces hydrogen from dilute acid as it is higher in the reactivity series.	{0}. ఏక స్థానభ్రంశ చర్య: చర్యాశీలతా శ్రేణిలో పైన ఉండటం వల్ల జింక్ సజల ఆమ్లం నుండి హైడ్రోజన్‌ను స్థానభ్రంశం చేస్తుంది.
+{0}. Hydrogen Gas Evolution: Characterised by vigorous effervescence and continuous upward gas flow through the delivery tube.	{0}. హైడ్రోజన్ వాయువు వెలువడటం: తీవ్రమైన బుడగలు, వాహక నాళం ద్వారా నిరంతరం పైకి వెళ్లే వాయు ప్రవాహం దీని లక్షణాలు.
+{0}. Exothermic Reaction: Thermal energy is released into the solution during the reaction.	{0}. ఉష్ణమోచక చర్య: చర్య జరిగేటప్పుడు ద్రావణంలోకి ఉష్ణం విడుదలవుతుంది.
+{0}. Reaction Completion: Effervescence subsides as the available zinc reacts with the acid.	{0}. చర్య పూర్తవడం: ఉన్న జింక్ అంతా ఆమ్లంతో చర్య జరపడంతో బుడగలు తగ్గుతాయి.
+{0}. Wear certified safety goggles and a lab coat at all times.	{0}. ఎప్పుడూ రక్షణ కళ్లద్దాలు, ల్యాబ్ కోటు ధరించండి.
+{0}. Dilute sulphuric acid (H<sub>2</sub>SO<sub>4</sub>) is corrosive — avoid contact with skin and eyes.	{0}. సజల సల్ఫ్యూరిక్ ఆమ్లం (H<sub>2</sub>SO<sub>4</sub>) క్షయకారి — చర్మానికి, కళ్లకు తగలకుండా చూడండి.
+{0}. In case of accidental acid contact, rinse immediately with plenty of running water.	{0}. ప్రమాదవశాత్తు ఆమ్లం తగిలితే, వెంటనే ఎక్కువ పారే నీటితో కడగండి.
+{0}. Handle glassware carefully to avoid cuts from cracked flasks or delivery tubes.	{0}. పగిలిన కుప్పెలు లేదా నాళాల వల్ల గాయాలు కాకుండా గాజు పరికరాలను జాగ్రత్తగా వాడండి.
+{0}. Ensure the cork fits tightly to prevent gas leakage.	{0}. వాయువు బయటకు పోకుండా బిరడా గట్టిగా సరిపోయేలా చూడండి.
+{0}. Always handle acids under adequate laboratory ventilation.	{0}. ఆమ్లాలను ఎప్పుడూ గాలి బాగా వచ్చే ప్రయోగశాలలోనే వాడండి.
+FORMATION OF HYDROGEN GAS EXPERIMENT	హైడ్రోజన్ వాయువు ఏర్పడే ప్రయోగం
+Curriculum Topic: Acids, Bases, and Salts / Reactivity Series	పాఠ్యాంశం: ఆమ్లాలు, క్షారాలు మరియు లవణాలు / చర్యాశీలతా శ్రేణి
+Subject: Secondary School Chemistry (Grade {0}-{1})	విషయం: ఉన్నత పాఠశాల రసాయన శాస్త్రం ({0}-{1} తరగతులు)
+• Demonstrate the displacement reaction of metals with acids	• ఆమ్లాలతో లోహాల స్థానభ్రంశ చర్యను ప్రదర్శించడం
+• Observe the physical signs of chemical change (effervescence, gas evolution)	• రసాయన మార్పు యొక్క భౌతిక సూచనలను (బుడగలు, వాయువు వెలువడటం) గమనించడం
+• Understand the formation and flow of hydrogen gas	• హైడ్రోజన్ వాయువు ఏర్పడటం, ప్రవహించడం అర్థం చేసుకోవడం
+
+# ── Testing hydrogen gas by burning (Activity 2.3) ──────────────
+HYDROGEN GAS TEST	హైడ్రోజన్ వాయువు పరీక్ష
+Cork + Tube	బిరడా + నాళం
+Soap Basin	సబ్బు ద్రావణం తొట్టె
+Candle	కొవ్వొత్తి
+Lab Stand	ప్రయోగశాల స్టాండు
+Test Tube	పరీక్ష నాళిక
+Clamp Stand	క్లాంపు స్టాండు
+Acid Bottle	ఆమ్లం సీసా
+Basin With Soap	సబ్బు ద్రావణంతో తొట్టె
+Cork With Delivery	వాహక నాళంతో బిరడా
+REACTION OF ZINC WITH DILUTE SULPHURIC ACID	సజల సల్ఫ్యూరిక్ ఆమ్లంతో జింక్ చర్య
+Testing of Hydrogen Gas by Burning	మండించి హైడ్రోజన్ వాయువును పరీక్షించడం
+Zn(s) + H<sub>2</sub>SO<sub>4</sub>(aq) → ZnSO<sub>4</sub>(aq) + H<sub>2</sub>(g)↑	Zn(s) + H<sub>2</sub>SO<sub>4</sub>(aq) → ZnSO<sub>4</sub>(aq) + H<sub>2</sub>(g)↑
+{0}. Place Test Tube on Stand	{0}. పరీక్ష నాళికను స్టాండుపై ఉంచండి
+{0}. Add Zinc Granules	{0}. జింక్ ముక్కలు వేయండి
+{0}. Add Dilute Sulphuric Acid	{0}. సజల సల్ఫ్యూరిక్ ఆమ్లం పోయండి
+{0}. Seal with Cork & Delivery Tube	{0}. బిరడా, వాహక నాళంతో మూయండి
+{0}. Connect Delivery Tube to Soap Solution	{0}. వాహక నాళాన్ని సబ్బు ద్రావణంలోకి కలపండి
+{0}. Observe Hydrogen Gas Evolution	{0}. హైడ్రోజన్ వాయువు వెలువడటం గమనించండి
+{0}. Form Hydrogen Soap Bubbles	{0}. హైడ్రోజన్ సబ్బు బుడగలు ఏర్పరచండి
+{0}. Hydrogen Identification Test	{0}. హైడ్రోజన్ గుర్తింపు పరీక్ష
+Step {0}: Place Test Tube on Stand	దశ {0}: పరీక్ష నాళికను స్టాండుపై ఉంచండి
+Step {0}: Add Zinc Granules	దశ {0}: జింక్ ముక్కలు వేయండి
+Step {0}: Add Dilute Sulphuric Acid	దశ {0}: సజల సల్ఫ్యూరిక్ ఆమ్లం పోయండి
+Step {0}: Seal with Cork & Delivery Tube	దశ {0}: బిరడా, వాహక నాళంతో మూయండి
+Step {0}: Dip Delivery Tube into Soap Solution	దశ {0}: వాహక నాళాన్ని సబ్బు ద్రావణంలో ముంచండి
+Step {0}: Observe Hydrogen Gas Evolution	దశ {0}: హైడ్రోజన్ వాయువు వెలువడటం గమనించండి
+Step {0}: Form Hydrogen Soap Bubbles	దశ {0}: హైడ్రోజన్ సబ్బు బుడగలు ఏర్పరచండి
+Step {0}: Hydrogen Identification Test	దశ {0}: హైడ్రోజన్ గుర్తింపు పరీక్ష
+Results & Observations	ఫలితాలు & పరిశీలనలు
+Experiment Completed	ప్రయోగం పూర్తయింది
+Notice the zinc granules inside the clamped test tube.	క్లాంపులో బిగించిన పరీక్ష నాళిక లోపలి జింక్ ముక్కలను గమనించండి.
+Gas travels through the delivery tube toward the soap solution.	వాయువు వాహక నాళం ద్వారా సబ్బు ద్రావణం వైపు వెళ్తోంది.
+Soap bubbles filled with hydrogen formed! Now test with a flame.	హైడ్రోజన్ నిండిన సబ్బు బుడగలు ఏర్పడ్డాయి! ఇప్పుడు మంటతో పరీక్షించండి.
+Light the candle flame first by tapping it.	ముందు కొవ్వొత్తిని నొక్కి వెలిగించండి.
+Drag the test tube to the clamp on the vertical stand.	పరీక్ష నాళికను నిలువు స్టాండుపై ఉన్న క్లాంపు వద్దకు లాగండి.
+Drop zinc granules into the test tube opening.	జింక్ ముక్కలను పరీక్ష నాళిక మూతిలోకి వేయండి.
+Pour dilute sulphuric acid into the test tube.	సజల సల్ఫ్యూరిక్ ఆమ్లాన్ని పరీక్ష నాళికలో పోయండి.
+Press the cork stopper into the test tube neck.	బిరడాను పరీక్ష నాళిక మెడలోకి నొక్కండి.
+Bring the candle flame close to a rising hydrogen bubble.	పైకి లేస్తున్న హైడ్రోజన్ బుడగ దగ్గరకు కొవ్వొత్తి మంటను తీసుకురండి.
+Tap the candle to light it first.	ముందు కొవ్వొత్తిని వెలిగించడానికి దాన్ని నొక్కండి.
+Test tube clamped securely onto the vertical stand!	పరీక్ష నాళిక నిలువు స్టాండుకు గట్టిగా బిగించబడింది!
+Zinc granules added inside the test tube!	జింక్ ముక్కలు పరీక్ష నాళికలో వేయబడ్డాయి!
+Dilute sulphuric acid added — bubbles of hydrogen already form on the zinc!	సజల సల్ఫ్యూరిక్ ఆమ్లం పోయబడింది — జింక్‌పై హైడ్రోజన్ బుడగలు అప్పుడే ఏర్పడుతున్నాయి!
+Cork sealed into the test tube! Now lower the clamped tube so the outlet dips into the soap solution.	బిరడాతో పరీక్ష నాళిక మూయబడింది! ఇప్పుడు నాళం చివర సబ్బు ద్రావణంలో మునిగేలా బిగించిన నాళికను కిందకు దించండి.
+The delivery tube outlet now dips into the soap solution! Hydrogen gas is evolving.	వాహక నాళం చివర ఇప్పుడు సబ్బు ద్రావణంలో మునిగింది! హైడ్రోజన్ వాయువు వెలువడుతోంది.
+Candle lit! Now bring the flame to a hydrogen soap bubble.	కొవ్వొత్తి వెలిగింది! ఇప్పుడు మంటను హైడ్రోజన్ సబ్బు బుడగ దగ్గరకు తీసుకురండి.
+"Pop!" — Hydrogen gas burns with a characteristic pop sound!	"పాప్!" — హైడ్రోజన్ వాయువు ప్రత్యేకమైన 'పాప్' శబ్దంతో మండుతుంది!
+Experiment reset. Apparatus returned to unassembled starting state.	ప్రయోగం మళ్లీ మొదలైంది. పరికరాలు మొదటి స్థితికి వచ్చాయి.
+• Rapid effervescence (bubbling) occurs around the zinc granules upon contact with dilute sulphuric acid.	• సజల సల్ఫ్యూరిక్ ఆమ్లం తగలగానే జింక్ ముక్కల చుట్టూ వేగంగా బుడగలు వస్తాయి.
+• Colorless, odorless hydrogen gas (H<sub>2</sub>) evolves and passes through the delivery tube.	• రంగు, వాసన లేని హైడ్రోజన్ వాయువు (H<sub>2</sub>) వెలువడి వాహక నాళం ద్వారా వెళ్తుంది.
+• Passing the gas into soap solution traps it inside soap bubbles that rise into the air.	• వాయువును సబ్బు ద్రావణంలోకి పంపితే అది సబ్బు బుడగలలో చిక్కుకుని గాలిలోకి లేస్తుంది.
+• When a burning candle flame touches a hydrogen bubble, it bursts with a characteristic 'pop' sound.	• మండుతున్న కొవ్వొత్తి మంట హైడ్రోజన్ బుడగను తాకగానే అది ప్రత్యేకమైన 'పాప్' శబ్దంతో పేలుతుంది.
+Reaction of Zinc with Dilute Sulphuric Acid:	సజల సల్ఫ్యూరిక్ ఆమ్లంతో జింక్ చర్య:
+Zn(s)   +   H<sub>2</sub>SO<sub>4</sub>(aq)   →   ZnSO<sub>4</sub>(aq)   +   H<sub>2</sub>(g)↑	Zn(s)   +   H<sub>2</sub>SO<sub>4</sub>(aq)   →   ZnSO<sub>4</sub>(aq)   +   H<sub>2</sub>(g)↑
+• Zinc (Zn) — Silvery-grey metallic granules	• జింక్ (Zn) — వెండి-బూడిద రంగు లోహపు ముక్కలు
+• Dilute Sulphuric Acid (H<sub>2</sub>SO<sub>4</sub>) — Colorless aqueous acid	• సజల సల్ఫ్యూరిక్ ఆమ్లం (H<sub>2</sub>SO<sub>4</sub>) — రంగులేని జల ఆమ్లం
+• Zinc Sulphate (ZnSO<sub>4</sub>) — Colorless salt solution	• జింక్ సల్ఫేట్ (ZnSO<sub>4</sub>) — రంగులేని లవణ ద్రావణం
+• Hydrogen Gas (H<sub>2</sub>) — Colorless, flammable gas	• హైడ్రోజన్ వాయువు (H<sub>2</sub>) — రంగులేని, మండే వాయువు
+Hydrogen Burning Test:	హైడ్రోజన్ దహన పరీక్ష:
+2H<sub>2</sub>(g)   +   O<sub>2</sub>(g)   →   2H<sub>2</sub>O(g)   +   Energy (Pop Sound)	2H<sub>2</sub>(g)   +   O<sub>2</sub>(g)   →   2H<sub>2</sub>O(g)   +   శక్తి ('పాప్' శబ్దం)
+{0}. Single Displacement: Zinc reacts with dilute sulphuric acid to produce zinc sulphate and liberate hydrogen gas.	{0}. ఏక స్థానభ్రంశం: జింక్ సజల సల్ఫ్యూరిక్ ఆమ్లంతో చర్య జరిపి జింక్ సల్ఫేట్‌ను ఏర్పరచి, హైడ్రోజన్ వాయువును విడుదల చేస్తుంది.
+{0}. Soap Bubble Collection: Passing hydrogen into soap solution traps the gas inside lightweight soap bubbles that float upwards.	{0}. సబ్బు బుడగలలో సేకరణ: హైడ్రోజన్‌ను సబ్బు ద్రావణంలోకి పంపితే, వాయువు తేలికైన సబ్బు బుడగలలో చిక్కుకుని పైకి తేలుతుంది.
+{0}. Hydrogen Identification: Hydrogen gas is uniquely confirmed because it burns in air with a distinctive 'pop' sound when exposed to flame.	{0}. హైడ్రోజన్ గుర్తింపు: మంట తగిలినప్పుడు గాలిలో ప్రత్యేకమైన 'పాప్' శబ్దంతో మండటం వల్ల హైడ్రోజన్ వాయువు నిర్ధారించబడుతుంది.
+Equation: Zn(s) + H<sub>2</sub>SO<sub>4</sub>(aq) → ZnSO<sub>4</sub>(aq) + H<sub>2</sub>(g)↑	సమీకరణం: Zn(s) + H<sub>2</sub>SO<sub>4</sub>(aq) → ZnSO<sub>4</sub>(aq) + H<sub>2</sub>(g)↑
+{0}. Always wear certified safety goggles and lab coat.	{0}. ఎప్పుడూ రక్షణ కళ్లద్దాలు, ల్యాబ్ కోటు ధరించండి.
+{0}. Handle dilute sulphuric acid (H<sub>2</sub>SO<sub>4</sub>) carefully — avoid contact with skin and eyes.	{0}. సజల సల్ఫ్యూరిక్ ఆమ్లాన్ని (H<sub>2</sub>SO<sub>4</sub>) జాగ్రత్తగా వాడండి — చర్మానికి, కళ్లకు తగలకుండా చూడండి.
+{0}. In case of accidental acid spill, flush immediately with copious amounts of water.	{0}. ప్రమాదవశాత్తు ఆమ్లం ఒలికితే, వెంటనే ఎక్కువ నీటితో కడగండి.
+{0}. Ensure cork and delivery tube connections are airtight.	{0}. బిరడా, వాహక నాళం అమరికలు గాలి చొరబడకుండా ఉన్నాయో చూడండి.
+{0}. Keep open candle flames away from the reaction test tube.	{0}. కొవ్వొత్తి మంటను చర్య జరిగే పరీక్ష నాళికకు దూరంగా ఉంచండి.
+{0}. SAFETY NOTE: The flame pop test in this application is an EDUCATIONAL VIRTUAL SIMULATION ONLY.	{0}. భద్రతా గమనిక: ఈ యాప్‌లోని మంట 'పాప్' పరీక్ష కేవలం విద్యా ప్రయోజనం కోసం చేసిన వర్చువల్ అనుకరణ మాత్రమే.
+Subject: Class {0} Chemistry / Virtual Science Laboratory	విషయం: {0}వ తరగతి రసాయన శాస్త్రం / వర్చువల్ సైన్స్ ప్రయోగశాల
+Concept: Action of acids on metals and evolution of hydrogen gas.	భావన: లోహాలపై ఆమ్లాల చర్య, హైడ్రోజన్ వాయువు వెలువడటం.
+• Laboratory Stand & Clamp	• ప్రయోగశాల స్టాండు & క్లాంపు
+• Test Tube	• పరీక్ష నాళిక
+• Zinc Granules & Dilute Sulphuric Acid	• జింక్ ముక్కలు & సజల సల్ఫ్యూరిక్ ఆమ్లం
+• Cork with Glass Delivery Tube	• గాజు వాహక నాళంతో బిరడా
+• Soap Solution Basin	• సబ్బు ద్రావణం తొట్టె
+• Testing Candle	• పరీక్షకు కొవ్వొత్తి
+Compatible with Unity {0} Universal Render Pipeline (URP).	Unity {0} యూనివర్సల్ రెండర్ పైప్‌లైన్ (URP)తో పనిచేస్తుంది.
+All progress will be reset to Step {0}.	చేసినదంతా తుడిచివేయబడి దశ {0} నుండి మొదలవుతుంది.
+Drag the test tube and clamp it securely onto the vertical stand.	పరీక్ష నాళికను లాగి నిలువు స్టాండుకు గట్టిగా బిగించండి.
+Drag the zinc granules over the clamped test tube and drop them in.	జింక్ ముక్కలను బిగించిన పరీక్ష నాళిక మీదకు లాగి లోపల వేయండి.
+Drag the dilute sulphuric acid bottle over the test tube opening to pour acid.	ఆమ్లం పోయడానికి సజల సల్ఫ్యూరిక్ ఆమ్లం సీసాను పరీక్ష నాళిక మూతి మీదకు లాగండి.
+Tap or drag the cork stopper (with its delivery tube) down into the mouth of the test tube.	బిరడాను (దాని వాహక నాళంతో సహా) నొక్కండి లేదా పరీక్ష నాళిక మూతిలోకి కిందకు లాగండి.
+Tap the test tube to slide it down the clamp until the delivery tube outlet dips into the soap solution.	వాహక నాళం చివర సబ్బు ద్రావణంలో మునిగే వరకు పరీక్ష నాళికను క్లాంపులో కిందకు జార్చడానికి దాన్ని నొక్కండి.
+Zn(s) + H<sub>2</sub>SO<sub>4</sub>(aq) → ZnSO<sub>4</sub>(aq) + H<sub>2</sub>↑. Rapid effervescence occurs as hydrogen gas travels through the tube.	Zn(s) + H<sub>2</sub>SO<sub>4</sub>(aq) → ZnSO<sub>4</sub>(aq) + H<sub>2</sub>↑. హైడ్రోజన్ వాయువు నాళం ద్వారా వెళ్తుండగా వేగంగా బుడగలు వస్తాయి.
+Hydrogen gas passes into the soap solution basin, forming bubbles filled with hydrogen that rise into the air.	హైడ్రోజన్ వాయువు సబ్బు ద్రావణం తొట్టెలోకి వెళ్లి, హైడ్రోజన్ నిండిన బుడగలు ఏర్పడి గాలిలోకి లేస్తాయి.
+Tap the candle to light the flame, then drag the burning candle near a rising soap bubble to test the gas.	కొవ్వొత్తిని నొక్కి వెలిగించి, వాయువును పరీక్షించడానికి మండుతున్న కొవ్వొత్తిని పైకి లేస్తున్న సబ్బు బుడగ దగ్గరకు లాగండి.
+Hydrogen gas burns with a characteristic pop sound! Tap Observation, Equation, or Result below to review.	హైడ్రోజన్ వాయువు ప్రత్యేకమైన 'పాప్' శబ్దంతో మండుతుంది! చూడటానికి కింద ఉన్న పరిశీలన, సమీకరణం లేదా ఫలితం నొక్కండి.
+Experiment complete! Tap Reset to repeat from Step {0} or Back to return to Home.	ప్రయోగం పూర్తయింది! దశ {0} నుండి మళ్లీ చేయడానికి 'మళ్లీ మొదలు', హోమ్‌కు వెళ్లడానికి 'వెనుకకు' నొక్కండి.

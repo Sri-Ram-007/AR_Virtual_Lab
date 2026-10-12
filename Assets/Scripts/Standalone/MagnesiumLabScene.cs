@@ -342,6 +342,14 @@ namespace ARVirtualLab.Lab
             _hint.SetVisible(_dragging == null && !_heatingOrBurning);
         }
 
+        private void OnEnable()  { ARVirtualLab.Localization.NativeText.Rendered += OnTextRendered; }
+        private void OnDisable() { ARVirtualLab.Localization.NativeText.Rendered -= OnTextRendered; }
+
+        private void OnTextRendered(TMP_Text text, Vector2 size)
+        {
+            if (text == _stepDesc) RefreshStepCardHeight();
+        }
+
         private void OnDestroy()
         {
             ARVirtualLab.AppShell.LabOrientation.Portrait();
@@ -975,6 +983,7 @@ namespace ARVirtualLab.Lab
             psGO.transform.SetParent(parentTarget, false);
             psGO.transform.localPosition = new Vector3(0f, 0f, 0.0275f);
             _sparkPS = psGO.AddComponent<ParticleSystem>();
+            _sparkPS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);   // a new system plays at once; it must be stopped before its duration can be set
 
             var psr  = psGO.GetComponent<ParticleSystemRenderer>();
             var pMat = CreateParticleMaterial(new Color(1f, 0.98f, 0.90f, 1f), true);
@@ -983,7 +992,6 @@ namespace ARVirtualLab.Lab
             var main = _sparkPS.main;
 
             main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
-            _sparkPS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);   // a new system plays at once; it must be stopped before its duration can be set
             main.playOnAwake     = false;
             main.duration        = 4f;
             main.loop            = true;
@@ -1039,6 +1047,7 @@ namespace ARVirtualLab.Lab
             smokeGO.transform.localPosition = new Vector3(0f, 0.015f, 0.0275f);
 
             _smokePS = smokeGO.AddComponent<ParticleSystem>();
+            _smokePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
             var smokePsr  = smokeGO.GetComponent<ParticleSystemRenderer>();
             var smokeMat  = CreateParticleMaterial(new Color(0.90f, 0.90f, 0.92f, 0.55f), false);
@@ -1047,7 +1056,6 @@ namespace ARVirtualLab.Lab
 
             var main = _smokePS.main;
 
-            _smokePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
             main.playOnAwake     = false;
             main.duration        = 99f;
@@ -1127,6 +1135,7 @@ namespace ARVirtualLab.Lab
             baseGO.transform.SetParent(parent.transform, false);
             baseGO.transform.localPosition = Vector3.zero;
             _baseFlamePS = baseGO.AddComponent<ParticleSystem>();
+            _baseFlamePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var bpsr  = baseGO.GetComponent<ParticleSystemRenderer>();
             var bpMat = CreateParticleMaterial(new Color(1.00f, 0.18f, 0.01f, 0.9f), true);
             bpsr.material = bpsr.sharedMaterial = bpMat;
@@ -1135,7 +1144,6 @@ namespace ARVirtualLab.Lab
             baseMain.playOnAwake = false;
             baseMain.duration    = 99f; baseMain.loop = true;
             baseMain.startLifetime = 0.19f;
-            _baseFlamePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             baseMain.startSpeed  = 0.10f;
             baseMain.startSize   = 0.0195f;
             baseMain.maxParticles = 28;
@@ -1147,6 +1155,7 @@ namespace ARVirtualLab.Lab
 
             // 4. Orange / warm-yellow main plume (scaled another +18%)
             _mainFlamePS = parent.AddComponent<ParticleSystem>();
+            _mainFlamePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var mpsr  = parent.GetComponent<ParticleSystemRenderer>();
             var mpMat = CreateParticleMaterial(new Color(1.00f, 0.55f, 0.03f, 0.85f), true);
             mpsr.material = mpsr.sharedMaterial = mpMat;
@@ -1155,7 +1164,6 @@ namespace ARVirtualLab.Lab
 
             main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
             main.duration    = 99f; main.loop = true;
-            _mainFlamePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             main.startLifetime = 0.28f;
             main.startSpeed  = 0.13f;
             main.startSize   = 0.028f;
@@ -2696,7 +2704,12 @@ namespace ARVirtualLab.Lab
             float h = StepCardCollapsedH;
             if (!_stepCardCollapsed)
             {
-                float textH = Mathf.Clamp(_stepDesc.GetPreferredValues(_stepDesc.text, StepTextWidth, 0f).y, 34f, StepTextMaxH);
+                // when Android draws the Telugu, measure that instead of the hidden English
+                var native = _stepDesc.GetComponent<ARVirtualLab.Localization.NativeText>();
+                float measured = native != null && native.ShowingNative
+                    ? native.RenderedSize.y
+                    : _stepDesc.GetPreferredValues(_stepDesc.text, StepTextWidth, 0f).y;
+                float textH = Mathf.Clamp(measured, 34f, StepTextMaxH);
                 _stepDesc.rectTransform.sizeDelta = new Vector2(StepTextWidth, textH);
                 h = 180f + textH + 22f;
             }
@@ -2847,7 +2860,14 @@ namespace ARVirtualLab.Lab
             var lbl = Fixed(MakeText(rt, "Lbl", text, Vector2.zero, Vector2.one,
                 22f, Color.white, FontStyles.Bold, TextAlignmentOptions.Center), 22f);
             lbl.textWrappingMode = TextWrappingModes.NoWrap;
-            rt.sizeDelta = new Vector2(lbl.GetPreferredValues(text, 2000f, 100f).x + 28f, 42f);
+            // sized by its text through layout, so a longer translation widens the label too
+            rt.sizeDelta = new Vector2(120f, 42f);
+            var layout = go.AddComponent<HorizontalLayoutGroup>();
+            layout.padding = new RectOffset(14, 14, 0, 0);
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childControlWidth = layout.childControlHeight = true;
+            layout.childForceExpandWidth = layout.childForceExpandHeight = false;
+            go.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             go.AddComponent<EquipmentLabelPositioner>().Init(_cam, target != null ? target.transform : null, root);
             go.transform.SetAsFirstSibling();       // drawn behind the HUD cards and dialogs, never on top of them

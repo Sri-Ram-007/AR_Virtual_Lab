@@ -134,13 +134,24 @@ namespace ARVirtualLab.AppShell
             var border = fill.transform.parent.GetComponent<Image>();
             border.raycastTarget = true;              // taps on the card must not bubble up to the scrim and close it
             border.gameObject.AddComponent<Button>().transition = Selectable.Transition.None;
-            UiKit.Pin(border.rectTransform, 0.5f, 0.5f, 0f, 0f, 920f, 520f);
+            UiKit.Pin(border.rectTransform, 0.5f, 0.5f, 0f, 0f, 920f, 640f);
             var card = fill.rectTransform;
 
             var title = UiKit.Text(card, "Title", "Settings", 48, EduTheme.Ink, FontStyles.Bold, TextAlignmentOptions.MidlineLeft);
             UiKit.Pin(title.rectTransform, 0f, 1f, 50f, -36f, 600f, 90f);
 
-            AddChoiceRow(card, -170f, "Theme", "Light", "Dark", AppSettings.DarkMode, dark =>
+            // "Telugu" is always shown as తెలుగు (Loc.Endonyms), so a student who cannot read English can find it.
+            // The label itself stays Latin: TextMeshPro has no Telugu glyphs and would warn about every letter.
+            AddChoiceRow(card, -170f, "Language", "English", "Telugu",
+                AppSettings.Language == AppLanguage.Telugu, telugu =>
+            {
+                var lang = telugu ? AppLanguage.Telugu : AppLanguage.English;
+                if (lang == AppSettings.Language) return;
+                AppSettings.Language = lang;
+                Rebuild();
+            });
+
+            AddChoiceRow(card, -290f, "Theme", "Light", "Dark", AppSettings.DarkMode, dark =>
             {
                 if (dark == AppSettings.DarkMode) return;
                 AppSettings.DarkMode = dark;

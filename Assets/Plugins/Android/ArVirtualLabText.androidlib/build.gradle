@@ -1,0 +1,29 @@
+// Telugu text support (see Assets/Scripts/Localization): Android-drawn text and Google ML Kit's
+// on-device English to Telugu translator. Unity adds this folder to the Android build as a library module.
+apply plugin: 'com.android.library'
+
+dependencies {
+    implementation 'com.google.mlkit:translate:17.0.3'
+}
+
+android {
+    namespace "com.arvirtuallab.text"
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+        }
+    }
+
+    // versions shipped with Unity 6000.3's bundled Android SDK
+    compileSdk 35
+    buildToolsVersion = "36.0.0"
+    defaultConfig {
+        minSdk 26
+    }
+
+    lint {
+        abortOnError false
+    }
+}
