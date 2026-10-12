@@ -117,17 +117,8 @@ namespace ARVirtualLab.AR
         /// </summary>
         private static float FitScale(ARExperimentSetup setup)
         {
-            if (setup.SceneRoot == null) return 1f;
-            bool any = false;
-            Bounds b = default(Bounds);
-            foreach (var r in setup.SceneRoot.GetComponentsInChildren<Renderer>())
-            {
-                if (!(r is MeshRenderer || r is SkinnedMeshRenderer) || !r.enabled) continue;
-                if (setup.Bench != null && r.transform.IsChildOf(setup.Bench.transform)) continue;
-                if (r.GetComponentInParent<Canvas>() != null) continue;
-                if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds);
-            }
-            float footprint = any ? Mathf.Max(b.size.x, b.size.z) : 0f;
+            Bounds b;
+            float footprint = ApparatusBounds.TryGet(setup.SceneRoot, setup.Bench, out b) ? Mathf.Max(b.size.x, b.size.z) : 0f;
             float scale = footprint > 0.01f ? TargetFootprint / footprint : 1f;
             Debug.Log("[ARMode] apparatus footprint " + footprint.ToString("F2") + " m -> starting size x" + scale.ToString("F2"));
             return Mathf.Clamp(scale, MinScale, MaxScale);
@@ -362,8 +353,9 @@ namespace ARVirtualLab.AR
         private void Update()
         {
             if (_statusHideAt > 0f && Time.unscaledTime >= _statusHideAt) { _statusBg.gameObject.SetActive(false); _statusHideAt = -1f; }
-            if (_diagBg != null) _diagBg.gameObject.SetActive(_phase != Phase.Placed);    // only needed while setting up
-            if (_diagText != null && Time.unscaledTime >= _nextDiag)
+            // only needed while setting up, and only for us (editor / Development Build), never for students
+            if (_diagBg != null) _diagBg.gameObject.SetActive(Debug.isDebugBuild && _phase != Phase.Placed);
+            if (_diagText != null && Debug.isDebugBuild && Time.unscaledTime >= _nextDiag)
             {
                 _nextDiag = Time.unscaledTime + 0.5f;
                 string loader = "none";
@@ -605,7 +597,7 @@ namespace ARVirtualLab.AR
             _statusText.rectTransform.offsetMax = new Vector2(-24f, -6f);
             _statusText.enableAutoSizing = true; _statusText.fontSizeMin = 24f; _statusText.fontSizeMax = 32f;
 
-            // small always-on read-out of what AR is doing, so a screenshot of a misbehaving phone says why
+            // small read-out of what AR is doing, so a screenshot of a misbehaving phone says why (debug builds only)
             var diagBg = UiKit.Box(safe, "AR Diagnostics", new Color(0f, 0f, 0f, 0.55f), 10);
             UiKit.Anchor(diagBg.rectTransform, 0.02f, 0.30f, 0.98f, 0.345f);   // above the buttons so it never covers them
             _diagBg = diagBg;
@@ -614,6 +606,8 @@ namespace ARVirtualLab.AR
             UiKit.Fill(_diagText.rectTransform);
             _diagText.enableAutoSizing = true; _diagText.fontSizeMin = 14f; _diagText.fontSizeMax = 22f;
             _diagText.raycastTarget = false;
+            var diagNative = _diagText.GetComponent<ARVirtualLab.Localization.NativeText>();
+            if (diagNative != null) diagNative.enabled = false;    // technical read-out: stays English, never sent for translation
 
             _placeBtn = UiKit.Button(safe, "PlaceHere", "Place lab here", EduTheme.Teal, Color.white, 38, 22);
             _placeBtn.onClick.AddListener(() => { if (_reticleOnPlane) PlaceLab(_reticlePose); });

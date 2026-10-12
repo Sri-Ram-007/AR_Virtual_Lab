@@ -40,6 +40,8 @@ namespace ARVirtualLab.AcidConductivity
         private AudioSource _audio;
         private Camera _cam;
         private GameObject _table;
+        private Bounds _apparatus;                 // measured once, for the camera framing
+        private bool _haveApparatus;
         private ExperimentHud _hud;
         private HintRing _hint;
         private bool _animating;
@@ -118,16 +120,23 @@ namespace ARVirtualLab.AcidConductivity
         // ═════════════════════════════════════════════════════
         private void Awake()
         {
+            LabOrientation.Landscape(this);
             BuildCameraAndLighting();
             EnsureEventSystem();
             _audio = GetComponent<AudioSource>();
             if (_audio == null) _audio = gameObject.AddComponent<AudioSource>();
         }
 
+        private void OnDestroy()
+        {
+            LabOrientation.Portrait();
+        }
+
         private void Start()
         {
             CreateMaterials();
             BuildScene();
+            _haveApparatus = ApparatusBounds.TryGet(transform, _table, out _apparatus);
             BuildUI();
 
             if (AppNavigation.LaunchDirectlyToAR)
@@ -147,7 +156,7 @@ namespace ARVirtualLab.AcidConductivity
         private void Update()
         {
             UpdateHint();
-            CameraFit.Apply(_cam, 48f, 1.40f);
+            if (_haveApparatus) CameraFit.Frame(_cam, _apparatus);   // the whole bench in the clear middle of the screen
             UpdateInteraction();
             UpdateBulbHalo();
         }
@@ -960,7 +969,6 @@ namespace ARVirtualLab.AcidConductivity
                 Bench = _table,
                 BenchSurfaceY = TABLE_TOP_Y,
                 BenchCenterZ = 0.05f,
-                DefaultScale = 2.6f,
                 OnStarted = c => { _cam = c; },
                 OnStopped = c => { _cam = c; }
             });
@@ -1000,17 +1008,7 @@ namespace ARVirtualLab.AcidConductivity
         // =========================================================
         private void BuildUI()
         {
-            var canvasGO = new GameObject("AcidConductivityCanvas", typeof(RectTransform));
-            canvasGO.transform.SetParent(transform, false);
-            var canvas = canvasGO.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 10;
-            var scaler = canvasGO.AddComponent<UnityEngine.UI.CanvasScaler>();
-            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080f, 1920f);
-            scaler.matchWidthOrHeight = 0.5f;
-            canvasGO.AddComponent<UnityEngine.UI.GraphicRaycaster>();
-            var root = canvasGO.GetComponent<RectTransform>();
+            var root = ExperimentHud.CreateCanvas(transform, "AcidConductivityCanvas");
 
             _hud = ExperimentHud.Build(this, root, new HudConfig
             {

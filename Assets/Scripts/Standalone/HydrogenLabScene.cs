@@ -116,31 +116,7 @@ namespace ARVirtualLab.Hydrogen
         private GameObject _pourStream;
         private const float LIQUID_FULL_H = 0.052f; // full acid column height in the flask base
 
-        // === UI ===
-        private Canvas _canvas;
-        private GameObject _introPanel;
-        private GameObject _hudPanel;
-        private readonly List<Image> _stepPillIndicators = new List<Image>();
-        private TMP_Text _stepNumberBadge;
-        private TMP_Text _stepTitle;
-        private TMP_Text _stepDesc;
-        private TMP_Text _feedbackText;
-        private Coroutine _feedbackCoroutine;
-        private Button _startBtn;
-        private Button _resetBtn;
-        private Button _safetyBtn;
-        private Button _prevBtn;
-        private Button _nextBtn;
-        private Button _obsBtn;
-        private Button _eqBtn;
-        private Button _resultBtn;
-        private GameObject _safetyPanel;
-        private GameObject _obsPanel;
-        private GameObject _eqPanel;
-        private GameObject _resultPanel;
-        private GameObject _aboutPanel;
-        private GameObject _resetConfirmDialog;
-        private readonly List<GameObject> _equipLabels = new List<GameObject>();
+        // === UI ===  (the screen itself is _hud, built in BuildUI)
         private HydrogenARTray _arTray;
 
         // =========================================================
@@ -153,12 +129,22 @@ namespace ARVirtualLab.Hydrogen
 
             _audio = GetComponent<AudioSource>();
             if (_audio == null) _audio = gameObject.AddComponent<AudioSource>();
+            ARVirtualLab.AppShell.LabOrientation.Landscape(this);
         }
+
+        private void OnDestroy()
+        {
+            ARVirtualLab.AppShell.LabOrientation.Portrait();
+        }
+
+        private Bounds _apparatus;
+        private bool _haveApparatus;
 
         private void Start()
         {
             BuildMaterials();
             BuildScene();
+            _haveApparatus = ApparatusBounds.TryGet(transform, _table, out _apparatus);
             BuildUI();
 
             if (ARVirtualLab.AppShell.AppNavigation.LaunchDirectlyToAR)
@@ -217,7 +203,7 @@ namespace ARVirtualLab.Hydrogen
         private void Update()
         {
             UpdateHint();
-            ARVirtualLab.UI.CameraFit.Apply(_cam, 48f);   // keep the same width of view on tall phones
+            if (_haveApparatus) CameraFit.Frame(_cam, _apparatus);   // whole apparatus in the clear middle of the landscape screen
             HandleTouchInput();
         }
 
@@ -1434,7 +1420,7 @@ namespace ARVirtualLab.Hydrogen
         public void ResetExperiment()
         {
             StopAllCoroutines();            // cancel any running drop / pour / seal animation
-            _reactionCoroutine = null; _feedbackCoroutine = null; _animating = false;
+            _reactionCoroutine = null; _animating = false;
             if (_pourStream != null) _pourStream.SetActive(false);
             SetEffervescence(0f);
             StopAndClearAllVFX();
@@ -1456,603 +1442,108 @@ namespace ARVirtualLab.Hydrogen
             _reactionStarted = _isCompleted = false;
             _draggingObject = null;
 
-            if (_safetyPanel != null) _safetyPanel.SetActive(false);
-            if (_obsPanel != null) _obsPanel.SetActive(false);
-            if (_eqPanel != null) _eqPanel.SetActive(false);
-            if (_resultPanel != null) _resultPanel.SetActive(false);
-            if (_aboutPanel != null) _aboutPanel.SetActive(false);
-            if (_resetConfirmDialog != null) _resetConfirmDialog.SetActive(false);
+            _hud.CloseAllModals();
 
             SetStep(HydrogenStep.Step1_SelectZinc);
             ShowFeedback("Experiment reset. Tap the zinc granules on the table.", true);
         }
 
         // =========================================================
-        //  UI Builder — Matches Magnesium Ribbon UI Design & Layout
-        //  1080 x 1920 portrait canvas, dark navy theme
+        //  UI — the shared landscape screen (ExperimentHud)
         // =========================================================
+        private ExperimentHud _hud;
+
         private void BuildUI()
         {
-            BuildUIRaw();
-            if (_canvas != null) ARVirtualLab.UI.EduTheme.Apply(_canvas.transform);   // light, textbook-style theme
-        }
+            var root = ExperimentHud.CreateCanvas(transform, "HydrogenCanvas");
+            _hud = ExperimentHud.Build(this, root, new HudConfig
+            {
+                AppLabel = "HYDROGEN GAS FROM ZINC",
+                IntroTitle = "HYDROGEN GAS FROM ZINC",
+                IntroSubtitle = "Interactive Chemistry Experiment",
+                Equation = "Zn(s) + H₂SO₄(aq) → ZnSO₄(aq) + H₂(g)↑",
+                EquationCaption = "Zinc + Dilute Sulphuric Acid → Zinc Sulphate + Hydrogen Gas",
+                OverviewSteps = new[]
+                {
+                    "Prepare Zinc", "Place Zinc in Flask", "Add Dilute Sulphuric Acid", "Seal with Cork & Delivery Tube",
+                    "Observe Reaction & Bubbling", "Hydrogen Gas Evolution", "Hydrogen Gas Formation",
+                    "Observe Gas / Reaction Completion", "Observation / Equation / Result",
+                },
+                StepCount = 9,
+                ObservationBody =
+                    "• Rapid bubbling (brisk effervescence) occurs around the zinc granules upon adding dilute sulphuric acid.\n\n" +
+                    "• A colorless, odorless hydrogen gas (H₂) evolves continuously from the flask.\n\n" +
+                    "• The reaction is exothermic — thermal energy is released and the conical flask warms up.\n\n" +
+                    "• Hydrogen gas travels upward through the glass delivery tube and discharges smoothly into the air from the tube outlet.\n\n" +
+                    "• Zinc granules gradually dissolve as zinc sulphate (ZnSO₄) is formed in the aqueous solution.",
+                EquationBody =
+                    "Zinc + Dilute Sulphuric Acid → Zinc Sulphate + Hydrogen Gas\n\n" +
+                    "Zn(s)   +   H₂SO₄(aq)   →   ZnSO₄(aq)   +   H₂(g)↑\n\n" +
+                    "Reactants:\n" +
+                    "  • Zinc (Zn) — Silvery-grey metallic granules\n" +
+                    "  • Sulphuric Acid (H₂SO₄) — Colorless dilute acid solution\n\n" +
+                    "Products:\n" +
+                    "  • Zinc Sulphate (ZnSO₄) — Colorless aqueous solution\n" +
+                    "  • Hydrogen (H₂) — Colorless, flammable diatomic gas\n\n" +
+                    "Classification: Single Displacement (Redox) & Exothermic Reaction",
+                ResultBody =
+                    "EXPERIMENT CONCLUSION:\n\n" +
+                    "Dilute sulphuric acid reacts with reactive zinc metal to produce aqueous zinc sulphate and evolve hydrogen gas.\n\n" +
+                    "Key Conclusions:\n\n" +
+                    "1. Single Displacement Reaction: Zinc displaces hydrogen from dilute acid as it is higher in the reactivity series.\n\n" +
+                    "2. Hydrogen Gas Evolution: Characterised by vigorous effervescence and continuous upward gas flow through the delivery tube.\n\n" +
+                    "3. Exothermic Reaction: Thermal energy is released into the solution during the reaction.\n\n" +
+                    "4. Reaction Completion: Effervescence subsides as the available zinc reacts with the acid.\n\n" +
+                    "Equation: Zn(s) + H₂SO₄(aq) → ZnSO₄(aq) + H₂(g)↑",
+                SafetyBody =
+                    "LABORATORY SAFETY GUIDELINES:\n\n" +
+                    "1. Wear certified safety goggles and a lab coat at all times.\n\n" +
+                    "2. Dilute sulphuric acid (H₂SO₄) is corrosive — avoid contact with skin and eyes.\n\n" +
+                    "3. In case of accidental acid contact, rinse immediately with plenty of running water.\n\n" +
+                    "4. Handle glassware carefully to avoid cuts from cracked flasks or delivery tubes.\n\n" +
+                    "5. Ensure the cork fits tightly to prevent gas leakage.\n\n" +
+                    "6. Always handle acids under adequate laboratory ventilation.",
+                AboutBody =
+                    "FORMATION OF HYDROGEN GAS EXPERIMENT\n\n" +
+                    "Curriculum Topic: Acids, Bases, and Salts / Reactivity Series\n" +
+                    "Subject: Secondary School Chemistry (Grade 9-10)\n\n" +
+                    "Learning Objectives:\n" +
+                    "• Demonstrate the displacement reaction of metals with acids\n" +
+                    "• Observe the physical signs of chemical change (effervescence, gas evolution)\n" +
+                    "• Understand the formation and flow of hydrogen gas\n\n" +
+                    "Developed for Virtual & Augmented Reality Science Education.",
+                OnStart = () => SetStep(HydrogenStep.Step1_SelectZinc),
+                OnArToggle = () =>
+                {
+                    if (_step == HydrogenStep.Intro) SetStep(HydrogenStep.Step1_SelectZinc);
+                    ToggleUnifiedAR();
+                },
+                OnPrev = PrevStep,
+                OnNext = NextStep,
+                OnReset = ResetExperiment,
+            });
 
-        private void BuildUIRaw()
-        {
-            var canvasGO = new GameObject("HydrogenCanvas");
-            canvasGO.transform.SetParent(transform, false);
-            _canvas = canvasGO.AddComponent<Canvas>();
-            _canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
-            _canvas.sortingOrder = 10;
-
-            var scaler = canvasGO.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080f, 1920f);
-            scaler.matchWidthOrHeight  = 0.5f;
-
-            canvasGO.AddComponent<GraphicRaycaster>();
-
-            EnsureEventSystem();
-
-            var root = canvasGO.GetComponent<RectTransform>();
-
-            // 1. Intro Panel
-            BuildIntroPanel(root);
-
-            // 2. HUD Panel
-            BuildHUDPanel(root);
-
-            // 3. Equipment Labels
             BuildEquipmentLabels(root);
 
-            // 4. Modal Panels
-            BuildModalPanels(root);
-
-            // 5. AR Component Tray
+            // AR component tray (built hidden, as before)
             var trayGO = new GameObject("HydrogenARTrayRoot");
             trayGO.transform.SetParent(root, false);
             _arTray = trayGO.AddComponent<HydrogenARTray>();
             _arTray.BuildTray(root);
         }
 
-        private void BuildIntroPanel(RectTransform root)
-        {
-            _introPanel = MakePanel(root, "IntroPanel", new Color(0.02f, 0.04f, 0.09f, 0.95f));
-            var rootRT = _introPanel.GetComponent<RectTransform>();
-
-            // Center card
-            var card = MakePanel(rootRT, "Card", new Color(0.06f, 0.10f, 0.20f, 0.98f));
-            var cardRT = card.GetComponent<RectTransform>();
-            cardRT.anchorMin = new Vector2(0.05f, 0.10f);
-            cardRT.anchorMax = new Vector2(0.95f, 0.92f);
-            var cardImg = card.GetComponent<Image>();
-            if (cardImg != null) cardImg.raycastTarget = true;
-
-            var cardOutline = card.AddComponent<Outline>();
-            cardOutline.effectColor = new Color(0.18f, 0.55f, 0.95f, 0.70f);
-            cardOutline.effectDistance = new Vector2(2f, -2f);
-
-            // Badge Pill at top
-            var badge = MakePanel(cardRT, "Badge", new Color(0.12f, 0.25f, 0.48f, 0.90f));
-            var bRT = badge.GetComponent<RectTransform>();
-            bRT.anchorMin = new Vector2(0.15f, 0.90f);
-            bRT.anchorMax = new Vector2(0.85f, 0.96f);
-            MakeText(bRT, "BadgeText", "VIRTUAL CHEMISTRY LABORATORY",
-                new Vector2(0f, 0f), new Vector2(1f, 1f),
-                18, new Color(0.45f, 0.85f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
-
-            // Title
-            MakeText(cardRT, "Title", "HYDROGEN GAS FROM ZINC",
-                new Vector2(0.05f, 0.79f), new Vector2(0.95f, 0.89f),
-                36, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
-
-            // Subtitle
-            MakeText(cardRT, "Subtitle", "Interactive Chemistry Experiment",
-                new Vector2(0.05f, 0.73f), new Vector2(0.95f, 0.79f),
-                20, new Color(0.70f, 0.82f, 0.98f), FontStyles.Normal, TextAlignmentOptions.Center);
-
-            // Reaction Equation Pill
-            var eqPill = MakePanel(cardRT, "EqPill", new Color(0.08f, 0.15f, 0.30f, 0.95f));
-            var eqRT = eqPill.GetComponent<RectTransform>();
-            eqRT.anchorMin = new Vector2(0.10f, 0.63f);
-            eqRT.anchorMax = new Vector2(0.90f, 0.71f);
-            var eqOut = eqPill.AddComponent<Outline>();
-            eqOut.effectColor = new Color(0.15f, 0.60f, 1.0f, 0.50f);
-            eqOut.effectDistance = new Vector2(1.5f, -1.5f);
-            MakeText(eqRT, "EqText", "Zn(s) + H\u2082SO\u2084(aq) \u2192 ZnSO\u2084(aq) + H\u2082(g)\u2191",
-                new Vector2(0f, 0f), new Vector2(1f, 1f),
-                20, new Color(0.35f, 0.90f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
-
-            // Experiment Overview Summary Box
-            var infoBox = MakePanel(cardRT, "InfoBox", new Color(0.04f, 0.07f, 0.15f, 0.90f));
-            var ibRT = infoBox.GetComponent<RectTransform>();
-            ibRT.anchorMin = new Vector2(0.06f, 0.28f);
-            ibRT.anchorMax = new Vector2(0.94f, 0.61f);
-
-            MakeText(ibRT, "InfoTitle", "EXPERIMENT OVERVIEW",
-                new Vector2(0.06f, 0.85f), new Vector2(0.94f, 0.98f),
-                16, new Color(0.40f, 0.75f, 1f), FontStyles.Bold, TextAlignmentOptions.Left);
-
-            MakeText(ibRT, "InfoBody",
-                "1. Prepare Zinc\n" +
-                "2. Place Zinc in Flask\n" +
-                "3. Add Dilute Sulphuric Acid\n" +
-                "4. Seal with Cork & Delivery Tube\n" +
-                "5. Observe Reaction & Bubbling\n" +
-                "6. Hydrogen Gas Evolution\n" +
-                "7. Hydrogen Gas Formation\n" +
-                "8. Observe Gas / Reaction Completion\n" +
-                "9. Observation / Equation / Result",
-                new Vector2(0.06f, 0.05f), new Vector2(0.94f, 0.84f),
-                16, new Color(0.82f, 0.88f, 0.96f), FontStyles.Normal, TextAlignmentOptions.Left);
-
-            // Primary Button: START EXPERIMENT
-            _startBtn = MakeButton(cardRT, "StartBtn", "Start Experiment",
-                new Vector2(0.10f, 0.16f), new Vector2(0.90f, 0.25f),
-                new Color(0.02f, 0.50f, 0.88f));
-            var sbOut = _startBtn.gameObject.AddComponent<Outline>();
-            sbOut.effectColor = new Color(0.30f, 0.80f, 1f, 0.80f);
-            sbOut.effectDistance = new Vector2(1.5f, -1.5f);
-            _startBtn.onClick.AddListener(() => SetStep(HydrogenStep.Step1_SelectZinc));
-
-            // Secondary Button: AR LAB
-            var arIntroBtn = MakeButton(cardRT, "ARIntroBtn", "AR Lab",
-                new Vector2(0.10f, 0.07f), new Vector2(0.90f, 0.145f),
-                new Color(0.32f, 0.24f, 0.72f));
-            arIntroBtn.onClick.AddListener(() => {
-                SetStep(HydrogenStep.Step1_SelectZinc);
-                ToggleUnifiedAR();
-            });
-
-            // Footer Options: Home, Safety & About
-            var homeLink = MakeButton(cardRT, "HomeLink", "\u2190 Home",
-                new Vector2(0.08f, 0.01f), new Vector2(0.34f, 0.055f),
-                new Color(0.12f, 0.22f, 0.38f));
-            homeLink.onClick.AddListener(() => ARVirtualLab.AppShell.AppNavigation.GoToHome());
-
-            var safetyLink = MakeButton(cardRT, "SafetyLink", "Safety",
-                new Vector2(0.37f, 0.01f), new Vector2(0.63f, 0.055f),
-                new Color(0.15f, 0.22f, 0.35f));
-            safetyLink.onClick.AddListener(() => TogglePanel(_safetyPanel));
-
-            var aboutLink = MakeButton(cardRT, "AboutLink", "About",
-                new Vector2(0.66f, 0.01f), new Vector2(0.92f, 0.055f),
-                new Color(0.15f, 0.22f, 0.35f));
-            aboutLink.onClick.AddListener(() => TogglePanel(_aboutPanel));
-        }
-
-        private void BuildHUDPanel(RectTransform root)
-        {
-            _hudPanel = MakePanel(root, "HUD", Color.clear);
-            _hudPanel.SetActive(false);
-
-            // ── Top Header Card ───────────────────────────────
-            var topBar = MakePanel(_hudPanel.GetComponent<RectTransform>(), "TopHeaderCard",
-                new Color(0.04f, 0.08f, 0.16f, 0.95f));
-            var topRT = topBar.GetComponent<RectTransform>();
-            topRT.anchorMin = new Vector2(0.03f, 0.81f);
-            topRT.anchorMax = new Vector2(0.97f, 0.985f);
-            var tbOut = topBar.AddComponent<Outline>();
-            tbOut.effectColor = new Color(0.15f, 0.45f, 0.85f, 0.60f);
-            tbOut.effectDistance = new Vector2(1.5f, -1.5f);
-
-            // Row 1: Back Button, App Header & AR Button
-            var backBtn = MakeButton(topRT, "BackButton", "\u2190 Back",
-                new Vector2(0.03f, 0.79f), new Vector2(0.24f, 0.97f),
-                new Color(0.12f, 0.22f, 0.38f));
-            backBtn.onClick.AddListener(() => ARVirtualLab.AppShell.AppNavigation.GoToHome());
-
-            MakeText(topRT, "AppLabel", "HYDROGEN GAS FROM ZINC",
-                new Vector2(0.26f, 0.82f), new Vector2(0.70f, 0.97f),
-                20, new Color(0.35f, 0.85f, 1.00f), FontStyles.Bold, TextAlignmentOptions.Left);
-
-            var arBtn = MakeButton(topRT, "ARButton", "AR LAB",
-                new Vector2(0.72f, 0.79f), new Vector2(0.97f, 0.97f),
-                new Color(0.32f, 0.24f, 0.72f));
-            arBtn.onClick.AddListener(ToggleUnifiedAR);
-
-            // Row 2: 9-Step Progress Indicators (Pills)
-            var pillRow = new GameObject("StepPillRow", typeof(RectTransform));
-            pillRow.transform.SetParent(topRT, false);
-            var prRT = pillRow.GetComponent<RectTransform>();
-            prRT.anchorMin = new Vector2(0.04f, 0.69f);
-            prRT.anchorMax = new Vector2(0.96f, 0.76f);
-            prRT.offsetMin = prRT.offsetMax = Vector2.zero;
-
-            _stepPillIndicators.Clear();
-            float stepWidth = 1.0f / 9.0f;
-            for (int i = 0; i < 9; i++)
-            {
-                var pill = new GameObject($"Pill_{i + 1}", typeof(RectTransform), typeof(Image));
-                pill.transform.SetParent(prRT, false);
-                var pRT = pill.GetComponent<RectTransform>();
-                pRT.anchorMin = new Vector2(i * stepWidth + 0.012f, 0f);
-                pRT.anchorMax = new Vector2((i + 1) * stepWidth - 0.012f, 1f);
-                pRT.offsetMin = pRT.offsetMax = Vector2.zero;
-                var pImg = pill.GetComponent<Image>();
-                pImg.color = (i == 0) ? ARVirtualLab.UI.EduTheme.PillActive : ARVirtualLab.UI.EduTheme.PillIdle;
-                _stepPillIndicators.Add(pImg);
-            }
-
-            // Row 3: Step Badge & Title
-            var stepBadge = MakePanel(topRT, "StepBadge", new Color(0.10f, 0.28f, 0.58f, 0.95f));
-            var sbrt = stepBadge.GetComponent<RectTransform>();
-            sbrt.anchorMin = new Vector2(0.04f, 0.44f);
-            sbrt.anchorMax = new Vector2(0.32f, 0.63f);
-            _stepNumberBadge = MakeText(sbrt, "BadgeText", "STEP 1 OF 9",
-                new Vector2(0f, 0f), new Vector2(1f, 1f),
-                14, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
-
-            _stepTitle = MakeText(topRT, "StepTitle", "Step 1: Prepare Zinc",
-                new Vector2(0.35f, 0.44f), new Vector2(0.96f, 0.65f),
-                21, Color.white, FontStyles.Bold, TextAlignmentOptions.Left);
-
-            // Row 4: Instruction Description
-            _stepDesc = MakeText(topRT, "StepDesc", "Tap the zinc granules on the table.",
-                new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.42f),
-                18, new Color(0.85f, 0.92f, 0.98f), FontStyles.Normal, TextAlignmentOptions.Left);
-
-            // ── Toast Feedback ────────────────────────────────
-            var toastBg = MakePanel(_hudPanel.GetComponent<RectTransform>(), "Toast",
-                new Color(0.04f, 0.10f, 0.22f, 0.94f));
-            var toastRT = toastBg.GetComponent<RectTransform>();
-            toastRT.anchorMin = new Vector2(0.08f, 0.11f);
-            toastRT.anchorMax = new Vector2(0.92f, 0.18f);
-            var tOut = toastBg.AddComponent<Outline>();
-            tOut.effectColor = new Color(0.20f, 0.70f, 1.0f, 0.70f);
-            tOut.effectDistance = new Vector2(1.5f, -1.5f);
-            _feedbackText = MakeText(toastRT, "FeedbackText", "",
-                new Vector2(0.04f, 0.05f), new Vector2(0.96f, 0.95f),
-                18, new Color(0.92f, 0.97f, 1f), FontStyles.Normal, TextAlignmentOptions.Center);
-            toastBg.SetActive(false);
-
-            // ── Bottom Action Bar ─────────────────────────────
-            var botBar = MakePanel(_hudPanel.GetComponent<RectTransform>(), "BotBar",
-                new Color(0.04f, 0.08f, 0.16f, 0.95f));
-            var bbRT = botBar.GetComponent<RectTransform>();
-            bbRT.anchorMin = new Vector2(0.04f, 0.02f);
-            bbRT.anchorMax = new Vector2(0.96f, 0.085f);
-            var bbOut = botBar.AddComponent<Outline>();
-            bbOut.effectColor = new Color(0.18f, 0.45f, 0.85f, 0.50f);
-            bbOut.effectDistance = new Vector2(1.5f, -1.5f);
-
-            // Reset
-            _resetBtn = MakeButton(bbRT, "Reset", "Reset",
-                new Vector2(0.02f, 0.12f), new Vector2(0.22f, 0.88f),
-                new Color(0.48f, 0.12f, 0.16f));
-            _resetBtn.onClick.AddListener(() => {
-                if (_resetConfirmDialog != null) _resetConfirmDialog.SetActive(true);
-                else ResetExperiment();
-            });
-
-            // Safety
-            _safetyBtn = MakeButton(bbRT, "Safety", "Safety",
-                new Vector2(0.25f, 0.12f), new Vector2(0.45f, 0.88f),
-                new Color(0.55f, 0.35f, 0.05f));
-            _safetyBtn.onClick.AddListener(() => TogglePanel(_safetyPanel));
-
-            // Previous
-            _prevBtn = MakeButton(bbRT, "Prev", "Previous",
-                new Vector2(0.48f, 0.12f), new Vector2(0.70f, 0.88f),
-                new Color(0.18f, 0.24f, 0.36f));
-            _prevBtn.onClick.AddListener(PrevStep);
-            _prevBtn.gameObject.SetActive(false);
-
-            // Next
-            _nextBtn = MakeButton(bbRT, "Next", "Next",
-                new Vector2(0.73f, 0.12f), new Vector2(0.98f, 0.88f),
-                new Color(0.02f, 0.50f, 0.88f));
-            _nextBtn.onClick.AddListener(NextStep);
-            _nextBtn.gameObject.SetActive(false);
-
-            // Observation / Equation / Result (appear at end)
-            _obsBtn = MakeButton(bbRT, "Obs", "Observation",
-                new Vector2(0.48f, 0.12f), new Vector2(0.64f, 0.88f),
-                new Color(0.06f, 0.45f, 0.28f));
-            _obsBtn.onClick.AddListener(() => TogglePanel(_obsPanel));
-            _obsBtn.gameObject.SetActive(false);
-
-            _eqBtn = MakeButton(bbRT, "Eq", "Equation",
-                new Vector2(0.66f, 0.12f), new Vector2(0.82f, 0.88f),
-                new Color(0.35f, 0.20f, 0.65f));
-            _eqBtn.onClick.AddListener(() => TogglePanel(_eqPanel));
-            _eqBtn.gameObject.SetActive(false);
-
-            _resultBtn = MakeButton(bbRT, "Result", "Result",
-                new Vector2(0.84f, 0.12f), new Vector2(0.98f, 0.88f),
-                new Color(0.08f, 0.48f, 0.62f));
-            _resultBtn.onClick.AddListener(() => TogglePanel(_resultPanel));
-            _resultBtn.gameObject.SetActive(false);
-        }
-
         private void BuildEquipmentLabels(RectTransform root)
         {
-            Color labelBg = new Color(0.06f, 0.10f, 0.20f, 0.85f);
-            Color labelText = Color.white;
-
-            CreateEquipLabel(root, "FlaskLabel",  _flask != null ? _flask.transform : null,             new Vector3(-0.040f, 0.120f, 0.000f), new Vector2(0f, 40f), "Conical Flask",  labelBg, labelText);
-            CreateEquipLabel(root, "ZincLabel",   _zincGranules != null ? _zincGranules.transform : null, new Vector3(0.220f, 0.020f, 0.050f),  new Vector2(0f, 25f), "Zinc Granules",  labelBg, labelText);
-            CreateEquipLabel(root, "AcidLabel",   _acidBottle != null ? _acidBottle.transform : null,   new Vector3(0.220f, 0.110f, -0.090f), new Vector2(0f, 35f), "Dil. H\u2082SO\u2084", labelBg, labelText);
-            CreateEquipLabel(root, "CorkLabel",   _cork != null ? _cork.transform : null,               new Vector3(0.220f, 0.080f, 0.170f),  new Vector2(0f, 30f), "Tube with Cork", labelBg, labelText);
+            System.Func<Camera> cam = () => _cam;
+            System.Func<bool> inLab = () => _step != HydrogenStep.Intro && _step != HydrogenStep.Completed;
+            if (_flask != null) EquipmentLabel.Create(root, cam, _flask.transform, "Conical Flask", LabelAnchor.Top, null, inLab);
+            if (_zincGranules != null) EquipmentLabel.Create(root, cam, _zincGranules.transform, "Zinc Granules", LabelAnchor.Top, null,
+                () => inLab() && _step <= HydrogenStep.Step2_PlaceZinc);
+            if (_acidBottle != null) EquipmentLabel.Create(root, cam, _acidBottle.transform, "Dil. H₂SO₄", LabelAnchor.Top, null, inLab);
+            if (_cork != null) EquipmentLabel.Create(root, cam, _cork.transform, "Tube with Cork", LabelAnchor.Top, null, inLab);
         }
 
-        private void CreateEquipLabel(RectTransform root, string name, Transform target, Vector3 fallbackWorldPos, Vector2 screenOffset,
-            string text, Color bg, Color col)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
-            go.transform.SetParent(root, false);
-            var rt = go.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(130f, 42f);
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-
-            var img = go.GetComponent<Image>();
-            img.color = bg;
-            img.raycastTarget = false;
-
-            var outl = go.AddComponent<Outline>();
-            outl.effectColor = new Color(0.20f, 0.50f, 0.85f, 0.60f);
-            outl.effectDistance = new Vector2(1f, -1f);
-
-            MakeText(rt, "Lbl", text,
-                new Vector2(0.04f, 0.05f), new Vector2(0.96f, 0.95f),
-                15f, col, FontStyles.Bold, TextAlignmentOptions.Center);
-
-            var pos = go.AddComponent<HydrogenLabelPositioner>();
-            if (target != null)
-                pos.Init(_cam, target, Vector3.up * 0.06f, screenOffset, root);
-            else
-                pos.Init(_cam, fallbackWorldPos, screenOffset, root);
-
-            _equipLabels.Add(go);
-        }
-
-        private void BuildModalPanels(RectTransform root)
-        {
-            _obsPanel = MakeInfoPanel(root, "ObsPanel", "OBSERVATION",
-                "\u2022 Rapid bubbling (brisk effervescence) occurs around the zinc granules upon adding dilute sulphuric acid.\n\n" +
-                "\u2022 A colorless, odorless hydrogen gas (H\u2082) evolves continuously from the flask.\n\n" +
-                "\u2022 The reaction is exothermic \u2014 thermal energy is released and the conical flask warms up.\n\n" +
-                "\u2022 Hydrogen gas travels upward through the glass delivery tube and discharges smoothly into the air from the tube outlet.\n\n" +
-                "\u2022 Zinc granules gradually dissolve as zinc sulphate (ZnSO\u2084) is formed in the aqueous solution.");
-            _obsPanel.SetActive(false);
-
-            _eqPanel = MakeInfoPanel(root, "EqPanel", "CHEMICAL EQUATION",
-                "Zinc + Dilute Sulphuric Acid \u2192 Zinc Sulphate + Hydrogen Gas\n\n" +
-                "Zn(s)   +   H\u2082SO\u2084(aq)   \u2192   ZnSO\u2084(aq)   +   H\u2082(g)\u2191\n\n" +
-                "Reactants:\n" +
-                "  \u2022 Zinc (Zn) \u2014 Silvery-grey metallic granules\n" +
-                "  \u2022 Sulphuric Acid (H\u2082SO\u2084) \u2014 Colorless dilute acid solution\n\n" +
-                "Products:\n" +
-                "  \u2022 Zinc Sulphate (ZnSO\u2084) \u2014 Colorless aqueous solution\n" +
-                "  \u2022 Hydrogen (H\u2082) \u2014 Colorless, flammable diatomic gas\n\n" +
-                "Classification: Single Displacement (Redox) & Exothermic Reaction");
-            _eqPanel.SetActive(false);
-
-            _resultPanel = MakeInfoPanel(root, "ResultPanel", "EXPERIMENT RESULT",
-                "EXPERIMENT CONCLUSION:\n\n" +
-                "Dilute sulphuric acid reacts with reactive zinc metal to produce aqueous zinc sulphate and evolve hydrogen gas.\n\n" +
-                "Key Conclusions:\n\n" +
-                "1. Single Displacement Reaction: Zinc displaces hydrogen from dilute acid as it is higher in the reactivity series.\n\n" +
-                "2. Hydrogen Gas Evolution: Characterised by vigorous effervescence and continuous upward gas flow through the delivery tube.\n\n" +
-                "3. Exothermic Reaction: Thermal energy is released into the solution during the reaction.\n\n" +
-                "4. Reaction Completion: Effervescence subsides as the available zinc reacts with the acid.\n\n" +
-                "Equation: Zn(s) + H\u2082SO\u2084(aq) \u2192 ZnSO\u2084(aq) + H\u2082(g)\u2191");
-            _resultPanel.SetActive(false);
-
-            _safetyPanel = MakeInfoPanel(root, "SafetyPanel", "SAFETY PRECAUTIONS",
-                "LABORATORY SAFETY GUIDELINES:\n\n" +
-                "1. Wear certified safety goggles and a lab coat at all times.\n\n" +
-                "2. Dilute sulphuric acid (H\u2082SO\u2084) is corrosive \u2014 avoid contact with skin and eyes.\n\n" +
-                "3. In case of accidental acid contact, rinse immediately with plenty of running water.\n\n" +
-                "4. Handle glassware carefully to avoid cuts from cracked flasks or delivery tubes.\n\n" +
-                "5. Ensure the cork fits tightly to prevent gas leakage.\n\n" +
-                "6. Always handle acids under adequate laboratory ventilation.");
-            _safetyPanel.SetActive(false);
-
-            _aboutPanel = MakeInfoPanel(root, "AboutPanel", "ABOUT EXPERIMENT",
-                "FORMATION OF HYDROGEN GAS EXPERIMENT\n\n" +
-                "Curriculum Topic: Acids, Bases, and Salts / Reactivity Series\n" +
-                "Subject: Secondary School Chemistry (Grade 9-10)\n\n" +
-                "Learning Objectives:\n" +
-                "\u2022 Demonstrate the displacement reaction of metals with acids\n" +
-                "\u2022 Observe the physical signs of chemical change (effervescence, gas evolution)\n" +
-                "\u2022 Understand the formation and flow of hydrogen gas\n\n" +
-                "Developed for Virtual & Augmented Reality Science Education.");
-            _aboutPanel.SetActive(false);
-
-            // Reset Confirmation Dialog
-            BuildResetConfirmationDialog(root);
-        }
-
-        private void BuildResetConfirmationDialog(RectTransform root)
-        {
-            _resetConfirmDialog = MakePanel(root, "ResetConfirmOverlay", new Color(0f, 0f, 0f, 0.70f));
-            var oImg = _resetConfirmDialog.GetComponent<Image>();
-            if (oImg != null) oImg.raycastTarget = true;
-
-            var bg = MakePanel(_resetConfirmDialog.GetComponent<RectTransform>(), "Bg",
-                new Color(0.06f, 0.10f, 0.20f, 0.98f));
-            var bgRT = bg.GetComponent<RectTransform>();
-            bgRT.anchorMin = new Vector2(0.08f, 0.35f);
-            bgRT.anchorMax = new Vector2(0.92f, 0.65f);
-            bgRT.offsetMin = bgRT.offsetMax = Vector2.zero;
-
-            var bgOut = bg.AddComponent<Outline>();
-            bgOut.effectColor = new Color(0.20f, 0.60f, 1.0f, 0.70f);
-            bgOut.effectDistance = new Vector2(2f, -2f);
-
-            MakeText(bgRT, "Heading", "Reset Experiment?",
-                new Vector2(0.05f, 0.65f), new Vector2(0.95f, 0.92f),
-                26, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
-
-            MakeText(bgRT, "Message", "Your current experiment progress will be cleared.\nAre you sure you want to restart?",
-                new Vector2(0.05f, 0.30f), new Vector2(0.95f, 0.65f),
-                18, new Color(0.82f, 0.88f, 0.96f), FontStyles.Normal, TextAlignmentOptions.Center);
-
-            var cancelBtn = MakeButton(bgRT, "CancelBtn", "Cancel",
-                new Vector2(0.08f, 0.08f), new Vector2(0.46f, 0.28f),
-                new Color(0.20f, 0.26f, 0.38f));
-            cancelBtn.onClick.AddListener(() => _resetConfirmDialog.SetActive(false));
-
-            var confirmBtn = MakeButton(bgRT, "ConfirmBtn", "Reset",
-                new Vector2(0.54f, 0.08f), new Vector2(0.92f, 0.28f),
-                new Color(0.58f, 0.14f, 0.18f));
-            confirmBtn.onClick.AddListener(() => {
-                _resetConfirmDialog.SetActive(false);
-                ResetExperiment();
-            });
-
-            _resetConfirmDialog.SetActive(false);
-        }
-
-        private static GameObject MakeInfoPanel(RectTransform root, string name, string heading, string body)
-        {
-            var overlay = MakePanel(root, name + "_Overlay", new Color(0f, 0f, 0f, 0.70f));
-            var oImg = overlay.GetComponent<Image>();
-            if (oImg != null) oImg.raycastTarget = true;
-
-            var bg = MakePanel(overlay.GetComponent<RectTransform>(), "Bg",
-                new Color(0.05f, 0.09f, 0.18f, 0.98f));
-            var bgRT = bg.GetComponent<RectTransform>();
-            bgRT.anchorMin = new Vector2(0.06f, 0.10f);
-            bgRT.anchorMax = new Vector2(0.94f, 0.90f);
-            bgRT.offsetMin = bgRT.offsetMax = Vector2.zero;
-
-            var bgOut = bg.AddComponent<Outline>();
-            bgOut.effectColor = new Color(0.18f, 0.55f, 0.95f, 0.70f);
-            bgOut.effectDistance = new Vector2(2f, -2f);
-
-            MakeText(bgRT, "Heading", heading,
-                new Vector2(0.06f, 0.88f), new Vector2(0.94f, 0.97f),
-                28, new Color(0.40f, 0.85f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
-
-            MakeText(bgRT, "Body", body,
-                new Vector2(0.06f, 0.12f), new Vector2(0.94f, 0.86f),
-                18, new Color(0.85f, 0.92f, 0.98f), FontStyles.Normal, TextAlignmentOptions.Left);
-
-            var closeBtn = MakeButton(bgRT, "Close", "Close",
-                new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.09f),
-                new Color(0.15f, 0.45f, 0.85f));
-            closeBtn.onClick.AddListener(() => overlay.SetActive(false));
-
-            return overlay;
-        }
-
-        private static TMP_FontAsset _tmpFont;
-        private static TMP_FontAsset GetFont()
-        {
-            if (_tmpFont != null) return _tmpFont;
-            _tmpFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
-            if (_tmpFont == null)
-            {
-                var all = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
-                if (all.Length > 0) _tmpFont = all[0];
-            }
-            return _tmpFont;
-        }
-
-        private static GameObject MakePanel(RectTransform parent, string name, Color col)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            var rt = go.AddComponent<RectTransform>();
-            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            if (col.a > 0.001f)
-            {
-                var img = go.AddComponent<Image>();
-                img.color = col;
-                img.raycastTarget = false;
-            }
-            return go;
-        }
-
-        private static TMP_Text MakeText(RectTransform parent, string name, string text,
-            Vector2 anchorMin, Vector2 anchorMax, float fontSize, Color col, FontStyles style,
-            TextAlignmentOptions alignment = TextAlignmentOptions.Left)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var rt = go.GetComponent<RectTransform>();
-            rt.anchorMin = anchorMin; rt.anchorMax = anchorMax;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            var tmp = go.AddComponent<TextMeshProUGUI>();
-            tmp.text     = text;
-            tmp.fontSize = fontSize;
-            tmp.color    = col;
-            tmp.fontStyle = style;
-            tmp.alignment = alignment;
-            tmp.raycastTarget = false;
-            tmp.textWrappingMode = TextWrappingModes.Normal;
-            tmp.overflowMode = TextOverflowModes.Overflow;
-            var f = GetFont();
-            if (f != null) tmp.font = f;
-            MobileText.Setup(tmp, name, fontSize);
-            return tmp;
-        }
-
-        private static Button MakeButton(RectTransform parent, string name, string label,
-            Vector2 anchorMin, Vector2 anchorMax, Color bgCol)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            var rt = go.AddComponent<RectTransform>();
-            rt.anchorMin = anchorMin; rt.anchorMax = anchorMax;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-
-            var img = go.AddComponent<Image>();
-            img.color = bgCol;
-            img.raycastTarget = true;
-
-            var btn = go.AddComponent<Button>();
-            var cb  = btn.colors;
-            cb.highlightedColor = bgCol * 1.3f;
-            cb.pressedColor     = bgCol * 0.7f;
-            btn.colors          = cb;
-            btn.targetGraphic   = img;
-
-            var txtGO = new GameObject("Label");
-            txtGO.transform.SetParent(go.transform, false);
-            var trt = txtGO.AddComponent<RectTransform>();
-            trt.anchorMin = new Vector2(0.02f, 0.02f);
-            trt.anchorMax = new Vector2(0.98f, 0.98f);
-            trt.offsetMin = trt.offsetMax = Vector2.zero;
-
-            var tmp = txtGO.AddComponent<TextMeshProUGUI>();
-            tmp.text      = label;
-            tmp.fontSize  = 20f;
-            tmp.color     = Color.white;
-            tmp.fontStyle = FontStyles.Bold;
-            tmp.alignment = TextAlignmentOptions.Center;
-            tmp.raycastTarget = false;
-            tmp.textWrappingMode = TextWrappingModes.Normal;
-            var f = GetFont();
-            if (f != null) tmp.font = f;
-            MobileText.Setup(tmp, "Lbl", 20f);
-            return btn;
-        }
-
-        private static void TogglePanel(GameObject panel)
-        {
-            if (panel != null) panel.SetActive(!panel.activeSelf);
-        }
-
-        public void ShowFeedback(string msg, bool ok = true)
-        {
-            if (_feedbackText == null) return;
-            _feedbackText.text = MobileText.Clean(msg);
-            var toastGO = _feedbackText.transform.parent.gameObject;
-            toastGO.SetActive(true);
-            if (_feedbackCoroutine != null) StopCoroutine(_feedbackCoroutine);
-            _feedbackCoroutine = StartCoroutine(HideFeedback(3.5f));
-        }
-
-        private IEnumerator HideFeedback(float delay)
-        {
-            yield return new WaitForSeconds(delay);
-            if (_feedbackText != null)
-                _feedbackText.transform.parent.gameObject.SetActive(false);
-        }
+        public void ShowFeedback(string msg, bool ok = true) { _hud.ShowFeedback(msg); }
 
         private void SetStep(HydrogenStep s)
         {
@@ -2065,71 +1556,25 @@ namespace ARVirtualLab.Hydrogen
             bool isIntro   = (_step == HydrogenStep.Intro);
             bool isResults = (_step == HydrogenStep.Step9_Results || _step == HydrogenStep.Completed);
 
-            if (_introPanel != null) _introPanel.SetActive(isIntro);
-            if (_hudPanel   != null) _hudPanel.SetActive(!isIntro);
-
-            foreach (var lbl in _equipLabels)
-            {
-                if (lbl != null) lbl.SetActive(!isIntro);
-            }
-
+            _hud.ShowIntro(isIntro);
             if (isIntro) return;
 
             int stepIdx = (int)_step;
+            string badge = stepIdx >= 1 && stepIdx <= 9 ? null : _step == HydrogenStep.Completed ? "COMPLETE" : "START";
+            _hud.SetStep(stepIdx, StepTitle(_step), StepDesc(_step), badge);
+            _hud.ShowEquation(_step >= HydrogenStep.Step5_ObserveReaction);
 
-            // 9-pill indicator progress bar
-            for (int i = 0; i < _stepPillIndicators.Count; i++)
-            {
-                if (_stepPillIndicators[i] == null) continue;
-                if (i < stepIdx - 1)
-                {
-                    _stepPillIndicators[i].color = ARVirtualLab.UI.EduTheme.PillDone; // Emerald completed
-                }
-                else if (i == stepIdx - 1)
-                {
-                    _stepPillIndicators[i].color = ARVirtualLab.UI.EduTheme.PillActive; // Cyan active
-                }
-                else
-                {
-                    _stepPillIndicators[i].color = new Color(0.14f, 0.20f, 0.32f, 0.7f); // Inactive
-                }
-            }
-
-            // Step badge
-            if (_stepNumberBadge != null)
-            {
-                if (stepIdx >= 1 && stepIdx <= 9)
-                    _stepNumberBadge.text = MobileText.Clean($"STEP {stepIdx} OF 9");
-                else if (_step == HydrogenStep.Completed)
-                    _stepNumberBadge.text = MobileText.Clean("COMPLETE");
-                else
-                    _stepNumberBadge.text = MobileText.Clean("START");
-            }
-
-            // Title and Description
-            if (_stepTitle != null) _stepTitle.text = MobileText.Clean(StepTitle(_step));
-            if (_stepDesc  != null) _stepDesc.text  = MobileText.Clean(StepDesc(_step));
-
-            // Previous button visibility
-            bool canGoBack = (stepIdx > 1 && _step < HydrogenStep.Step5_ObserveReaction);
-            if (_prevBtn != null) _prevBtn.gameObject.SetActive(canGoBack);
-
-            // Results / completion buttons
             if (isResults)
             {
-                if (_prevBtn   != null) _prevBtn.gameObject.SetActive(false);
-                if (_nextBtn   != null) _nextBtn.gameObject.SetActive(false);
-                if (_obsBtn    != null) _obsBtn.gameObject.SetActive(true);
-                if (_eqBtn     != null) _eqBtn.gameObject.SetActive(true);
-                if (_resultBtn != null) _resultBtn.gameObject.SetActive(true);
+                _hud.SetNav(false, false);
+                _hud.ShowResultButtons(true);
             }
             else
             {
-                if (_obsBtn    != null) _obsBtn.gameObject.SetActive(false);
-                if (_eqBtn     != null) _eqBtn.gameObject.SetActive(false);
-                if (_resultBtn != null) _resultBtn.gameObject.SetActive(false);
+                _hud.ShowResultButtons(false);
                 // "Next" performs the current drag/tap action for the student (fallback for small screens / accessibility)
-                if (_nextBtn   != null) _nextBtn.gameObject.SetActive(_step >= HydrogenStep.Step1_SelectZinc && _step <= HydrogenStep.Step4_CloseCork);
+                _hud.SetNav(stepIdx > 1 && _step < HydrogenStep.Step5_ObserveReaction,
+                            _step >= HydrogenStep.Step1_SelectZinc && _step <= HydrogenStep.Step4_CloseCork);
             }
         }
 
@@ -2177,73 +1622,6 @@ namespace ARVirtualLab.Hydrogen
                     return "Experiment complete! Tap Reset to repeat or Back to return to Home.";
                 default: return "";
             }
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────
-    //  Helper MonoBehaviour: projects 3D world-space equipment
-    //  positions to screen-space label positions each frame.
-    // ─────────────────────────────────────────────────────────
-    public class HydrogenLabelPositioner : MonoBehaviour
-    {
-        private Camera _cam;
-        private Transform _target;
-        private Vector3 _worldPos;
-        private Vector2 _offset;
-        private RectTransform _canvasRT;
-        private RectTransform _rt;
-
-        public void Init(Camera cam, Transform target, Vector3 worldOffset, Vector2 screenOffset, RectTransform canvasRT)
-        {
-            _cam      = cam;
-            _target   = target;
-            _worldPos = worldOffset;
-            _offset   = screenOffset;
-            _canvasRT = canvasRT;
-            _rt       = GetComponent<RectTransform>();
-        }
-
-        public void Init(Camera cam, Vector3 worldPos, Vector2 screenOffset, RectTransform canvasRT)
-        {
-            _cam      = cam;
-            _target   = null;
-            _worldPos = worldPos;
-            _offset   = screenOffset;
-            _canvasRT = canvasRT;
-            _rt       = GetComponent<RectTransform>();
-        }
-
-        private CanvasGroup _cg;
-
-        public void SetCamera(Camera cam) => _cam = cam;
-
-        private void LateUpdate()
-        {
-            if (_cg == null)
-            {
-                _cg = GetComponent<CanvasGroup>();
-                if (_cg == null) _cg = gameObject.AddComponent<CanvasGroup>();
-                _cg.blocksRaycasts = false; _cg.interactable = false;
-            }
-            // fade instead of SetActive: an inactive label would never get another LateUpdate to come back
-            if ((_target != null && !_target.gameObject.activeInHierarchy) || ARVirtualLab.AR.ARExperimentMode.BlockSceneInput)
-            {
-                _cg.alpha = 0f;
-                return;
-            }
-
-            if (_cam == null || !_cam.gameObject.activeInHierarchy) _cam = Camera.main;
-            if (_cam == null || _rt == null) return;
-
-            Vector3 wPos = (_target != null) ? (_target.position + _worldPos) : _worldPos;
-            Vector3 screen = _cam.WorldToScreenPoint(wPos);
-
-            if (screen.z < 0) { _cg.alpha = 0f; return; }
-            _cg.alpha = 1f;
-
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _canvasRT, screen, null, out Vector2 local);
-            _rt.anchoredPosition = local + _offset;
         }
     }
 }

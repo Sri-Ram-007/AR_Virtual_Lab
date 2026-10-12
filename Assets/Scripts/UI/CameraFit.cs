@@ -36,5 +36,35 @@ namespace ARVirtualLab.UI
             float fov = 2f * Mathf.Atan(halfWidthTan / aspect) * Mathf.Rad2Deg;
             cam.fieldOfView = Mathf.Clamp(fov, referenceVerticalFov, 85f);
         }
+
+        // In landscape the ExperimentHud cards cover the left and right edges and a strip top and bottom;
+        // the apparatus is kept inside this share of the screen
+        private const float ClearWidth = 0.56f, ClearHeight = 0.80f;
+
+        /// <summary>
+        /// Landscape experiments: the field of view that shows the whole apparatus (measured once, e.g. with
+        /// ApparatusBounds) in the clear middle of the screen, whatever its size and the phone's shape. Call every frame:
+        /// it follows the screen while the phone turns, and leaves AR cameras alone.
+        /// </summary>
+        public static void Frame(Camera cam, Bounds apparatus)
+        {
+            if (cam == null || cam.GetComponent<ARCameraManager>() != null) return;
+            float aspect = (float)Screen.width / Mathf.Max(1, Screen.height);
+            if (aspect <= 1f) return;                                   // still turning to landscape
+
+            float maxX = 0f, maxY = 0f;
+            Vector3 c = apparatus.center, e = apparatus.extents;
+            for (int i = 0; i < 8; i++)
+            {
+                var corner = c + new Vector3((i & 1) == 0 ? -e.x : e.x, (i & 2) == 0 ? -e.y : e.y, (i & 4) == 0 ? -e.z : e.z);
+                Vector3 v = cam.transform.InverseTransformPoint(corner);
+                if (v.z < 0.01f) continue;
+                maxX = Mathf.Max(maxX, Mathf.Abs(v.x) / v.z);
+                maxY = Mathf.Max(maxY, Mathf.Abs(v.y) / v.z);
+            }
+            float tanHalf = Mathf.Max(maxY / ClearHeight, maxX / (ClearWidth * aspect));
+            if (tanHalf <= 0f) return;
+            cam.fieldOfView = Mathf.Clamp(2f * Mathf.Atan(tanHalf) * Mathf.Rad2Deg, 14f, 70f);
+        }
     }
 }
