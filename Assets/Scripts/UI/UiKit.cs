@@ -70,6 +70,7 @@ namespace ARVirtualLab.UI
             t.textWrappingMode = TextWrappingModes.Normal;
             t.overflowMode = TextOverflowModes.Overflow;
             t.raycastTarget = false;
+            t.gameObject.AddComponent<ARVirtualLab.Localization.NativeText>();   // Telugu from the first frame, no English flash
             return t;
         }
 

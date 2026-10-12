@@ -44,7 +44,7 @@ NAME_ARG = re.compile(r"\b(?:Text|Box|Button|Card|Node|MakeText|MakeButton|MakeP
 NEW_GO = re.compile(r"new\s+GameObject\(\s*\"")
 
 STRING = re.compile(r'(\$@|@\$|\$|@)?"((?:[^"\\\n]|\\.)*)"')
-NUMBER = re.compile(r"(?<![A-Za-z>.\d{])\d+(?:\.\d+)?(?:(?![A-Za-z<\d}])|(?=s\b))")
+NUMBER = re.compile(r"(?<![A-Za-z>.\d{])\d+(?:\.\d+)*(?:(?![A-Za-z<\d}])|(?=s\b))")
 
 # Literals the scanner picks up that never reach the screen (debug output, mesh part names, keys)
 IGNORE = {
@@ -53,6 +53,7 @@ IGNORE = {
     "Base", "Rod", "Body", "Trough", "Cork", "Rise", "Span", "Drop", "Wax", "Wick", "Neck", "Cap", "Mid", "Rim",
     "t:GameObject", "Transparent", "Activity", "Page", "Opening",
     "Telugu",                     # language names are handled by Loc.Endonyms
+    "legal.acceptedVersion", "Welcome", "Languages", "Links", "Version",
     "worldPos={0} bottomCorrection={1}", "finalPos={0}",
 }
 TAG = re.compile(r"<[^<>]+>")
@@ -151,6 +152,15 @@ def scan():
     return keys
 
 
+def scan_documents(keys):
+    """Each line of the in-app documents (privacy policy, terms, licences) is shown as its own label."""
+    for path in sorted((ROOT / "Assets" / "Resources" / "Legal").glob("*.txt")):
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            text = re.sub(r"^#+\s*", "", line.strip())
+            if text and re.search(r"[A-Za-z]", text):
+                keys.setdefault(make_key(clean(text)), "Legal/%s:%d" % (path.name, lineno))
+
+
 def table_keys():
     known = set()
     if TABLE.exists():
@@ -168,6 +178,7 @@ def esc(s):
 
 def main():
     keys = scan()
+    scan_documents(keys)
     known = table_keys()
     missing = {k: v for k, v in keys.items() if k not in known}
     if "--all" in sys.argv:

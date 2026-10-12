@@ -1,0 +1,27 @@
+# Privacy Policy
+Version 1 · test release · 12 October 2026
+
+## In short
+EduAR has no accounts, no ads and no tracking. It does not collect your name, contacts, location, photos, voice or any advertising ID.
+
+## The camera
+The camera is used for two things: to recognise your textbook page, and in AR mode to find a table or floor to place the lab on.
+The camera picture is processed on your phone, while you use those screens. EduAR never records it, saves it or sends it anywhere.
+This application runs on Google Play Services for AR (ARCore), which is provided by Google LLC and governed by the Google Privacy Policy.
+
+## Telugu translation
+Most Telugu text is built into the app. Text that is not translated yet is translated on your phone by Google ML Kit.
+The first time this is needed, the app downloads a Telugu language pack (about 30 MB) from Google. After that, translation works without internet and your text stays on your phone.
+Google may receive basic technical information for this download, such as your phone model and app version, under Google's ML Kit terms.
+
+## What stays on your phone
+Your settings (language and theme) and any translations made on your phone. They are deleted when you uninstall EduAR or clear its storage in the phone's settings.
+
+## Students
+EduAR is made for school students and is meant to be used with a teacher's guidance. Because it collects no personal information, it collects none from children either.
+
+## Changes
+If this policy changes in an important way, the app will show the new version and ask you to agree again.
+
+## Contact
+This is a test version. Questions can be raised at github.com/Sri-Ram-007/AR_Virtual_Lab.

@@ -380,3 +380,82 @@ Hydrogen gas passes into the soap solution basin, forming bubbles filled with hy
 Tap the candle to light the flame, then drag the burning candle near a rising soap bubble to test the gas.	కొవ్వొత్తిని నొక్కి వెలిగించి, వాయువును పరీక్షించడానికి మండుతున్న కొవ్వొత్తిని పైకి లేస్తున్న సబ్బు బుడగ దగ్గరకు లాగండి.
 Hydrogen gas burns with a characteristic pop sound! Tap Observation, Equation, or Result below to review.	హైడ్రోజన్ వాయువు ప్రత్యేకమైన 'పాప్' శబ్దంతో మండుతుంది! చూడటానికి కింద ఉన్న పరిశీలన, సమీకరణం లేదా ఫలితం నొక్కండి.
 Experiment complete! Tap Reset to repeat from Step {0} or Back to return to Home.	ప్రయోగం పూర్తయింది! దశ {0} నుండి మళ్లీ చేయడానికి 'మళ్లీ మొదలు', హోమ్‌కు వెళ్లడానికి 'వెనుకకు' నొక్కండి.
+
+# ── Welcome, settings and camera permission ─────────────────────
+EduAR	EduAR
+Welcome to EduAR	EduAR కు స్వాగతం
+A virtual science lab for your Class {0} textbook.	మీ {0}వ తరగతి పాఠ్యపుస్తకం కోసం వర్చువల్ సైన్స్ ల్యాబ్.
+Choose your language	మీ భాషను ఎంచుకోండి
+•  No account, no ads, no tracking.	•  ఖాతా లేదు, ప్రకటనలు లేవు, ట్రాకింగ్ లేదు.
+•  The camera works only on your phone. Nothing is recorded, saved or sent.	•  కెమెరా మీ ఫోన్‌లోనే పనిచేస్తుంది. ఏదీ రికార్డ్ చేయబడదు, దాచబడదు, పంపబడదు.
+•  Your settings stay on this phone.	•  మీ సెట్టింగ్‌లు ఈ ఫోన్‌లోనే ఉంటాయి.
+These experiments are virtual. Never try them at home or without your teacher.	ఈ ప్రయోగాలు వర్చువల్. వీటిని ఇంట్లో గానీ, ఉపాధ్యాయులు లేకుండా గానీ ఎప్పుడూ ప్రయత్నించవద్దు.
+Privacy policy	గోప్యతా విధానం
+Terms of use	వినియోగ నిబంధనలు
+Agree and continue	అంగీకరించి కొనసాగించండి
+About & privacy	యాప్ గురించి & గోప్యత
+Version {0}	వెర్షన్ {0}
+Open-source licences	ఓపెన్-సోర్స్ లైసెన్సులు
+Use the camera?	కెమెరాను ఉపయోగించాలా?
+EduAR uses the camera to recognise your textbook page.	మీ పాఠ్యపుస్తకం పేజీని గుర్తించడానికి EduAR కెమెరాను ఉపయోగిస్తుంది.
+EduAR uses the camera to place the lab on a real table in front of you.	మీ ముందు ఉన్న నిజమైన బల్లపై ల్యాబ్‌ను ఉంచడానికి EduAR కెమెరాను ఉపయోగిస్తుంది.
+The picture stays on your phone. EduAR never records, saves or sends it.	చిత్రం మీ ఫోన్‌లోనే ఉంటుంది. EduAR దాన్ని ఎప్పుడూ రికార్డ్ చేయదు, దాచదు, పంపదు.
+Continue	కొనసాగించండి
+Not now	ఇప్పుడు కాదు
+Camera is turned off	కెమెరా ఆఫ్‌లో ఉంది
+To use this, allow the camera for EduAR in your phone's Settings, under Permissions.	దీన్ని ఉపయోగించడానికి, మీ ఫోన్ సెట్టింగ్‌లలో అనుమతులు (Permissions) కింద EduAR కు కెమెరాను అనుమతించండి.
+Open Settings	సెట్టింగ్‌లు తెరవండి
+
+# ── Privacy policy (Assets/Resources/Legal/privacy.txt) ─────────
+Privacy Policy	గోప్యతా విధానం
+Version {0} · test release · {1} October {2}	వెర్షన్ {0} · పరీక్షా విడుదల · {1} అక్టోబర్ {2}
+In short	క్లుప్తంగా
+EduAR has no accounts, no ads and no tracking. It does not collect your name, contacts, location, photos, voice or any advertising ID.	EduAR లో ఖాతాలు, ప్రకటనలు, ట్రాకింగ్ లేవు. ఇది మీ పేరు, పరిచయాలు, స్థానం, ఫోటోలు, గొంతు లేదా ఏ ప్రకటన ID నూ సేకరించదు.
+The camera	కెమెరా
+The camera is used for two things: to recognise your textbook page, and in AR mode to find a table or floor to place the lab on.	కెమెరా రెండు పనులకు ఉపయోగపడుతుంది: మీ పాఠ్యపుస్తకం పేజీని గుర్తించడానికి, AR మోడ్‌లో ల్యాబ్‌ను ఉంచడానికి బల్ల లేదా నేలను కనుగొనడానికి.
+The camera picture is processed on your phone, while you use those screens. EduAR never records it, saves it or sends it anywhere.	మీరు ఆ తెరలను ఉపయోగిస్తున్నప్పుడు కెమెరా చిత్రం మీ ఫోన్‌లోనే ప్రాసెస్ అవుతుంది. EduAR దాన్ని ఎప్పుడూ రికార్డ్ చేయదు, దాచదు, ఎక్కడికీ పంపదు.
+This application runs on Google Play Services for AR (ARCore), which is provided by Google LLC and governed by the Google Privacy Policy.	ఈ అప్లికేషన్ Google Play Services for AR (ARCore) పై పనిచేస్తుంది. దీన్ని Google LLC అందిస్తుంది, ఇది Google గోప్యతా విధానానికి లోబడి ఉంటుంది.
+Telugu translation	తెలుగు అనువాదం
+Most Telugu text is built into the app. Text that is not translated yet is translated on your phone by Google ML Kit.	చాలా వరకు తెలుగు పాఠ్యం యాప్‌లోనే ఉంటుంది. ఇంకా అనువదించని పాఠ్యాన్ని Google ML Kit మీ ఫోన్‌లోనే అనువదిస్తుంది.
+The first time this is needed, the app downloads a Telugu language pack (about {0} MB) from Google. After that, translation works without internet and your text stays on your phone.	ఇది మొదటిసారి అవసరమైనప్పుడు, యాప్ Google నుండి తెలుగు భాషా ప్యాక్‌ను (సుమారు {0} MB) డౌన్‌లోడ్ చేస్తుంది. ఆ తర్వాత ఇంటర్నెట్ లేకుండానే అనువాదం పనిచేస్తుంది, మీ పాఠ్యం మీ ఫోన్‌లోనే ఉంటుంది.
+Google may receive basic technical information for this download, such as your phone model and app version, under Google's ML Kit terms.	ఈ డౌన్‌లోడ్ కోసం Google కు మీ ఫోన్ మోడల్, యాప్ వెర్షన్ వంటి ప్రాథమిక సాంకేతిక సమాచారం Google ML Kit నిబంధనల ప్రకారం అందవచ్చు.
+What stays on your phone	మీ ఫోన్‌లో ఉండేవి
+Your settings (language and theme) and any translations made on your phone. They are deleted when you uninstall EduAR or clear its storage in the phone's settings.	మీ సెట్టింగ్‌లు (భాష, థీమ్), మీ ఫోన్‌లో జరిగిన అనువాదాలు. EduAR ను తొలగించినప్పుడు లేదా ఫోన్ సెట్టింగ్‌లలో దాని నిల్వను తుడిచివేసినప్పుడు ఇవి తొలగిపోతాయి.
+Students	విద్యార్థులు
+EduAR is made for school students and is meant to be used with a teacher's guidance. Because it collects no personal information, it collects none from children either.	EduAR పాఠశాల విద్యార్థుల కోసం తయారు చేయబడింది, ఉపాధ్యాయుల మార్గదర్శనంలో ఉపయోగించడానికి ఉద్దేశించబడింది. ఇది ఎలాంటి వ్యక్తిగత సమాచారాన్నీ సేకరించదు కాబట్టి, పిల్లల నుండి కూడా ఏదీ సేకరించదు.
+Changes	మార్పులు
+If this policy changes in an important way, the app will show the new version and ask you to agree again.	ఈ విధానంలో ముఖ్యమైన మార్పులు వస్తే, యాప్ కొత్త వెర్షన్‌ను చూపించి మళ్లీ మీ అంగీకారం అడుగుతుంది.
+Contact	సంప్రదింపు
+This is a test version. Questions can be raised at github.com/Sri-Ram-{0}/AR_Virtual_Lab.	ఇది పరీక్షా వెర్షన్. ప్రశ్నలను github.com/Sri-Ram-{0}/AR_Virtual_Lab లో అడగవచ్చు.
+
+# ── Terms of use (Assets/Resources/Legal/terms.txt) ─────────────
+Terms of Use	వినియోగ నిబంధనలు
+A test version	పరీక్షా వెర్షన్
+This is an early version of EduAR, shared with a small group of testers. It may have mistakes and may change or stop without notice. It is provided as it is, without any warranty.	ఇది EduAR యొక్క తొలి వెర్షన్, కొద్దిమంది పరీక్షకులతో మాత్రమే పంచుకోబడింది. ఇందులో తప్పులు ఉండవచ్చు, ముందస్తు సమాచారం లేకుండా మారవచ్చు లేదా ఆగిపోవచ్చు. ఇది ఎలాంటి హామీ లేకుండా ఉన్నది ఉన్నట్లుగా అందించబడుతుంది.
+Safety comes first	భద్రతే ముఖ్యం
+The experiments in EduAR are virtual. They help you understand and prepare for the activities in your textbook; they do not replace real practical work.	EduAR లోని ప్రయోగాలు వర్చువల్. ఇవి మీ పాఠ్యపుస్తకంలోని కృత్యాలను అర్థం చేసుకోవడానికి, వాటికి సిద్ధం కావడానికి సహాయపడతాయి; నిజమైన ప్రయోగశాల పనికి ఇవి ప్రత్యామ్నాయం కావు.
+Never try an experiment at home or without your teacher. Burning metals and handling acids can cause burns and injuries.	ఏ ప్రయోగాన్నీ ఇంట్లో గానీ, ఉపాధ్యాయులు లేకుండా గానీ ప్రయత్నించవద్దు. లోహాలను మండించడం, ఆమ్లాలను వాడటం వల్ల కాలిన గాయాలు, ఇతర గాయాలు కావచ్చు.
+Always follow your teacher's instructions and the safety rules in your textbook.	ఎప్పుడూ మీ ఉపాధ్యాయుల సూచనలను, పాఠ్యపుస్తకంలోని భద్రతా నియమాలను పాటించండి.
+The textbook	పాఠ్యపుస్తకం
+The experiments follow the Class {0} Physical Science textbook of Andhra Pradesh (SCERT). The textbook and its contents belong to their publisher.	ప్రయోగాలు ఆంధ్రప్రదేశ్ (SCERT) {0}వ తరగతి భౌతిక రసాయన శాస్త్రం పాఠ్యపుస్తకాన్ని అనుసరిస్తాయి. పాఠ్యపుస్తకం, అందులోని విషయాలు వాటి ప్రచురణకర్తకు చెందినవి.
+Using the app	యాప్ వినియోగం
+Use EduAR for learning. Do not change, copy or sell the app.	EduAR ను నేర్చుకోవడానికి ఉపయోగించండి. యాప్‌ను మార్చవద్దు, కాపీ చేయవద్దు, అమ్మవద్దు.
+The 3D models, fonts and software libraries in EduAR belong to their authors; see Open-source licences.	EduAR లోని 3D మోడళ్లు, ఫాంట్‌లు, సాఫ్ట్‌వేర్ లైబ్రరీలు వాటి రచయితలకు చెందినవి; ఓపెన్-సోర్స్ లైసెన్సులు చూడండి.
+Agreement	అంగీకారం
+By choosing "Agree and continue", you accept these terms and the Privacy Policy. If you are under {0}, please read them with a parent or teacher.	"అంగీకరించి కొనసాగించండి" ఎంచుకోవడం ద్వారా మీరు ఈ నిబంధనలను, గోప్యతా విధానాన్ని అంగీకరిస్తున్నారు. మీ వయసు {0} లోపు అయితే, వీటిని తల్లిదండ్రులు లేదా ఉపాధ్యాయులతో కలిసి చదవండి.
+
+# ── Open-source licences (Assets/Resources/Legal/licenses.txt) ────
+EduAR is built with these tools and libraries. Thank you to their authors.	EduAR ఈ సాధనాలు, లైబ్రరీలతో నిర్మించబడింది. వాటి రచయితలకు ధన్యవాదాలు.
+Unity	Unity
+Unity engine, Universal Render Pipeline, Input System, TextMesh Pro and XR packages, under the Unity Companion License and the Unity Terms of Service.	Unity ఇంజిన్, Universal Render Pipeline, Input System, TextMesh Pro, XR ప్యాకేజీలు — Unity Companion License మరియు Unity సేవా నిబంధనల కింద.
+AR Foundation and ARCore	AR Foundation మరియు ARCore
+AR Foundation and the Google ARCore XR Plugin, under the Unity Companion License. Google Play Services for AR (ARCore) is provided by Google LLC under the Google APIs Terms of Service.	AR Foundation, Google ARCore XR Plugin — Unity Companion License కింద. Google Play Services for AR (ARCore) ను Google LLC, Google APIs సేవా నిబంధనల కింద అందిస్తుంది.
+Google ML Kit	Google ML Kit
+On-device translation, under the ML Kit Terms of Service.	ఫోన్‌లోనే జరిగే అనువాదం — ML Kit సేవా నిబంధనల కింద.
+glTFast	glTFast
+Loading of 3D models, under the Apache License {0}.	3D మోడళ్లను లోడ్ చేయడం — Apache License {0} కింద.
+Liberation Sans	Liberation Sans
+The app's Latin font, under the SIL Open Font License {0}.	యాప్‌లోని ఆంగ్ల అక్షరాల ఫాంట్ — SIL Open Font License {0} కింద.
+3D models	3D మోడళ్లు
+The laboratory apparatus models were created with Meshy AI.	ప్రయోగశాల పరికరాల మోడళ్లు Meshy AI తో రూపొందించబడ్డాయి.
+

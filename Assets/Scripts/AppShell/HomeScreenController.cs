@@ -29,11 +29,22 @@ namespace ARVirtualLab.AppShell
 
         private void Start()
         {
-            if (_reopenSettings)
+            bool rebuilt = _rebuilding;
+            _rebuilding = false;
+
+            // first launch (or new terms): language, privacy and safety before anything else
+            if (!LegalScreens.Accepted)
+                LegalScreens.ShowWelcome(_safe, telugu =>
+                {
+                    AppSettings.Language = telugu ? AppLanguage.Telugu : AppLanguage.English;
+                    Rebuild(false);
+                }, null);
+
+            if (rebuilt)
             {
-                _reopenSettings = false;
                 _splash.gameObject.SetActive(false);
-                _settingsPanel.SetActive(true);
+                if (_reopenSettings) _settingsPanel.SetActive(true);
+                _reopenSettings = false;
                 return;
             }
             StartCoroutine(SplashRoutine());
@@ -85,6 +96,7 @@ namespace ARVirtualLab.AppShell
             BuildScanBar(safe);
 
             BuildLoadingOverlay(canvasGO.transform);
+            _safe = safe;
             BuildSettingsPanel(safe);
             BuildSplash(canvasGO.transform);
         }
@@ -118,7 +130,9 @@ namespace ARVirtualLab.AppShell
 
         // ── settings ──────────────────────────────────────────
         private GameObject _settingsPanel;
-        private static bool _reopenSettings;      // a change rebuilds the screen; keep the panel open across it
+        private static bool _rebuilding;          // a setting changed and the screen is being rebuilt
+        private static bool _reopenSettings;      // ...from the settings panel, so keep it open across the rebuild
+        private Transform _safe;
 
         private void BuildSettingsPanel(Transform parent)
         {
@@ -134,7 +148,7 @@ namespace ARVirtualLab.AppShell
             var border = fill.transform.parent.GetComponent<Image>();
             border.raycastTarget = true;              // taps on the card must not bubble up to the scrim and close it
             border.gameObject.AddComponent<Button>().transition = Selectable.Transition.None;
-            UiKit.Pin(border.rectTransform, 0.5f, 0.5f, 0f, 0f, 920f, 640f);
+            UiKit.Pin(border.rectTransform, 0.5f, 0.5f, 0f, 0f, 920f, 780f);
             var card = fill.rectTransform;
 
             var title = UiKit.Text(card, "Title", "Settings", 48, EduTheme.Ink, FontStyles.Bold, TextAlignmentOptions.MidlineLeft);
@@ -148,20 +162,25 @@ namespace ARVirtualLab.AppShell
                 var lang = telugu ? AppLanguage.Telugu : AppLanguage.English;
                 if (lang == AppSettings.Language) return;
                 AppSettings.Language = lang;
-                Rebuild();
+                Rebuild(true);
             });
 
             AddChoiceRow(card, -290f, "Theme", "Light", "Dark", AppSettings.DarkMode, dark =>
             {
                 if (dark == AppSettings.DarkMode) return;
                 AppSettings.DarkMode = dark;
-                Rebuild();
+                Rebuild(true);
             });
+
+            var about = UiKit.Button(card, "About", "About & privacy", EduTheme.Neutral, EduTheme.Ink, 32, 18);
+            UiKit.Pin(about.GetComponent<RectTransform>(), 0.5f, 1f, 0f, -420f, 820f, 96f);
+            about.onClick.AddListener(() => LegalScreens.ShowAbout(_safe));
 
             var close = UiKit.Button(card, "Close", "Close", EduTheme.Neutral, EduTheme.Ink, 32, 18);
             UiKit.Pin(close.GetComponent<RectTransform>(), 0.5f, 0f, 0f, 40f, 300f, 96f);
             close.onClick.AddListener(() => _settingsPanel.SetActive(false));
 
+            BackButton.Register(_settingsPanel, () => { _settingsPanel.SetActive(false); return true; });
             _settingsPanel.SetActive(false);
         }
 
@@ -182,9 +201,10 @@ namespace ARVirtualLab.AppShell
             }
         }
 
-        private static void Rebuild()
+        private static void Rebuild(bool reopenSettings)
         {
-            _reopenSettings = true;
+            _rebuilding = true;
+            _reopenSettings = reopenSettings;
             UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
         }
 

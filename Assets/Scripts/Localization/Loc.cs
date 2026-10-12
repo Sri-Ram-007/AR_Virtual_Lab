@@ -29,8 +29,8 @@ namespace ARVirtualLab.Localization
         private static bool _machineLoaded;
 
         // A number on its own (not part of a formula like 2Mg, O2 or <sub>2</sub>, not an existing {0}), with an
-        // optional decimal part; a seconds unit may follow ("3s remaining")
-        private static readonly Regex Number = new Regex(@"(?<![A-Za-z>.\d{])\d+(?:\.\d+)?(?:(?![A-Za-z<\d}])|(?=s\b))", RegexOptions.Compiled);
+        // optional decimal or version part (1.1, 0.2.0); a seconds unit may follow ("3s remaining")
+        private static readonly Regex Number = new Regex(@"(?<![A-Za-z>.\d{])\d+(?:\.\d+)*(?:(?![A-Za-z<\d}])|(?=s\b))", RegexOptions.Compiled);
         private static readonly Regex Tag = new Regex(@"<[^<>]+>", RegexOptions.Compiled);
         private static readonly Regex Slot = new Regex(@"\{(\d+)\}", RegexOptions.Compiled);
 

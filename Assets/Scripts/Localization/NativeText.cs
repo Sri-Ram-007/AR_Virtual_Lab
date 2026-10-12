@@ -31,7 +31,8 @@ namespace ARVirtualLab.Localization
         private int _locVersion = -1;
         private string _display;
 #pragma warning disable 0649   // set only on Android
-        private bool _setLayoutWidth;
+        private bool _setLayoutWidth;              // a LayoutElement was changed to the Telugu size
+        private float _origPrefWidth = -1f, _origPrefHeight = -1f;
 #pragma warning restore 0649
 
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -65,7 +66,6 @@ namespace ARVirtualLab.Localization
 
 #if UNITY_ANDROID && !UNITY_EDITOR
             if (_display == null) { ShowTmp(); return; }
-            HideTmp();
 
             var rt = _tmp.rectTransform;
             var canvas = _tmp.canvas;
@@ -73,13 +73,32 @@ namespace ARVirtualLab.Localization
             float size = _tmp.enableAutoSizing ? _tmp.fontSizeMax : _tmp.fontSize;
             bool changed = _display != _drawn || !Mathf.Approximately(size, _drawnSize) || _tmp.color != _drawnColor
                            || (rt.rect.size - _drawnRect).sqrMagnitude > 1f;
-            if (!changed || Time.unscaledTime < _nextDraw) return;
-            _nextDraw = Time.unscaledTime + MinInterval;
-            Draw(rt, scale, size);
+            if (changed && Time.unscaledTime >= _nextDraw)
+            {
+                _nextDraw = Time.unscaledTime + MinInterval;
+                Draw(rt, scale, size);
+            }
+
+            // The English is hidden only while a drawn image is on show, so a label can never end up blank
+            // (e.g. a dialog closed and reopened, or a redraw that is still waiting for its turn).
+            bool haveImage = _image != null && _texture != null && _drawn != null;
+            if (haveImage && (_drawn == _display || !changed))
+            {
+                if (!_image.enabled) _image.enabled = true;
+                HideTmp();
+            }
+            else if (!haveImage)
+            {
+                ShowTmp();
+            }
 #endif
         }
 
-        private void OnDisable() { ShowTmp(); }
+        private void OnDisable()
+        {
+            // a hidden dialog keeps its drawn Telugu for when it opens again; only a disabled component gives the label back
+            if (gameObject.activeInHierarchy) ShowTmp();
+        }
 
         private void OnDestroy()
         {
@@ -91,7 +110,7 @@ namespace ARVirtualLab.Localization
             if (_image != null && _image.enabled) _image.enabled = false;
             SetTmpAlpha(1f);
             LayoutElement le;
-            if (_setLayoutWidth && TryGetComponent(out le)) le.preferredWidth = -1f;
+            if (_setLayoutWidth && TryGetComponent(out le)) { le.preferredWidth = _origPrefWidth; le.preferredHeight = _origPrefHeight; }
             _setLayoutWidth = false;
         }
 
@@ -159,12 +178,16 @@ namespace ARVirtualLab.Localization
             Place(_image.rectTransform, drawn, hAlign, VAlign(_tmp.verticalAlignment));
             RenderedSize = drawn;
 
-            // one-line labels size their chip through a layout group: report the Telugu width, not the English one
-            if (!wrap)
+            // Labels sized by a layout group were measured from the English; report the Telugu's size instead:
+            // one-line labels their width (chips), wrapped text in a list its height (never less than it asked for).
+            bool inLayout = transform.parent != null && transform.parent.GetComponent<LayoutGroup>() != null;
+            if (!wrap || inLayout)
             {
                 LayoutElement le;
                 if (!TryGetComponent(out le)) le = gameObject.AddComponent<LayoutElement>();
-                le.preferredWidth = drawn.x;
+                if (!_setLayoutWidth) { _origPrefWidth = le.preferredWidth; _origPrefHeight = le.preferredHeight; }
+                if (!wrap) le.preferredWidth = drawn.x;
+                else le.preferredHeight = Mathf.Max(_origPrefHeight, drawn.y);
                 _setLayoutWidth = true;
             }
 
