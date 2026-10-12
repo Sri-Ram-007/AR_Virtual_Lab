@@ -36,11 +36,11 @@ SKIP = [
 # Lines whose strings are never shown to the student
 SKIP_LINE = re.compile(r"Debug\.Log|LogWarning|LogError|Shader\.Find|Resources\.Load|MenuItem|AddComponentMenu|"
                        r"GameObject\.Find|PlayerPrefs|ChildControl|\[Header|\[Tooltip|AndroidJava|HasProperty|"
-                       r"SetFloat|SetInt|SetColor|SetTexture|EnableKeyword|\.name\s*==|StartsWith|layout\s*!=|Regex")
+                       r"SetFloat|SetInt|SetColor|SetTexture|EnableKeyword|AudioClip\.Create|\.name\s*==|StartsWith|layout\s*!=|Regex")
 
 # The second argument of these UI builders is a GameObject name, not text
 NAME_ARG = re.compile(r"\b(?:Text|Box|Button|Card|Node|MakeText|MakeButton|MakePanel|MakeInfoPanel|HudButton|"
-                      r"SizedButton|CreateEquipLabel|CreateObjectWithMesh)\(\s*[^,()\"]*(?:\([^()]*\))?[^,()\"]*,\s*\"")
+                      r"SizedButton|RowButton|CreateEquipLabel|CreateObjectWithMesh)\(\s*[^,()\"]*(?:\([^()]*\))?[^,()\"]*,\s*\"")
 NEW_GO = re.compile(r"new\s+GameObject\(\s*\"")
 
 STRING = re.compile(r'(\$@|@\$|\$|@)?"((?:[^"\\\n]|\\.)*)"')
@@ -52,9 +52,16 @@ IGNORE = {
     "active XR loader:", "settings.language", "settings.darkMode", "Label", "Option", "Lbl", "Error",
     "Base", "Rod", "Body", "Trough", "Cork", "Rise", "Span", "Drop", "Wax", "Wick", "Neck", "Cap", "Mid", "Rim",
     "t:GameObject", "Transparent", "Activity", "Page", "Opening",
+    "Shadow", "Ring", "Dot",      # CircuitWire part names
     "Telugu",                     # language names are handled by Loc.Endonyms
     "legal.acceptedVersion", "Welcome", "Languages", "Links", "Version",
     "worldPos={0} bottomCorrection={1}", "finalPos={0}",
+    # pieces of sentences the code puts together; te.txt has a row for each whole sentence
+    "Wire connected —", "to go.", "Pour", "into the beaker.", "into the beaker and see if the bulb glows.", ": bulb",
+    "glows - this solution conducts electricity!", "stays dark - this solution does not conduct electricity.",
+    "electrode fixed in the mug.", "test tube placed, mouth down and full of water.", '"Pop!" (',
+    "burned) — hydrogen burns with a pop. Burn more bubbles, or press Next to finish.",
+    "session", "|  pose", "|  planes", "|  xr", "AR starting...",   # AR diagnostics strip (debug builds, never translated)
 }
 TAG = re.compile(r"<[^<>]+>")
 IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -130,8 +137,14 @@ def scan():
         rel = path.relative_to(SCRIPTS).as_posix()
         if any(rel.startswith(p) or rel == p for p in SKIP):
             continue
+        in_overview = False
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             stripped = line.strip()
+            # ExperimentHud numbers the intro overview: each item is shown as "1. item"
+            if re.search(r"OverviewSteps\s*=\s*new", line):
+                in_overview = True
+            elif in_overview and stripped.startswith("}"):
+                in_overview = False
             if stripped.startswith("//") or SKIP_LINE.search(line):
                 continue
             names = {m.end() - 1 for m in NAME_ARG.finditer(line)} | {m.end() - 1 for m in NEW_GO.finditer(line)}
@@ -146,6 +159,8 @@ def scan():
                 if not looks_like_ui_text(text):
                     continue
                 key = make_key(text)
+                if in_overview:
+                    key = "{0}. " + key
                 if key in IGNORE:
                     continue
                 keys.setdefault(key, "%s:%d" % (rel, lineno))

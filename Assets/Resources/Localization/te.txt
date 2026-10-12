@@ -459,3 +459,165 @@ The app's Latin font, under the SIL Open Font License {0}.	యాప్‌లో
 3D models	3D మోడళ్లు
 The laboratory apparatus models were created with Meshy AI.	ప్రయోగశాల పరికరాల మోడళ్లు Meshy AI తో రూపొందించబడ్డాయి.
 
+
+# Electrolysis, conductivity, and the shared landscape screen
+Still searching. Sweep the phone slowly side to side over a plain, well-lit table or floor, about {0} metre away	ఇంకా వెతుకుతోంది. సాదా, బాగా వెలుతురు ఉన్న బల్ల లేదా నేలపై, సుమారు {0} మీటరు దూరంలో ఫోన్‌ను నెమ్మదిగా అటూ ఇటూ కదిలించండి
+Electrolysis of Water	నీటి విద్యుద్విశ్లేషణ
+Pass current through acidified water using carbon electrodes and collect hydrogen and oxygen gas separately.	కార్బన్ ఎలక్ట్రోడ్‌లతో ఆమ్లీకృత నీటి గుండా విద్యుత్తును పంపి, హైడ్రోజన్ మరియు ఆక్సిజన్ వాయువులను వేర్వేరుగా సేకరించండి.
+Do Solutions Conduct Electricity?	ద్రావణాలు విద్యుత్తును ప్రసరింపజేస్తాయా?
+Test dilute acids, glucose and alcohol solutions in a circuit with a bulb to see which ones conduct electricity.	బల్బు ఉన్న వలయంలో సజల ఆమ్లాలు, గ్లూకోజ్ మరియు ఆల్కహాల్ ద్రావణాలను పరీక్షించి, వేటిలో విద్యుత్ ప్రసరిస్తుందో చూడండి.
+Experiment reset. Apparatus returned to the starting state.	ప్రయోగం మళ్లీ మొదలైంది. పరికరాలు ప్రారంభ స్థితికి వచ్చాయి.
+DO SOLUTIONS CONDUCT ELECTRICITY?	ద్రావణాలు విద్యుత్తును ప్రసరింపజేస్తాయా?
+Acids, Bases and Salts · Activity {0}	ఆమ్లాలు, క్షారాలు మరియు లవణాలు · కృత్యం {0}
+Acids ionise in water → free ions → current flows	ఆమ్లాలు నీటిలో అయనీకరణం చెందుతాయి → స్వేచ్ఛా అయాన్లు → విద్యుత్ ప్రవహిస్తుంది
+{0}. Fix the two nail electrodes on their cork	{0}. రెండు మేకు ఎలక్ట్రోడ్‌లను వాటి బిరడాపై అమర్చండి
+{0}. Pour dilute HCl into the beaker	{0}. సజల HCl ను బీకరులో పోయండి
+{0}. Connect the wires, switch on and watch the bulb	{0}. తీగలను కలిపి, స్విచ్ ఆన్ చేసి బల్బును గమనించండి
+{0}. Pour the old solution out, then try sulphuric acid, glucose and alcohol	{0}. పాత ద్రావణాన్ని పారబోసి, తర్వాత సల్ఫ్యూరిక్ ఆమ్లం, గ్లూకోజ్, ఆల్కహాల్‌లతో ప్రయత్నించండి
+{0}. Compare the results	{0}. ఫలితాలను పోల్చండి
+{0}. Handle dilute acids carefully - avoid skin and eye contact.	{0}. సజల ఆమ్లాలను జాగ్రత్తగా వాడండి - చర్మానికి, కళ్లకు తగలనివ్వకండి.
+{0}. Keep the battery circuit away from spilled liquid.	{0}. బ్యాటరీ వలయాన్ని ఒలికిన ద్రవానికి దూరంగా ఉంచండి.
+{0}. Rinse the beaker before pouring in a different solution.	{0}. వేరే ద్రావణం పోసే ముందు బీకరును కడగండి.
+{0}. This activity is an educational simulation only.	{0}. ఈ కృత్యం కేవలం విద్యా అనుకరణ (సిమ్యులేషన్) మాత్రమే.
+Concept: A solution conducts electricity only if it contains free ions. Acids ionise in water; glucose and alcohol do not, even though both contain hydrogen.	భావన: ద్రావణంలో స్వేచ్ఛా అయాన్లు ఉంటేనే అది విద్యుత్తును ప్రసరింపజేస్తుంది. ఆమ్లాలు నీటిలో అయనీకరణం చెందుతాయి; గ్లూకోజ్, ఆల్కహాల్ రెండింటిలోనూ హైడ్రోజన్ ఉన్నప్పటికీ అవి అయనీకరణం చెందవు.
+Apparatus:\n  - {0} mL beaker, cork with two nail electrodes\n  - {1} volt battery, bulb, switch\n  - Dilute HCl, dilute H2SO4, glucose solution, alcohol	పరికరాలు:\n  - {0} mL బీకరు, రెండు మేకు ఎలక్ట్రోడ్‌లతో బిరడా\n  - {1} వోల్ట్ బ్యాటరీ, బల్బు, స్విచ్\n  - సజల HCl, సజల H2SO4, గ్లూకోజ్ ద్రావణం, ఆల్కహాల్
+- The bulb glows brightly with dilute HCl and with dilute sulphuric acid.	- సజల HCl తోనూ, సజల సల్ఫ్యూరిక్ ఆమ్లంతోనూ బల్బు ప్రకాశవంతంగా వెలుగుతుంది.
+- The bulb stays dark with glucose solution and with alcohol solution.	- గ్లూకోజ్ ద్రావణంతోనూ, ఆల్కహాల్ ద్రావణంతోనూ బల్బు వెలగదు.
+- Glucose and alcohol both contain hydrogen, yet neither conducts electricity - so containing hydrogen alone does not make a compound an acid.	- గ్లూకోజ్, ఆల్కహాల్ రెండింటిలోనూ హైడ్రోజన్ ఉంది, అయినా ఏదీ విద్యుత్తును ప్రసరింపజేయదు - కాబట్టి హైడ్రోజన్ ఉన్నంత మాత్రాన ఒక సమ్మేళనం ఆమ్లం కాదు.
+What Makes a Solution Conduct?	ద్రావణం విద్యుత్తును ఎందుకు ప్రసరింపజేస్తుంది?
+Acids form ions when dissolved in water:\n  HCl(aq) → H+(aq) + Cl-(aq)	ఆమ్లాలు నీటిలో కరిగినప్పుడు అయాన్లను ఏర్పరుస్తాయి:\n  HCl(aq) → H+(aq) + Cl-(aq)
+These free-moving ions carry the current through the solution, lighting the bulb.	స్వేచ్ఛగా కదిలే ఈ అయాన్లు ద్రావణం గుండా విద్యుత్తును మోసుకెళ్లి బల్బును వెలిగిస్తాయి.
+Glucose and alcohol dissolve as neutral molecules - no free ions form, so no current flows.	గ్లూకోజ్, ఆల్కహాల్ తటస్థ అణువులుగా కరుగుతాయి - స్వేచ్ఛా అయాన్లు ఏర్పడవు, కాబట్టి విద్యుత్ ప్రవహించదు.
+{0}. Dilute HCl and dilute sulphuric acid conduct electricity - the bulb glows for both.	{0}. సజల HCl, సజల సల్ఫ్యూరిక్ ఆమ్లం విద్యుత్తును ప్రసరింపజేస్తాయి - రెండింటితోనూ బల్బు వెలుగుతుంది.
+{0}. Glucose solution and alcohol solution do NOT conduct electricity - the bulb stays dark for both.	{0}. గ్లూకోజ్ ద్రావణం, ఆల్కహాల్ ద్రావణం విద్యుత్తును ప్రసరింపజేయవు - రెండింటితోనూ బల్బు వెలగదు.
+{0}. All acids conduct electricity in water because they release hydrogen ions (H+). This, not the presence of hydrogen atoms alone, is what defines an acid.	{0}. ఆమ్లాలన్నీ నీటిలో హైడ్రోజన్ అయాన్లను (H+) విడుదల చేస్తాయి కాబట్టి విద్యుత్తును ప్రసరింపజేస్తాయి. హైడ్రోజన్ పరమాణువులు ఉండటం మాత్రమే కాదు, ఇదే ఆమ్లాన్ని నిర్వచిస్తుంది.
+Beaker	బీకరు
+Nail Electrodes	మేకు ఎలక్ట్రోడ్‌లు
+Waste Jar	వ్యర్థాల జాడీ
+6V Battery	6V బ్యాటరీ
+Bulb	బల్బు
+Switch	స్విచ్
+Dil. HCl	సజల HCl
+Dil. H2SO4	సజల H2SO4
+Glucose	గ్లూకోజ్
+Alcohol	ఆల్కహాల్
+Step {0}: Fix the Electrodes	దశ {0}: ఎలక్ట్రోడ్‌లను అమర్చండి
+Step {0}: Add Dilute HCl	దశ {0}: సజల HCl పోయండి
+Step {0}: Connect the Circuit	దశ {0}: వలయాన్ని కలపండి
+Step {0}: Test Other Solutions	దశ {0}: ఇతర ద్రావణాలను పరీక్షించండి
+Drag the cork with its two nail electrodes into the beaker.	రెండు మేకు ఎలక్ట్రోడ్‌లు ఉన్న బిరడాను బీకరులోకి లాగండి.
+Drag the dilute HCl bottle over the beaker to pour it in.	సజల HCl సీసాను బీకరు పైకి లాగి అందులో పోయండి.
+Drag each coloured wire clip to the glowing dot of its colour, then tap the switch.	ప్రతి రంగు తీగ క్లిప్‌ను అదే రంగులో మెరుస్తున్న చుక్క వద్దకు లాగి, తర్వాత స్విచ్‌ను తాకండి.
+Drag the beaker over the waste jar and pour the used solution out first.	ముందుగా బీకరును వ్యర్థాల జాడీ పైకి లాగి, వాడిన ద్రావణాన్ని పారబోయండి.
+All solutions tested.	అన్ని ద్రావణాలు పరీక్షించబడ్డాయి.
+Tap Observation, Equation, or Result below to review what happened.	ఏమి జరిగిందో చూడటానికి కింద ఉన్న పరిశీలన, సమీకరణం లేదా ఫలితం నొక్కండి.
+Red	ఎరుపు
+Orange	నారింజ
+Green	ఆకుపచ్చ
+Blue	నీలం
+All four wires connected — the circuit is complete. Now tap the switch.	నాలుగు తీగలూ కలిశాయి — వలయం పూర్తయింది. ఇప్పుడు స్విచ్‌ను తాకండి.
+Drag the coloured clip onto the glowing dot of the same colour.	రంగు క్లిప్‌ను అదే రంగులో మెరుస్తున్న చుక్కపైకి లాగండి.
+Wires connected — the circuit is complete.	తీగలు కలిశాయి — వలయం పూర్తయింది.
+The wires get connected in Step {0}.	తీగలను దశ {0}లో కలుపుతారు.
+The beaker still holds the last solution — drag the beaker to the waste jar and pour it out first.	బీకరులో ఇంకా పాత ద్రావణం ఉంది — ముందుగా బీకరును వ్యర్థాల జాడీ వద్దకు లాగి పారబోయండి.
+Place the cork with the two nails into the beaker.	రెండు మేకులు ఉన్న బిరడాను బీకరులో ఉంచండి.
+Pour the dilute HCl into the beaker.	సజల HCl ను బీకరులో పోయండి.
+Carry the beaker over the waste jar to pour the old solution out.	పాత ద్రావణాన్ని పారబోయడానికి బీకరును వ్యర్థాల జాడీ పైకి తీసుకెళ్లండి.
+Electrodes fixed in the beaker on their cork.	ఎలక్ట్రోడ్‌లు బిరడాతో బీకరులో అమర్చబడ్డాయి.
+The beaker still holds the last solution — pour it out into the waste jar first.	బీకరులో ఇంకా పాత ద్రావణం ఉంది — ముందుగా దాన్ని వ్యర్థాల జాడీలో పారబోయండి.
+Beaker emptied. Now pour the next solution in.	బీకరు ఖాళీ అయింది. ఇప్పుడు తదుపరి ద్రావణాన్ని పోయండి.
+Dilute HCl poured into the beaker.	సజల HCl బీకరులో పోయబడింది.
+Dilute Hydrochloric Acid	సజల హైడ్రోక్లోరిక్ ఆమ్లం
+Dilute Sulphuric Acid	సజల సల్ఫ్యూరిక్ ఆమ్లం
+Glucose Solution	గ్లూకోజ్ ద్రావణం
+Alcohol Solution	ఆల్కహాల్ ద్రావణం
+The circuit is open — connect all four wires first.	వలయం తెరిచి ఉంది — ముందుగా నాలుగు తీగలనూ కలపండి.
+The bulb glows! Dilute HCl conducts electricity.	బల్బు వెలిగింది! సజల HCl విద్యుత్తును ప్రసరింపజేస్తుంది.
+The bulb stays dark.	బల్బు వెలగలేదు.
+Tube lifted out of the mug. Now drag the burning candle so its flame reaches the tube's mouth.	నాళికను మగ్గు నుండి పైకి తీశారు. ఇప్పుడు మండుతున్న కొవ్వొత్తిని లాగి, దాని మంట నాళిక మూతి వద్దకు చేరేలా చేయండి.
+The flame flares up brightly — this gas supports burning. It is oxygen.	మంట ప్రకాశవంతంగా ఎగసింది — ఈ వాయువు మండటానికి తోడ్పడుతుంది. ఇది ఆక్సిజన్.
+Pop! The gas burns with a squeaky pop — this is hydrogen.	పాప్! వాయువు కీచుమనే 'పాప్' శబ్దంతో మండుతుంది — ఇది హైడ్రోజన్.
+ELECTROLYSIS OF WATER	నీటి విద్యుద్విశ్లేషణ
+Chemical Reactions and Equations · Activity {0}	రసాయన చర్యలు మరియు సమీకరణాలు · కృత్యం {0}
+2H2O(l)  --electricity-→  2H2(g) + O2(g)	2H2O(l)  --విద్యుత్-→  2H2(g) + O2(g)
+{0}. Fix the carbon electrodes in the mug	{0}. కార్బన్ ఎలక్ట్రోడ్‌లను మగ్గులో అమర్చండి
+{0}. Fill the mug with water	{0}. మగ్గును నీటితో నింపండి
+{0}. Add dilute sulphuric acid	{0}. సజల సల్ఫ్యూరిక్ ఆమ్లం కలపండి
+{0}. Place water-filled test tubes over the electrodes	{0}. నీటితో నిండిన పరీక్ష నాళికలను ఎలక్ట్రోడ్‌లపై ఉంచండి
+{0}. Connect the wires and switch on the current	{0}. తీగలను కలిపి విద్యుత్తును ఆన్ చేయండి
+{0}. Lift each tube and test its gas with the flame	{0}. ప్రతి నాళికను పైకి తీసి దానిలోని వాయువును మంటతో పరీక్షించండి
+{0}. Handle dilute sulphuric acid carefully - avoid skin and eye contact.	{0}. సజల సల్ఫ్యూరిక్ ఆమ్లాన్ని జాగ్రత్తగా వాడండి - చర్మానికి, కళ్లకు తగలనివ్వకండి.
+{0}. Keep the {1} volt supply away from water spills.	{0}. {1} వోల్ట్ సరఫరాను ఒలికిన నీటికి దూరంగా ఉంచండి.
+{0}. Bring the flame near the test tube mouth only, never inside it.	{0}. మంటను పరీక్ష నాళిక మూతి దగ్గరకు మాత్రమే తీసుకురండి, ఎప్పుడూ లోపలికి కాదు.
+{0}. This flame test is an educational simulation only.	{0}. ఈ మంట పరీక్ష కేవలం విద్యా అనుకరణ (సిమ్యులేషన్) మాత్రమే.
+Concept: Passing direct current through acidified water decomposes it into hydrogen and oxygen gas.	భావన: ఆమ్లీకృత నీటి గుండా ఏకముఖ విద్యుత్తును పంపితే అది హైడ్రోజన్, ఆక్సిజన్ వాయువులుగా విడిపోతుంది.
+Apparatus:\n  - Plastic mug with two carbon electrodes\n  - Dilute sulphuric acid\n  - {0} volt battery, switch\n  - Two test tubes	పరికరాలు:\n  - రెండు కార్బన్ ఎలక్ట్రోడ్‌లు ఉన్న ప్లాస్టిక్ మగ్గు\n  - సజల సల్ఫ్యూరిక్ ఆమ్లం\n  - {0} వోల్ట్ బ్యాటరీ, స్విచ్\n  - రెండు పరీక్ష నాళికలు
+- Bubbles form at both electrodes as soon as the current is switched on.	- విద్యుత్తును ఆన్ చేసిన వెంటనే రెండు ఎలక్ట్రోడ్‌ల వద్దా బుడగలు ఏర్పడతాయి.
+- The test tube over the cathode fills with gas about twice as fast as the one over the anode.	- కాథోడ్ పై ఉన్న పరీక్ష నాళిక, ఆనోడ్ పై ఉన్న దానికంటే దాదాపు రెండు రెట్లు వేగంగా వాయువుతో నిండుతుంది.
+- The gas at the cathode (hydrogen) burns with a pop; the gas at the anode (oxygen) makes a flame burn brighter.	- కాథోడ్ వద్ద ఉన్న వాయువు (హైడ్రోజన్) 'పాప్' శబ్దంతో మండుతుంది; ఆనోడ్ వద్ద ఉన్న వాయువు (ఆక్సిజన్) మంటను మరింత ప్రకాశవంతంగా మండిస్తుంది.
+Electrolysis of Water:\n\n2H2O(l)  --electricity-→  2H2(g) + O2(g)	నీటి విద్యుద్విశ్లేషణ:\n\n2H2O(l)  --విద్యుత్-→  2H2(g) + O2(g)
+Hydrogen forms at the cathode (negative electrode) - twice the volume.\nOxygen forms at the anode (positive electrode) - half the volume.	కాథోడ్ (రుణ ఎలక్ట్రోడ్) వద్ద హైడ్రోజన్ ఏర్పడుతుంది - రెట్టింపు ఘనపరిమాణం.\nఆనోడ్ (ధన ఎలక్ట్రోడ్) వద్ద ఆక్సిజన్ ఏర్పడుతుంది - సగం ఘనపరిమాణం.
+{0}. Water decomposes into hydrogen and oxygen when a direct current passes through it (electrolysis).	{0}. నీటి గుండా ఏకముఖ విద్యుత్ ప్రవహించినప్పుడు అది హైడ్రోజన్, ఆక్సిజన్‌లుగా విడిపోతుంది (విద్యుద్విశ్లేషణ).
+{0}. Hydrogen collects at the cathode in twice the volume of oxygen, matching the formula H2O.	{0}. కాథోడ్ వద్ద ఆక్సిజన్ కంటే రెట్టింపు ఘనపరిమాణంలో హైడ్రోజన్ సేకరించబడుతుంది, ఇది H2O సూత్రానికి సరిపోతుంది.
+{0}. Hydrogen is confirmed by its pop with a flame; oxygen is confirmed because it supports combustion.	{0}. మంటతో 'పాప్' శబ్దం రావడం ద్వారా హైడ్రోజన్ నిర్ధారించబడుతుంది; దహనానికి తోడ్పడటం ద్వారా ఆక్సిజన్ నిర్ధారించబడుతుంది.
+Equation: 2H2O(l) → 2H2(g) + O2(g)	సమీకరణం: 2H2O(l) → 2H2(g) + O2(g)
+Plastic Mug	ప్లాస్టిక్ మగ్గు
+Water	నీరు
+Anode (Carbon)	ఆనోడ్ (కార్బన్)
+Cathode (Carbon)	కాథోడ్ (కార్బన్)
+Battery & Switch	బ్యాటరీ & స్విచ్
+Test Tube (O2)	పరీక్ష నాళిక (O2)
+Test Tube (H2)	పరీక్ష నాళిక (H2)
+Step {0}: Fill with Water	దశ {0}: నీటితో నింపండి
+Step {0}: Place the Test Tubes	దశ {0}: పరీక్ష నాళికలను ఉంచండి
+Step {0}: Connect Wires & Switch On	దశ {0}: తీగలను కలిపి స్విచ్ ఆన్ చేయండి
+Step {0}: Test the Gases	దశ {0}: వాయువులను పరీక్షించండి
+Drag each carbon-electrode assembly into its hole in the base of the mug.	ప్రతి కార్బన్-ఎలక్ట్రోడ్ అమరికను మగ్గు అడుగున ఉన్న దాని రంధ్రంలోకి లాగండి.
+Drag the water jug and pour it over the mug until the electrodes are immersed.	నీటి జగ్గును లాగి, ఎలక్ట్రోడ్‌లు మునిగే వరకు మగ్గులో పోయండి.
+Drag the dilute sulphuric acid bottle over the mug to add a few drops.	కొన్ని చుక్కలు కలపడానికి సజల సల్ఫ్యూరిక్ ఆమ్లం సీసాను మగ్గు పైకి లాగండి.
+Drag each water-filled test tube and invert it over an electrode.	నీటితో నిండిన ప్రతి పరీక్ష నాళికను లాగి ఒక ఎలక్ట్రోడ్‌పై తలకిందులుగా ఉంచండి.
+Drag each coloured wire clip onto its electrode (the glowing dot), then tap the battery box.	ప్రతి రంగు తీగ క్లిప్‌ను దాని ఎలక్ట్రోడ్ (మెరుస్తున్న చుక్క) పైకి లాగి, తర్వాత బ్యాటరీ పెట్టెను తాకండి.
+Tap a test tube to lift it out, then drag the burning candle to its mouth.	పరీక్ష నాళికను తాకి పైకి తీయండి, తర్వాత మండుతున్న కొవ్వొత్తిని దాని మూతి వద్దకు లాగండి.
+Black	నలుపు
+Both wires connected — the circuit is complete. Now tap the switch.	రెండు తీగలూ కలిశాయి — వలయం పూర్తయింది. ఇప్పుడు స్విచ్‌ను తాకండి.
+Wire connected. Now clip the other one on.	తీగ కలిసింది. ఇప్పుడు రెండోదాన్ని కూడా క్లిప్ చేయండి.
+Drag the coloured clip onto the glowing dot on its electrode.	రంగు క్లిప్‌ను దాని ఎలక్ట్రోడ్‌పై మెరుస్తున్న చుక్కపైకి లాగండి.
+These wires get connected in Step {0}.	ఈ తీగలను దశ {0}లో కలుపుతారు.
+Tap a test tube first to lift it out of the mug, then bring the flame to its mouth.	ముందుగా పరీక్ష నాళికను తాకి మగ్గు నుండి పైకి తీయండి, తర్వాత మంటను దాని మూతి వద్దకు తీసుకురండి.
+Fit the electrode into its hole in the mug.	ఎలక్ట్రోడ్‌ను మగ్గులోని దాని రంధ్రంలో అమర్చండి.
+Pour the water jug over the mug.	నీటి జగ్గును మగ్గులో పోయండి.
+Add a few drops of dilute sulphuric acid to the water.	నీటికి కొన్ని చుక్కల సజల సల్ఫ్యూరిక్ ఆమ్లం కలపండి.
+Invert the test tube over the electrode.	పరీక్ష నాళికను ఎలక్ట్రోడ్‌పై తలకిందులుగా ఉంచండి.
+Hold the flame right at the mouth of the lifted test tube.	పైకి తీసిన పరీక్ష నాళిక మూతి వద్దే మంటను ఉంచండి.
+Anode	ఆనోడ్
+Cathode	కాథోడ్
+Mug filled with water — the electrodes are now immersed.	మగ్గు నీటితో నిండింది — ఎలక్ట్రోడ్‌లు ఇప్పుడు మునిగి ఉన్నాయి.
+Dilute sulphuric acid added — the water can now conduct electricity.	సజల సల్ఫ్యూరిక్ ఆమ్లం కలిపారు — ఇప్పుడు నీరు విద్యుత్తును ప్రసరింపజేయగలదు.
+The circuit is open — clip both wires onto the electrodes first.	వలయం తెరిచి ఉంది — ముందుగా రెండు తీగలనూ ఎలక్ట్రోడ్‌లకు క్లిప్ చేయండి.
+Current flows! Hydrogen collects at the cathode, oxygen at the anode.	విద్యుత్ ప్రవహిస్తోంది! కాథోడ్ వద్ద హైడ్రోజన్, ఆనోడ్ వద్ద ఆక్సిజన్ సేకరించబడుతున్నాయి.
+"Pop!" — every hydrogen bubble burns with a pop. Test complete!	"పాప్!" — ప్రతి హైడ్రోజన్ బుడగ 'పాప్' శబ్దంతో మండుతుంది. పరీక్ష పూర్తయింది!
+Stand & Clamp	స్టాండ్ & బిగింపు
+Cork & Delivery Tube	బిరడా & వాహక నాళం
+Soap Solution	సబ్బు ద్రావణం
+DONE	పూర్తి
+Tap the candle to light it, then drag the flame to the rising soap bubbles — burn as many as you like, then press Next.	కొవ్వొత్తిని తాకి వెలిగించండి, తర్వాత మంటను పైకి లేస్తున్న సబ్బు బుడగల వద్దకు లాగండి — ఎన్ని కావాలంటే అన్ని మండించి, తర్వాత 'తరువాత' నొక్కండి.
+Home	హోమ్
+STEP {0}	దశ {0}
+Pour Dilute Hydrochloric Acid into the beaker.	సజల హైడ్రోక్లోరిక్ ఆమ్లాన్ని బీకరులో పోయండి.
+Pour Dilute Hydrochloric Acid into the beaker and see if the bulb glows.	సజల హైడ్రోక్లోరిక్ ఆమ్లాన్ని బీకరులో పోసి, బల్బు వెలుగుతుందో లేదో చూడండి.
+Dilute Hydrochloric Acid: bulb glows - this solution conducts electricity!	సజల హైడ్రోక్లోరిక్ ఆమ్లం: బల్బు వెలిగింది - ఈ ద్రావణం విద్యుత్తును ప్రసరింపజేస్తుంది!
+Pour Dilute Sulphuric Acid into the beaker.	సజల సల్ఫ్యూరిక్ ఆమ్లాన్ని బీకరులో పోయండి.
+Pour Dilute Sulphuric Acid into the beaker and see if the bulb glows.	సజల సల్ఫ్యూరిక్ ఆమ్లాన్ని బీకరులో పోసి, బల్బు వెలుగుతుందో లేదో చూడండి.
+Dilute Sulphuric Acid: bulb glows - this solution conducts electricity!	సజల సల్ఫ్యూరిక్ ఆమ్లం: బల్బు వెలిగింది - ఈ ద్రావణం విద్యుత్తును ప్రసరింపజేస్తుంది!
+Pour Glucose Solution into the beaker.	గ్లూకోజ్ ద్రావణాన్ని బీకరులో పోయండి.
+Pour Glucose Solution into the beaker and see if the bulb glows.	గ్లూకోజ్ ద్రావణాన్ని బీకరులో పోసి, బల్బు వెలుగుతుందో లేదో చూడండి.
+Glucose Solution: bulb stays dark - this solution does not conduct electricity.	గ్లూకోజ్ ద్రావణం: బల్బు వెలగలేదు - ఈ ద్రావణం విద్యుత్తును ప్రసరింపజేయదు.
+Pour Alcohol Solution into the beaker.	ఆల్కహాల్ ద్రావణాన్ని బీకరులో పోయండి.
+Pour Alcohol Solution into the beaker and see if the bulb glows.	ఆల్కహాల్ ద్రావణాన్ని బీకరులో పోసి, బల్బు వెలుగుతుందో లేదో చూడండి.
+Alcohol Solution: bulb stays dark - this solution does not conduct electricity.	ఆల్కహాల్ ద్రావణం: బల్బు వెలగలేదు - ఈ ద్రావణం విద్యుత్తును ప్రసరింపజేయదు.
+Wire connected — {0} to go.	తీగ కలిసింది — ఇంకా {0} మిగిలాయి.
+Anode electrode fixed in the mug.	ఆనోడ్ ఎలక్ట్రోడ్ మగ్గులో అమర్చబడింది.
+Anode test tube placed, mouth down and full of water.	ఆనోడ్ పరీక్ష నాళిక ఉంచబడింది — మూతి కిందికి, నీటితో నిండి.
+Cathode electrode fixed in the mug.	కాథోడ్ ఎలక్ట్రోడ్ మగ్గులో అమర్చబడింది.
+Cathode test tube placed, mouth down and full of water.	కాథోడ్ పరీక్ష నాళిక ఉంచబడింది — మూతి కిందికి, నీటితో నిండి.
+"Pop!" ({0} burned) — hydrogen burns with a pop. Burn more bubbles, or press Next to finish.	"పాప్!" ({0} మండాయి) — హైడ్రోజన్ 'పాప్' శబ్దంతో మండుతుంది. మరిన్ని బుడగలను మండించండి, లేదా ముగించడానికి 'తరువాత' నొక్కండి.
