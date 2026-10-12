@@ -1398,6 +1398,9 @@ namespace ARVirtualLab.Lab
         {
             if (_dragging == null || _heatingOrBurning) return;
 
+            // keep the drag plane level with the dragged object, so it stays right under the finger even while it
+            // is being raised or lowered (a plane left at the grab height made raised tongs slide away from the finger)
+            _dragPlane = new Plane(transform.up, _dragging.transform.position);
             var ray = _cam.ScreenPointToRay(screen);
             if (!_dragPlane.Raycast(ray, out float enter)) return;
 
@@ -1407,23 +1410,38 @@ namespace ARVirtualLab.Lab
             local.x = Mathf.Clamp(local.x, -0.18f, 0.18f);
             local.z = Mathf.Clamp(local.z, -0.16f, 0.16f);
 
-            // Auto-elevate tongs+ribbon as they approach the burner flame.
+            // Tongs carrying the ribbon (or the ash): they turn towards where they are headed — the flame, then the
+            // watch glass — slowly, and stop turning once they are close, so they never spin; and they rise only
+            // as the ribbon tip nears the flame, easing smoothly instead of jumping.
             if (_dragging == _tongs && _tongsHoldingRibbon)
             {
-                float burnerDistZ = Mathf.Clamp01((0.020f - local.z) / 0.135f);
-                float targetY = Mathf.Lerp(0.006f, 0.235f, burnerDistZ * burnerDistZ);
-                local.y = targetY;
+                bool toDish = _state == LabState.Step9_Collect && _collectionPoint != null;
+                Vector3 aim = toDish ? _collectionPoint.position
+                            : (_flamePoint != null ? _flamePoint.position : _burner.transform.position);
 
-                if (_flamePoint != null)
+                Vector3 toAim = aim - _tongs.transform.position; toAim.y = 0f;
+                if (toAim.magnitude > 0.06f)
                 {
-                    Vector3 toFlame = (_flamePoint.position - _dragging.transform.position);
-                    toFlame.y = 0f;
-                    if (toFlame.sqrMagnitude > 0.001f)
-                    {
-                        Quaternion targetRot = Quaternion.LookRotation(toFlame.normalized, transform.up);
-                        _tongs.transform.rotation = Quaternion.Slerp(_tongs.transform.rotation, targetRot, Time.deltaTime * 12f);
-                    }
+                    Quaternion want = Quaternion.LookRotation(toAim.normalized, transform.up);
+                    _tongs.transform.rotation = Quaternion.RotateTowards(_tongs.transform.rotation, want, 120f * Time.deltaTime);
                 }
+
+                float carryY = transform.TransformPoint(new Vector3(0f, 0.045f, 0f)).y;     // held a little above the bench
+                float worldTarget = carryY;
+                if (!toDish && _ribbon != null && _ribbon.activeSelf && _flameHeatZone != null)
+                {
+                    Vector3 tip = GetRibbonTipPosition();
+                    float dTip = Vector2.Distance(new Vector2(tip.x, tip.z), new Vector2(aim.x, aim.z));
+                    float prox = Mathf.SmoothStep(0f, 1f, 1f - Mathf.Clamp01((dTip - 0.03f) / 0.14f));
+                    float flameY = _flameHeatZone.transform.position.y - (tip.y - _tongs.transform.position.y);   // tongs height that puts the tip in the flame
+                    worldTarget = Mathf.Lerp(carryY, Mathf.Max(carryY, flameY), prox);
+                }
+                float curY = _tongs.transform.position.y;
+                // ease towards the target height, but never faster than a calm walking pace (so it cannot lurch)
+                float stepY = (worldTarget - curY) * (1f - Mathf.Exp(-9f * Time.deltaTime));
+                float maxStepY = 0.45f * Time.deltaTime;
+                float newY = curY + Mathf.Clamp(stepY, -maxStepY, maxStepY);
+                local.y = transform.InverseTransformPoint(new Vector3(0f, newY, 0f)).y;
             }
             else
             {
@@ -1438,8 +1456,42 @@ namespace ARVirtualLab.Lab
         {
             if (_dragging != null)
             {
-                SetHighlight(_dragging, false);
+                var released = _dragging;
+                SetHighlight(released, false);
                 _dragging = null;
+                // tongs let go of mid-air (not in the flame, not over the dish) ease down onto the bench instead of hanging there
+                if (released == _tongs && !_heatingOrBurning) StartCoroutine(SettleTongs());
+            }
+        }
+
+        // As soon as the ribbon is gripped the tongs swing round (once, smoothly) so the jaws face the burner.
+        private IEnumerator TurnTongsToFlame()
+        {
+            if (_flamePoint == null) yield break;
+            var tt = _tongs.transform;
+            Vector3 d = _flamePoint.position - tt.position; d.y = 0f;
+            if (d.sqrMagnitude < 0.0004f) yield break;
+            Quaternion from = tt.rotation, to = Quaternion.LookRotation(d.normalized, transform.up);
+            float e = 0f, dur = 0.5f;
+            while (e < dur)
+            {
+                e += Time.deltaTime;
+                tt.rotation = Quaternion.Slerp(from, to, Ease(e / dur));
+                yield return null;
+            }
+        }
+
+        private IEnumerator SettleTongs()
+        {
+            var tt = _tongs.transform;
+            float y0 = tt.localPosition.y, y1 = _isARMode ? AR_POS_TONGS.y + GetBottomBoundsOffset(_tongs) : POS_TONGS.y;
+            float e = 0f, dur = 0.3f;
+            while (e < dur)
+            {
+                if (_dragging == _tongs || _heatingOrBurning) yield break;      // picked up again, or a sequence took over
+                e += Time.deltaTime;
+                var p = tt.localPosition; p.y = Mathf.Lerp(y0, y1, Ease(e / dur)); tt.localPosition = p;
+                yield return null;
             }
         }
 
@@ -1584,7 +1636,7 @@ namespace ARVirtualLab.Lab
                 float distY = Mathf.Abs(ribbonTip.y - triggerCenter.y);
 
                 // Detected when the ribbon TIP enters FlameTrigger volume
-                if (distToTrigger <= 0.085f || (distXZ <= 0.070f && distY <= 0.085f))
+                if (distToTrigger <= 0.026f)   // the ribbon tip must be well INSIDE the flame, not touching its top edge
                 {
                     _dragging = null;
                     SetHighlight(_tongs, false);
@@ -1637,6 +1689,7 @@ namespace ARVirtualLab.Lab
             _ribbon.transform.localScale = Vector3.one * 0.90f;
             _ribbon.SetActive(true);
             StartCoroutine(SnapRibbonIntoJaws(gripStartPos, gripStartRot));
+            StartCoroutine(TurnTongsToFlame());
 
             var rbCol = _ribbon.GetComponent<Collider>();
             if (rbCol != null) rbCol.enabled = false;

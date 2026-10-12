@@ -1183,14 +1183,34 @@ namespace ARVirtualLab.Hydrogen
         private void StartDrag(GameObject go, Ray ray)
         {
             _draggingObject = go;
-            _dragPlane = new Plane(Vector3.forward, go.transform.position);
+            // Drag in a plane facing the camera so the object follows the finger exactly. (A fixed world plane made the
+            // cork look aligned with the flask on screen while being a different depth in 3D, so it only counted as
+            // "placed" at one particular height.)
+            Vector3 fwd = _cam != null ? _cam.transform.forward : Vector3.forward;
+            _dragPlane = new Plane(-fwd, go.transform.position);
             if (_dragPlane.Raycast(ray, out float dist))
                 _dragOffset = ray.GetPoint(dist) - go.transform.position;
             else _dragOffset = Vector3.zero;
         }
 
-        private bool Near(GameObject obj, GameObject zone) =>
-            zone != null && Vector3.Distance(obj.transform.position, zone.transform.position) < 0.22f;
+        // Judged on screen, where the student is actually looking: the dragged object counts as "at" the target when
+        // either its base or the centre of what it shows overlaps the target's screen position — at any height.
+        private bool Near(GameObject obj, GameObject zone)
+        {
+            if (zone == null || obj == null || _cam == null) return false;
+            float lim = Screen.height * 0.18f;
+            Vector2 z = _cam.WorldToScreenPoint(zone.transform.position);
+            Vector3 centre = obj.transform.position;
+            var rs = obj.GetComponentsInChildren<Renderer>();
+            if (rs.Length > 0)
+            {
+                Bounds b = rs[0].bounds;
+                for (int i = 1; i < rs.Length; i++) b.Encapsulate(rs[i].bounds);
+                centre = b.center;
+            }
+            return Vector2.Distance(_cam.WorldToScreenPoint(obj.transform.position), z) < lim
+                || Vector2.Distance(_cam.WorldToScreenPoint(centre), z) < lim;
+        }
 
         private GameObject RootOf(GameObject go)
         {
