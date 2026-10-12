@@ -983,6 +983,7 @@ namespace ARVirtualLab.Lab
             var main = _sparkPS.main;
 
             main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
+            _sparkPS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);   // a new system plays at once; it must be stopped before its duration can be set
             main.playOnAwake     = false;
             main.duration        = 4f;
             main.loop            = true;
@@ -1046,6 +1047,7 @@ namespace ARVirtualLab.Lab
 
             var main = _smokePS.main;
 
+            _smokePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
             main.playOnAwake     = false;
             main.duration        = 99f;
@@ -1133,6 +1135,7 @@ namespace ARVirtualLab.Lab
             baseMain.playOnAwake = false;
             baseMain.duration    = 99f; baseMain.loop = true;
             baseMain.startLifetime = 0.19f;
+            _baseFlamePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             baseMain.startSpeed  = 0.10f;
             baseMain.startSize   = 0.0195f;
             baseMain.maxParticles = 28;
@@ -1152,6 +1155,7 @@ namespace ARVirtualLab.Lab
 
             main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
             main.duration    = 99f; main.loop = true;
+            _mainFlamePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             main.startLifetime = 0.28f;
             main.startSpeed  = 0.13f;
             main.startSize   = 0.028f;

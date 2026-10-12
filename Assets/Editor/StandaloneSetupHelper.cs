@@ -116,7 +116,7 @@ namespace ARVirtualLab.Editor
             Light dirLight = GameObject.Find("Directional Light")?.GetComponent<Light>();
             if (dirLight == null)
             {
-                dirLight = GameObject.FindObjectOfType<Light>();
+                dirLight = GameObject.FindFirstObjectByType<Light>();
             }
             if (dirLight == null)
             {
@@ -791,7 +791,7 @@ namespace ARVirtualLab.Editor
             tmp.text = text;
             tmp.fontSize = fontSize;
             tmp.alignment = align;
-            tmp.enableWordWrapping = true;
+            tmp.textWrappingMode = TextWrappingModes.Normal;
             tmp.raycastTarget = false;
             return tmp;
         }

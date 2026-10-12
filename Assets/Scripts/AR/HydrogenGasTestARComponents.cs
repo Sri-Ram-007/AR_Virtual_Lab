@@ -202,7 +202,7 @@ namespace ARVirtualLab.HydrogenGasTest
             t.fontStyle = style;
             t.color     = color;
             t.alignment = TextAlignmentOptions.Center;
-            t.enableWordWrapping = true;
+            t.textWrappingMode = TextWrappingModes.Normal;
             t.raycastTarget = false;
             return t;
         }

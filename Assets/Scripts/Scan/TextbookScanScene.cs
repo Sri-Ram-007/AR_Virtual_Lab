@@ -272,7 +272,6 @@ namespace ARVirtualLab.Scan
                 var cb = new PermissionCallbacks();
                 cb.PermissionGranted += _ => granted = true;
                 cb.PermissionDenied += _ => denied = true;
-                cb.PermissionDeniedAndDontAskAgain += _ => denied = true;
                 Permission.RequestUserPermission(Permission.Camera, cb);
                 float t = 0f;
                 while (!granted && !denied && t < 20f)

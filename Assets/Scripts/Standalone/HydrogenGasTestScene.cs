@@ -155,14 +155,8 @@ namespace ARVirtualLab.HydrogenGasTest
         private GameObject _draggingObject = null;
         private Plane _dragPlane;
         private Vector3 _dragOffset;
-        private bool _zincPrepared    = false;
-        private bool _tubeClamped     = false;
-        private bool _zincInTubeAdded = false;
         private bool _acidAdded       = false;
-        private bool _corkPlaced      = false;
-        private bool _tubeInBasin     = false;
         private bool _candleLit       = false;
-        private bool _reactionStarted = false;
         private bool _popTriggered    = false;
 
         // === Zones ===
@@ -201,7 +195,6 @@ namespace ARVirtualLab.HydrogenGasTest
         private GameObject _resetConfirmDialog;
         private HydrogenGasTestARTray _arTray;
         private Camera _standaloneCam;
-        private bool _isARMode = false;
 
         // =========================================================
         //  Unity Lifecycle
@@ -240,7 +233,6 @@ namespace ARVirtualLab.HydrogenGasTest
 
         public void OnEnterARMode(Camera arCam)
         {
-            _isARMode = true;
             if (_standaloneCam == null) _standaloneCam = Camera.main;
             if (_standaloneCam != null && _standaloneCam != arCam)
             {
@@ -2189,7 +2181,6 @@ namespace ARVirtualLab.HydrogenGasTest
         private IEnumerator PlaceTubeRoutine()
         {
             _animating = true;
-            _tubeClamped = true;
             yield return MoveRot(_testTube.transform, _testTubeClampedPos, Quaternion.identity, 0.45f);
             ShowFeedback("✅ Test tube clamped securely onto the vertical stand!");
             _animating = false;
@@ -2226,7 +2217,6 @@ namespace ARVirtualLab.HydrogenGasTest
             zt.localScale = fullScale;
             _zincGranules.SetActive(false);
             _zincInTube.SetActive(true);
-            _zincInTubeAdded = true;
             ShowFeedback("✅ Zinc granules added inside the test tube!");
             _animating = false;
             SetStep(HydrogenGasTestStep.Step3_AddDiluteAcid);
@@ -2336,7 +2326,6 @@ namespace ARVirtualLab.HydrogenGasTest
             // Cork bottom is the container origin: line up over the mouth, then press in
             yield return MoveRot(ct, CorkSealedPos + new Vector3(0f, 0.04f, 0f), Quaternion.identity, 0.25f);
             yield return MoveRot(ct, CorkSealedPos, Quaternion.identity, 0.25f);
-            _corkPlaced = true;
             ShowFeedback("✅ Cork sealed into the test tube! Now lower the clamped tube so the outlet dips into the soap solution.");
             _animating = false;
             SetStep(HydrogenGasTestStep.Step5_ConnectDeliveryTubeToBasin);
@@ -2366,7 +2355,6 @@ namespace ARVirtualLab.HydrogenGasTest
             }
             tubeT.position = t0 + down;
             corkT.position = c0 + down;
-            _tubeInBasin = true;
             ShowFeedback("✅ The delivery tube outlet now dips into the soap solution! Hydrogen gas is evolving.");
             _animating = false;
             SetStep(HydrogenGasTestStep.Step6_GasEvolution);
@@ -2581,14 +2569,8 @@ namespace ARVirtualLab.HydrogenGasTest
             if (_candleFlame != null) _candleFlame.SetActive(false);
             if (_candleLight != null) _candleLight.intensity = 0f;
 
-            _zincPrepared    = false;
-            _tubeClamped     = false;
-            _zincInTubeAdded = false;
             _acidAdded       = false;
-            _corkPlaced      = false;
-            _tubeInBasin     = false;
             _candleLit       = false;
-            _reactionStarted = false;
             _popTriggered    = false;
             _isCompleted     = false;
             _draggingObject  = null;

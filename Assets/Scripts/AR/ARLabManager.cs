@@ -87,7 +87,6 @@ namespace ARVirtualLab.AR
         private bool _reticlePoseValid;
         private bool _hasLoggedPlaneFound;
         private bool _hasLoggedARCoreInit;
-        private float _scanningTimer;
         private Coroutine _permissionCoroutine;
         private string _lastCameraTrackingState = "None";
 
@@ -904,7 +903,6 @@ namespace ARVirtualLab.AR
             if (_labScene == null) _labScene = FindFirstObjectByType<MagnesiumLabScene>();
             _hasLoggedPlaneFound = false;
             _hasLoggedARCoreInit = false;
-            _scanningTimer = 0f;
             _placedComponents.Clear();
 
             if (_permissionCoroutine != null) StopCoroutine(_permissionCoroutine);
@@ -925,7 +923,6 @@ namespace ARVirtualLab.AR
                 var callbacks = new PermissionCallbacks();
                 callbacks.PermissionGranted += (perm) => { permissionGranted = true; };
                 callbacks.PermissionDenied += (perm) => { permissionDenied = true; };
-                callbacks.PermissionDeniedAndDontAskAgain += (perm) => { permissionDenied = true; };
 
                 Permission.RequestUserPermission(Permission.Camera, callbacks);
 

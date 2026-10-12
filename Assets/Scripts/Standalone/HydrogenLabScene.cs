@@ -93,9 +93,6 @@ namespace ARVirtualLab.Hydrogen
         private Plane _dragPlane;
         private Vector3 _dragOffset;
         private bool _zincSelected    = false;
-        private bool _zincPlaced      = false;
-        private bool _acidAdded       = false;
-        private bool _corkPlaced      = false;
         private bool _reactionStarted = false;
 
         // === Reset Positions ===
@@ -1264,7 +1261,6 @@ namespace ARVirtualLab.Hydrogen
                 yield return null;
             }
             zt.localScale = full;
-            _zincPlaced = true;
             _zincGranules.SetActive(false);
             _zincInFlask.SetActive(true);
             HighlightObject(_flask, true);
@@ -1309,7 +1305,6 @@ namespace ARVirtualLab.Hydrogen
             _pourStream.SetActive(false);
             yield return MoveRot(bt, _acidBottleOriginPos, Quaternion.identity, 0.55f);
 
-            _acidAdded = true;
             HighlightObject(_flask, false);
             ShowFeedback("\u2705 Dilute sulphuric acid added! The zinc starts to fizz.", true);
             _animating = false;
@@ -1330,7 +1325,6 @@ namespace ARVirtualLab.Hydrogen
             Vector3 sealed_ = new Vector3(-0.040f, sealedY, 0.000f);
             yield return MoveRot(ct, sealed_ + new Vector3(0f, 0.06f, 0f), Quaternion.identity, 0.45f);
             yield return MoveRot(ct, sealed_, Quaternion.identity, 0.25f);
-            _corkPlaced = true;
             ShowFeedback("\u2705 Flask sealed with cork and glass delivery tube!", true);
             _animating = false;
             SetStep(HydrogenStep.Step5_ObserveReaction);
@@ -1438,7 +1432,7 @@ namespace ARVirtualLab.Hydrogen
             HighlightObject(_flask, false);
             HighlightObject(_zincGranules, false);
 
-            _zincSelected = _zincPlaced = _acidAdded = _corkPlaced = false;
+            _zincSelected = false;
             _reactionStarted = _isCompleted = false;
             _draggingObject = null;
 

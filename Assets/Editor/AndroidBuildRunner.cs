@@ -13,7 +13,16 @@ namespace ARVirtualLab.Editor
 {
     public static class AndroidBuildRunner
     {
-        private const string ADB_PATH = @"C:\Program Files\Unity\Hub\Editor\6000.3.5f2\Editor\Data\PlaybackEngines\AndroidPlayer\SDK\platform-tools\adb.exe";
+        // adb from the Android SDK Unity is configured with, so Build And Run works on Windows and macOS alike
+        private static string ADB_PATH
+        {
+            get
+            {
+                string sdk = UnityEditor.Android.AndroidExternalToolsSettings.sdkRootPath;
+                string exe = Application.platform == RuntimePlatform.WindowsEditor ? "adb.exe" : "adb";
+                return string.IsNullOrEmpty(sdk) ? exe : Path.Combine(sdk, "platform-tools", exe);
+            }
+        }
 
         [MenuItem("AR Lab/Build Android APK", priority = 100)]
         public static void BuildAndroid()
@@ -49,6 +58,8 @@ namespace ARVirtualLab.Editor
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android, false);
             PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, new[] { UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3 });
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
+            // Engine diagnostics are on in the project, and they need native symbols to read crash stack traces
+            UnityEditor.Android.UserBuildSettings.DebugSymbols.level = Unity.Android.Types.DebugSymbolLevel.SymbolTable;
 
             // 3. Configure Scenes
             // Every experiment scene must be listed, otherwise SceneManager.LoadScene fails on the device.
