@@ -57,7 +57,7 @@ namespace ARVirtualLab.Lab
         private Transform  _gripPoint, _flamePoint, _collectionPoint;
         private ParticleSystem _sparkPS, _baseFlamePS, _mainFlamePS, _smokePS;
         private Light _burnLight, _flameLight;
-        private Material _ribbonMat, _burnerMat, _tongsMat, _glassMat, _tableMat, _sandpaperMat, _mgoMat;
+        private Material _ribbonMat, _burnerMat, _tongsMat, _glassMat, _sandpaperMat, _mgoMat;
         private Material _outerFlameMat, _innerFlameMat;
         private Renderer _ribbonRenderer;
         private Camera _cam;
@@ -438,9 +438,6 @@ namespace ARVirtualLab.Lab
         {
             Shader lit = GetValidUrpShader(false);
 
-            // Table: grey laminate
-            _tableMat     = CreatePbrMaterial(lit, new Color(0.68f, 0.72f, 0.76f, 1f), 0.05f, 0.30f);
-
             // Burner: classic laboratory warm brass
             _burnerMat    = CreatePbrMaterial(lit, new Color(0.82f, 0.70f, 0.38f, 1f), 0.65f, 0.55f);
 
@@ -627,8 +624,7 @@ namespace ARVirtualLab.Lab
         private void BuildSceneEquipment()
         {
             // 1. Table
-            _table = CreateObjectWithMesh("LaboratoryTable", transform, POS_TABLE,
-                LoadObjMesh("LaboratoryTable"), _tableMat);
+            _table = ARVirtualLab.UI.LabBench.Create(transform, POS_TABLE, new Vector2(0.52f, 0.36f));   // the shared grey lab table
 
             // 2. Sandpaper Pad (Far Left)
             _sandpaper = CreateObjectWithMesh("Sandpaper", transform, POS_SANDPAPER,

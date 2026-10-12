@@ -18,7 +18,7 @@ namespace ARVirtualLab.AcidConductivity
 {
     public enum AcTag { None, ElectrodeAssembly, BottleHCl, BottleH2SO4, BottleGlucose, BottleAlcohol, SwitchObj, Beaker }
 
-    public class AcInteractable : MonoBehaviour { public AcTag tag = AcTag.None; }
+    public class AcInteractable : MonoBehaviour { public new AcTag tag = AcTag.None; }
 
     public enum ConductStep
     {
@@ -242,10 +242,7 @@ namespace ARVirtualLab.AcidConductivity
         // =========================================================
         private void BuildScene()
         {
-            _table = new GameObject("LabPlatform");
-            _table.transform.SetParent(transform, false);
-            Box("LabTable", _table.transform, new Vector3(0f, -0.06f, 0.05f), new Vector3(1.20f, 0.04f, 0.70f), Simple(new Color(0.30f, 0.18f, 0.10f), 0.35f, 0.02f));
-            Box("BenchSurface", _table.transform, new Vector3(0f, -0.038f, 0.05f), new Vector3(1.18f, 0.012f, 0.68f), Simple(new Color(0.42f, 0.26f, 0.15f), 0.45f, 0.02f));
+            _table = LabBench.Create(transform, new Vector3(0f, TABLE_TOP_Y, 0.05f), new Vector2(1.20f, 0.70f));   // the shared grey lab table
 
             // ── Beaker ─────────────────────────────────────────
             var beakerContainer = new GameObject("Beaker");

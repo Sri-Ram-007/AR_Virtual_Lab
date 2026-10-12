@@ -85,8 +85,6 @@ namespace ARVirtualLab.Hydrogen
         private Material _zincMat;
         private Material _acidMat;
         private Material _corkMat;
-        private Material _tableMat;
-        private Material _benchMat;
 
         // === Interaction ===
         private GameObject _draggingObject = null;
@@ -290,18 +288,6 @@ namespace ARVirtualLab.Hydrogen
             _corkMat = new Material(lit);
             SetProp(_corkMat, "_BaseColor", new Color(0.78f, 0.56f, 0.32f, 1f));
             _corkMat.SetFloat("_Smoothness", 0.25f);
-
-            // Table frame / border (dark walnut brown)
-            _tableMat = new Material(lit);
-            SetProp(_tableMat, "_BaseColor", new Color(0.30f, 0.18f, 0.10f, 1f));
-            _tableMat.SetFloat("_Smoothness", 0.35f);
-            _tableMat.SetFloat("_Metallic", 0.02f);
-
-            // Bench surface: warm polished medium-brown laboratory wood
-            _benchMat = new Material(lit);
-            SetProp(_benchMat, "_BaseColor", new Color(0.42f, 0.26f, 0.15f, 1f));
-            _benchMat.SetFloat("_Smoothness", 0.45f);
-            _benchMat.SetFloat("_Metallic", 0.02f);
         }
 
         private void SetTransparent(Material mat, Color color)
@@ -332,8 +318,7 @@ namespace ARVirtualLab.Hydrogen
         private void BuildScene()
         {
             // Table (medium-brown wooden laboratory bench providing high contrast)
-            _table = Box("LabTable", new Vector3(0f, -0.06f, 0.05f), new Vector3(1.20f, 0.04f, 0.70f), _tableMat);
-            Box("BenchSurface", new Vector3(0f, -0.038f, 0.05f), new Vector3(1.18f, 0.012f, 0.68f), _benchMat);
+            _table = LabBench.Create(transform, new Vector3(0f, TABLE_TOP_Y, 0.05f), new Vector2(1.20f, 0.70f));   // the shared grey lab table
 
             // ── CONICAL FLASK (Centre-Left) ───────────────────────────
             var flaskContainer = new GameObject("ConicalFlask");

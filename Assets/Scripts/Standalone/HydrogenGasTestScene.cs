@@ -147,8 +147,6 @@ namespace ARVirtualLab.HydrogenGasTest
         private Material _corkMat;
         private Material _candleMat;
         private Material _metalMat;
-        private Material _tableMat;
-        private Material _benchMat;
         private Material _bubbleMat;
 
         // === Assembly & Interaction State ===
@@ -389,8 +387,6 @@ namespace ARVirtualLab.HydrogenGasTest
             _corkMat = SimpleMat(new Color(0.76f, 0.54f, 0.32f), 0.25f, 0.02f);
 
             // Table and bench surface materials matching HydrogenLabScene
-            _tableMat = SimpleMat(new Color(0.30f, 0.18f, 0.10f), 0.35f, 0.02f);
-            _benchMat = SimpleMat(new Color(0.42f, 0.26f, 0.15f), 0.45f, 0.02f);
 
             // Dilute sulphuric acid amber/chemical bottle
             _acidMat = SimpleMat(new Color(0.85f, 0.55f, 0.15f), 0.70f, 0.05f);
@@ -448,10 +444,7 @@ namespace ARVirtualLab.HydrogenGasTest
         private void BuildSceneEquipment()
         {
             // ── 1. Table Platform (Matching HydrogenLabScene Brown Board) ──
-            _table = new GameObject("LabPlatform");
-            _table.transform.SetParent(transform, false);
-            Box("LabTable", _table.transform, new Vector3(0f, -0.06f, 0.05f), new Vector3(1.20f, 0.04f, 0.70f), _tableMat);
-            Box("BenchSurface", _table.transform, new Vector3(0f, -0.038f, 0.05f), new Vector3(1.18f, 0.012f, 0.68f), _benchMat);
+            _table = LabBench.Create(transform, new Vector3(0f, TABLE_TOP_Y, 0.05f), new Vector2(1.20f, 0.70f));   // the shared grey lab table
 
             // ── 2. Clamp Stand (Left) ─────────────────────────────────
             var standContainer = new GameObject("ClampStand");
