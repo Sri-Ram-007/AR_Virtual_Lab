@@ -109,7 +109,8 @@ namespace ARVirtualLab.AI
             BuildInput(inner);
 
             _backdrop.SetActive(false);
-            AddDisplay(false, "Hi! I am your lab mentor for " + _exp.Title + ". Ask me anything about it, or tap one of the questions below.");
+            AddDisplay(false, ARVirtualLab.Localization.Loc.TeluguMode ? MentorTelugu.Greeting
+                : "Hi! I am your lab mentor for " + _exp.Title + ". Ask me anything about it, or tap one of the questions below.");
             RefreshStatus();
         }
 
@@ -128,7 +129,7 @@ namespace ARVirtualLab.AI
             tr.anchoredPosition = new Vector2(0f, -18f); tr.sizeDelta = new Vector2(-190f, 64f);
             tr.offsetMin = new Vector2(PanelPad + 6f, tr.offsetMin.y);
 
-            var sub = UiKit.Text(parent, "Subtitle", _exp.Title, 28, EduTheme.InkSoft, FontStyles.Normal, TextAlignmentOptions.MidlineLeft);
+            var sub = UiKit.Text(parent, "Subtitle", _exp.ShownTitle, 28, EduTheme.InkSoft, FontStyles.Normal, TextAlignmentOptions.MidlineLeft);
             var sr = sub.rectTransform;
             sr.anchorMin = new Vector2(0f, 1f); sr.anchorMax = new Vector2(1f, 1f); sr.pivot = new Vector2(0.5f, 1f);
             sr.anchoredPosition = new Vector2(0f, -78f); sr.sizeDelta = new Vector2(-190f, 40f);
@@ -204,15 +205,17 @@ namespace ARVirtualLab.AI
             sr.viewport = viewport; sr.content = content; sr.horizontal = true; sr.vertical = false;
             sr.movementType = ScrollRect.MovementType.Clamped; sr.scrollSensitivity = 30f;
 
-            foreach (var q in _exp.QuickQuestions)
+            var shown = _exp.ShownQuickQuestions;
+            for (int qi = 0; qi < shown.Length; qi++)
             {
-                string question = q;
+                string q = shown[qi];
+                string question = _exp.QuickQuestions[Mathf.Min(qi, _exp.QuickQuestions.Length - 1)];     // the English question drives the offline matcher
                 var chip = UiKit.Button(content, "Chip", q, EduTheme.TealTint, EduTheme.TealDark, 28, 26, FontStyles.Normal);
                 var label = chip.GetComponentInChildren<TMP_Text>();
-                float w = label.GetPreferredValues(MobileText.Clean(q)).x + 56f;
+                float w = (ARVirtualLab.Localization.Loc.ContainsTelugu(q) ? q.Length * 17f : label.GetPreferredValues(MobileText.Clean(q)).x) + 56f;
                 var le = chip.gameObject.AddComponent<LayoutElement>(); le.preferredWidth = Mathf.Min(w, 760f); le.minWidth = 160f;
                 label.textWrappingMode = TextWrappingModes.NoWrap;
-                chip.onClick.AddListener(() => Submit(question));
+                chip.onClick.AddListener(() => Submit(question, q));
             }
         }
 
@@ -334,12 +337,12 @@ namespace ARVirtualLab.AI
             Submit(q);
         }
 
-        private void Submit(string question)
+        private void Submit(string question, string shownText = null)
         {
             if (_pending || string.IsNullOrWhiteSpace(question)) return;
             question = question.Trim();
             var snapshot = new List<MentorMessage>(_history);          // earlier turns only; the backend adds the new question
-            AddDisplay(true, question);
+            AddDisplay(true, shownText ?? question);
             _history.Add(new MentorMessage { FromStudent = true, Text = question });
             StartCoroutine(AskRoutine(question, snapshot));
         }
@@ -384,6 +387,7 @@ namespace ARVirtualLab.AI
         {
             _builtWidth = ViewRect.rect.width;
             for (int i = _content.childCount - 1; i >= 0; i--) Destroy(_content.GetChild(i).gameObject);
+            _bubbles.Clear();
             _typingRow = null; _typingText = null;
             TMP_Text dummy;
             foreach (var m in _display) AddRow(m.FromStudent, m.Text, out dummy);
@@ -401,16 +405,57 @@ namespace ARVirtualLab.AI
             var row = UiKit.Node(_content, student ? "Student" : "Mentor");
             var bubble = UiKit.Box(row, "Bubble", student ? EduTheme.Teal : EduTheme.PaperTint, 28);
             label = UiKit.Text(bubble.transform, "Text", text, 34, student ? Color.white : EduTheme.Ink, FontStyles.Normal, TextAlignmentOptions.TopLeft);
-            Vector2 pref = label.GetPreferredValues(label.text, maxBubble - 2f * pad, 0f);
-            float bw = Mathf.Min(maxBubble, pref.x + 2f * pad + 6f);
-            float bh = pref.y + 2f * pad;
+            float bw, bh;
+            if (ARVirtualLab.Localization.Loc.ContainsTelugu(label.text))
+            {
+                // the app font cannot measure Telugu (the phone draws it, see NativeText), so estimate the size here;
+                // OnNativeRendered corrects the height as soon as the real text has been drawn
+                float perLine = Mathf.Max(8f, (maxBubble - 2f * pad) / 20f);
+                int lines = 0;
+                foreach (var part in label.text.Split((char)10)) lines += Mathf.Max(1, Mathf.CeilToInt(part.Length / perLine));
+                bw = maxBubble;
+                bh = lines * 50f + 2f * pad;
+            }
+            else
+            {
+                Vector2 pref = label.GetPreferredValues(label.text, maxBubble - 2f * pad, 0f);
+                bw = Mathf.Min(maxBubble, pref.x + 2f * pad + 6f);
+                bh = pref.y + 2f * pad;
+            }
             UiKit.Pin(bubble.rectTransform, student ? 1f : 0f, 1f, 0f, 0f, bw, bh);
             UiKit.Fill(label.rectTransform);
             label.rectTransform.offsetMin = new Vector2(pad, pad); label.rectTransform.offsetMax = new Vector2(-pad, -pad);
 
             var le = row.gameObject.AddComponent<LayoutElement>();
             le.preferredHeight = bh; le.minHeight = bh;
+            _bubbles.Add(new BubbleRef { Label = label, Bubble = bubble.rectTransform, Row = le, Height = bh, Pad = pad });
             return row;
+        }
+
+        // ── Telugu: the phone draws it itself, so the bubble is resized to the size that was really drawn ──
+        private class BubbleRef { public TMP_Text Label; public RectTransform Bubble; public LayoutElement Row; public float Height, Pad; }
+        private readonly List<BubbleRef> _bubbles = new List<BubbleRef>();
+
+        private void OnEnable() { ARVirtualLab.Localization.NativeText.Rendered += OnNativeRendered; }
+        private void OnDisable() { ARVirtualLab.Localization.NativeText.Rendered -= OnNativeRendered; }
+
+        private void OnNativeRendered(TMP_Text label, Vector2 drawn)
+        {
+            for (int i = _bubbles.Count - 1; i >= 0; i--)
+            {
+                var b = _bubbles[i];
+                if (b.Label == null || b.Bubble == null) { _bubbles.RemoveAt(i); continue; }      // its row was removed
+                if (b.Label != label) continue;
+                float need = Mathf.Max(60f, drawn.y + 2f * b.Pad + 4f);
+                if (Mathf.Abs(need - b.Height) < 3f) return;
+                bool atEnd = _scroll != null && _scroll.verticalNormalizedPosition < 0.05f;
+                b.Height = need;
+                var sd = b.Bubble.sizeDelta; sd.y = need; b.Bubble.sizeDelta = sd;
+                b.Row.preferredHeight = need; b.Row.minHeight = need;
+                LayoutRebuilder.MarkLayoutForRebuild(_content);
+                if (atEnd) StartCoroutine(ScrollToEnd());
+                return;
+            }
         }
 
         private IEnumerator ScrollToEnd()

@@ -131,7 +131,8 @@ namespace ARVirtualLab.AI
                 if (i > 0) sb.Append(',');
                 sb.Append("{\"role\":\"").Append(merged[i].FromStudent ? "user" : "model").Append("\",\"parts\":[{\"text\":\"").Append(Esc(merged[i].Text)).Append("\"}]}");
             }
-            sb.Append("],\"generationConfig\":{\"temperature\":0.4,\"maxOutputTokens\":600}}");
+            // Telugu script costs many more tokens per word than English, so it needs a much bigger allowance
+            sb.Append("],\"generationConfig\":{\"temperature\":0.4,\"maxOutputTokens\":").Append(ARVirtualLab.Localization.Loc.TeluguMode ? 1500 : 600).Append("}}");
             return sb.ToString();
         }
 
@@ -141,7 +142,10 @@ namespace ARVirtualLab.AI
             sb.Append("You are the Edu-AR Mentor, a friendly science tutor inside a virtual chemistry lab app for Class 10 students in Andhra Pradesh, India (age 14 to 15). ");
             sb.Append("The student is doing this experiment right now. ").Append(exp.Briefing).Append(' ');
             if (!string.IsNullOrEmpty(stepContext)) sb.Append("The student is currently at: ").Append(stepContext.Trim().TrimEnd((char)46, (char)32)).Append(". ");
-            sb.Append("Rules: Answer in simple English a Class 10 student understands. Keep it under 110 words. ");
+            if (ARVirtualLab.Localization.Loc.TeluguMode)
+                sb.Append("Rules: The student has chosen Telugu. Always answer in simple, natural Telugu (తెలుగు) written in Telugu script, the way a Telugu-medium Class 10 science textbook would explain it, even if the question is in English. Keep chemical formulas, equations, symbols and numbers in English letters, for example H2SO4 and 2H2O -> 2H2 + O2. Keep it under 90 words. ");
+            else
+                sb.Append("Rules: Answer in simple English a Class 10 student understands. Keep it under 110 words. ");
             sb.Append("Use plain text only: no markdown, no asterisks, no headings. Write chemical formulas in plain letters and numbers, for example H2SO4, and arrows as ->. ");
             sb.Append("Link the answer to what the student can see in the experiment. Explain the idea, do not just state the answer. ");
             sb.Append("If the question is not about science or this lab, kindly steer the student back to the experiment. ");
@@ -231,9 +235,15 @@ namespace ARVirtualLab.AI
             string q = (question ?? "").ToLowerInvariant();
             string t = q.Trim().Trim('!', '.', '?');
 
+            bool te = ARVirtualLab.Localization.Loc.TeluguMode && exp.QuickQuestionsTe != null;
             if (t == "hi" || t == "hello" || t == "hey" || t.StartsWith("hi ") || t.StartsWith("hello"))
-                return new MentorReply { Text = "Hello! I am your lab mentor. Ask me anything about " + exp.Title + ", for example: " + exp.QuickQuestions[0], Note = note };
-            if (t.Contains("thank")) return new MentorReply { Text = "You are welcome! Ask me another question whenever you like.", Note = note };
+                return new MentorReply
+                {
+                    Text = te ? MentorTelugu.Hello(exp.TitleTe, exp.QuickQuestionsTe[0])
+                              : "Hello! I am your lab mentor. Ask me anything about " + exp.Title + ", for example: " + exp.QuickQuestions[0],
+                    Note = note
+                };
+            if (t.Contains("thank")) return new MentorReply { Text = te ? MentorTelugu.Thanks : "You are welcome! Ask me another question whenever you like.", Note = note };
 
             MentorQA best = null; int bestScore = 0;
             foreach (var qa in exp.Answers)
@@ -242,8 +252,9 @@ namespace ARVirtualLab.AI
                 foreach (var k in qa.Keys) if (q.Contains(k)) score += 1 + k.Length / 4;
                 if (score > bestScore) { bestScore = score; best = qa; }
             }
-            if (best != null) return new MentorReply { Text = best.Answer, Note = note };
+            if (best != null) return new MentorReply { Text = te && !string.IsNullOrEmpty(best.AnswerTe) ? best.AnswerTe : best.Answer, Note = note };
 
+            if (te) return new MentorReply { Text = MentorTelugu.Fallback(exp.TitleTe, exp.Equation, exp.QuickQuestionsTe[0], exp.QuickQuestionsTe[1]), Note = note };
             return new MentorReply
             {
                 Text = "I can help with " + exp.Title + ". The key reaction is " + exp.Equation + ".\n\nTry asking: " + exp.QuickQuestions[0] + " or " + exp.QuickQuestions[1],

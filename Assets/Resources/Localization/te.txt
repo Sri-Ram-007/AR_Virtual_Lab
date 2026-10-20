@@ -621,3 +621,14 @@ Anode test tube placed, mouth down and full of water.	ఆనోడ్ పరీ�
 Cathode electrode fixed in the mug.	కాథోడ్ ఎలక్ట్రోడ్ మగ్గులో అమర్చబడింది.
 Cathode test tube placed, mouth down and full of water.	కాథోడ్ పరీక్ష నాళిక ఉంచబడింది — మూతి కిందికి, నీటితో నిండి.
 "Pop!" ({0} burned) — hydrogen burns with a pop. Burn more bubbles, or press Next to finish.	"పాప్!" ({0} మండాయి) — హైడ్రోజన్ 'పాప్' శబ్దంతో మండుతుంది. మరిన్ని బుడగలను మండించండి, లేదా ముగించడానికి 'తరువాత' నొక్కండి.
+# ── AI mentor ──────────────
+Ask AI	AI ని అడగండి
+Ask the AI Mentor	AI మెంటర్‌ని అడగండి
+Send	పంపండి
+Type your question...	మీ ప్రశ్నను టైప్ చేయండి...
+Thinking...	ఆలోచిస్తోంది...
+AI mentor online	AI మెంటర్ ఆన్‌లైన్‌లో ఉంది
+Offline mode: built-in answers	ఆఫ్‌లైన్ మోడ్: అంతర్నిర్మిత సమాధానాలు
+Answered by AI	AI సమాధానం ఇచ్చింది
+Sorry, I could not answer that. Please try again.	క్షమించండి, దానికి సమాధానం ఇవ్వలేకపోయాను. దయచేసి మళ్లీ ప్రయత్నించండి.
+Why is the ribbon cleaned first?	రిబ్బన్ను మొదట ఎందుకు శుభ్రం చేస్తారు?

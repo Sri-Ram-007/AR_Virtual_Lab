@@ -13,12 +13,17 @@ namespace ARVirtualLab.AI
     {
         public string[] Keys;      // any of these words/phrases in the question selects this answer
         public string Answer;
+        public string AnswerTe;    // Telugu version, shown when the student has chosen Telugu
     }
 
     public class MentorExperiment
     {
+        public string ShownTitle { get { return ARVirtualLab.Localization.Loc.TeluguMode && !string.IsNullOrEmpty(TitleTe) ? TitleTe : Title; } }
+        public string[] ShownQuickQuestions { get { return ARVirtualLab.Localization.Loc.TeluguMode && QuickQuestionsTe != null ? QuickQuestionsTe : QuickQuestions; } }
         public string Id, Title, Equation, Briefing;
         public string[] QuickQuestions;
+        public string TitleTe;
+        public string[] QuickQuestionsTe;
         public MentorQA[] Answers;
     }
 
@@ -34,7 +39,7 @@ namespace ARVirtualLab.AI
 
         public static MentorExperiment Get(string id)
         {
-            if (_all == null) Build();
+            if (_all == null) { Build(); MentorTelugu.Apply(_all); }
             MentorExperiment e;
             return _all.TryGetValue(id ?? "", out e) ? e : _all[Magnesium];
         }
