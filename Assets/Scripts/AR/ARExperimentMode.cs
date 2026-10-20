@@ -89,7 +89,7 @@ namespace ARVirtualLab.AR
         private float _scanStart, _nextTip;
         private Button _placeBtn, _moveBtn, _cancelBtn, _exitBtn;
         private float _statusHideAt = -1f;
-        private float _nextLog, _nextDiag;
+        private float _nextLog, _nextDiag, _nextReset;
         private static Texture2D _ringTex;
 
         // The lab is shown larger than life so it reads well on a phone: world = tracking x (1 / _arScale).
@@ -197,7 +197,7 @@ namespace ARVirtualLab.AR
             _phase = Phase.Scanning;
             _scanStart = Time.unscaledTime;
             Debug.Log("[ARMode] scanning for a flat surface");
-            SetStatus("Move your phone slowly over a table or the floor to find a flat surface", false);
+            SetStatus("Hold the phone at arm's length above a table, bed or the floor (not close to it) and move it slowly to find a flat surface", false);
         }
 
         private IEnumerator RequestCameraPermission()
@@ -392,6 +392,18 @@ namespace ARVirtualLab.AR
 
             if (_offsetGO != null && _offsetGO.transform.localPosition != Vector3.zero) _offsetGO.transform.localPosition = Vector3.zero;   // see BuildRig
             if (_phase == Phase.Placed || _phase == Phase.Repositioning) FollowAnchor();
+
+            // A hand-held phone does not travel metres while we are still searching: the tracking has lost its scale (usually the
+            // camera was too close to the surface or moved too fast). Start the AR session again so it re-learns the room.
+            if ((_phase == Phase.Scanning || _phase == Phase.Ready) && Time.unscaledTime >= _nextReset &&
+                _arCamera.transform.localPosition.magnitude > 4f)
+            {
+                _nextReset = Time.unscaledTime + 6f;
+                Debug.Log("[ARMode] tracking lost its scale (camera " + _arCamera.transform.localPosition.ToString("F1") + " from the start), restarting AR");
+                ARSession.Reset();
+                _phase = Phase.Scanning; _scanStart = Time.unscaledTime;
+                SetStatus("AR lost track. Hold the phone at arm's length, about half a metre or more above the surface, and move it slowly", false, 6f);
+            }
 
             bool placing = _phase == Phase.Scanning || _phase == Phase.Ready || _phase == Phase.Repositioning;
             if (placing)
