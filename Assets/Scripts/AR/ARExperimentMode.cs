@@ -400,7 +400,7 @@ namespace ARVirtualLab.AR
             {
                 _nextReset = Time.unscaledTime + 6f;
                 Debug.Log("[ARMode] tracking lost its scale (camera " + _arCamera.transform.localPosition.ToString("F1") + " from the start), restarting AR");
-                ARSession.Reset();
+                if (_sessionGO != null) _sessionGO.GetComponent<ARSession>().Reset();
                 _phase = Phase.Scanning; _scanStart = Time.unscaledTime;
                 SetStatus("AR lost track. Hold the phone at arm's length, about half a metre or more above the surface, and move it slowly", false, 6f);
             }
