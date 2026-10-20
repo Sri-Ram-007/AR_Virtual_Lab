@@ -76,6 +76,7 @@ namespace ARVirtualLab.AR
         private Material _reticleMat;
         private bool _reticleOnPlane;
         private Pose _reticlePose;
+        private ARPlane _reticlePlane;        // the detected surface under the circle (null for a loose feature point)
 
         // UI
         private GameObject _canvasGO;
@@ -379,6 +380,8 @@ namespace ARVirtualLab.AR
             {
                 _nextLog = Time.unscaledTime + 2.5f;
                 Debug.Log("[ARMode] phase=" + _phase + " session=" + ARSession.state + " planes=" + _planeManager.trackables.count +
+                          " anchor=" + (_anchor != null ? _anchor.trackingState + " " + _origin.TrackablesParent.InverseTransformPoint(_anchor.transform.position).ToString("F2") : "none") +
+                          " scale=" + _arScale.ToString("F1") +
                           " camPos=" + _arCamera.transform.position.ToString("F2") + " pose=" + (_poseDriver != null ? _poseDriver.Source : "-"));
             }
 
@@ -420,6 +423,7 @@ namespace ARVirtualLab.AR
                 if (_reticleOnPlane)
                 {
                     _reticlePose = _hits[0].pose;
+                    _reticlePlane = _hits[0].trackable as ARPlane;
                     _reticle.SetActive(true);
                     _reticle.transform.SetPositionAndRotation(_reticlePose.position + Vector3.up * 0.002f * _origin.transform.localScale.x,
                         _reticlePose.rotation * Quaternion.Euler(90f, 0f, 0f));
@@ -443,7 +447,7 @@ namespace ARVirtualLab.AR
                 // a tap anywhere places the lab where the CIRCLE is (the instruction says "aim and tap"), never at the
                 // point that was touched — that used to drop the lab on a far wall or floor
                 if (TapPosition(out Vector2 tap) && _reticleOnPlane)
-                    PlaceLab(_reticlePose);
+                    PlaceLab(_reticlePose, _reticlePlane);
             }
             else
             {
@@ -500,7 +504,7 @@ namespace ARVirtualLab.AR
         // ═════════════════════════════════════════════════════
         //  PLACE THE LAB
         // ═════════════════════════════════════════════════════
-        private void PlaceLab(Pose surface)
+        private void PlaceLab(Pose surface, ARPlane plane)
         {
             var o = _origin.transform;
             float k = o.localScale.x;
@@ -519,7 +523,7 @@ namespace ARVirtualLab.AR
             Vector3 lookInTracking = Quaternion.Inverse(o.rotation) * look;
             _anchorYaw = Mathf.Atan2(lookInTracking.x, lookInTracking.z) * Mathf.Rad2Deg;
 
-            CreateAnchor(surface);       // before the origin moves: the anchor takes the surface point as it is in the world right now
+            CreateAnchor(surface, plane);       // before the origin moves: the anchor takes the surface point as it is in the world right now
             ApplyPlacement();
 
             _phase = Phase.Placed;
@@ -530,11 +534,17 @@ namespace ARVirtualLab.AR
             SetStatus("Lab placed. Pinch with two fingers to resize it. Follow the steps to do the experiment", false, 5f);
         }
 
-        private async void CreateAnchor(Pose world)
+        private async void CreateAnchor(Pose world, ARPlane plane)
         {
             if (_anchorManager == null) return;
             int ticket = ++_anchorTicket;
             if (_anchor != null) { _anchorManager.TryRemoveAnchor(_anchor); _anchor = null; }
+            if (plane != null)
+            {
+                // an anchor attached to the surface moves with it when ARCore refines the surface's position and height
+                try { _anchor = _anchorManager.AttachAnchor(plane, world); } catch (Exception e) { Debug.LogWarning("[ARMode] attach failed: " + e.Message); }
+                if (_anchor != null) { Debug.Log("[ARMode] lab anchored to the surface"); return; }
+            }
             try
             {
                 var result = await _anchorManager.TryAddAnchorAsync(world);
@@ -684,7 +694,7 @@ namespace ARVirtualLab.AR
             if (diagNative != null) diagNative.enabled = false;    // technical read-out: stays English, never sent for translation
 
             _placeBtn = UiKit.Button(safe, "PlaceHere", "Place lab here", EduTheme.Teal, Color.white, 38, 22);
-            _placeBtn.onClick.AddListener(() => { if (_reticleOnPlane) PlaceLab(_reticlePose); });
+            _placeBtn.onClick.AddListener(() => { if (_reticleOnPlane) PlaceLab(_reticlePose, _reticlePlane); });
             _placeBtn.gameObject.SetActive(false);
 
             _moveBtn = UiKit.Button(safe, "MoveLab", "Move lab", EduTheme.Neutral, EduTheme.Ink, 32, 18);
