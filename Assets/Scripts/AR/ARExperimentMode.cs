@@ -62,6 +62,9 @@ namespace ARVirtualLab.AR
         private ARCameraPoseDriver _poseDriver;
         private ARPlaneManager _planeManager;
         private ARRaycastManager _raycastManager;
+        private ARAnchorManager _anchorManager;
+        private ARAnchor _anchor;            // pins the lab to the real spot: ARCore keeps correcting it as its map of the room improves
+        private int _anchorTicket;
         private readonly List<ARRaycastHit> _hits = new List<ARRaycastHit>();
 
         // scene state
@@ -258,6 +261,7 @@ namespace ARVirtualLab.AR
 
             // plane detection + raycasts against the detected planes
             _raycastManager = _originGO.AddComponent<ARRaycastManager>();
+            _anchorManager = _originGO.AddComponent<ARAnchorManager>();
             _planeManager = _originGO.AddComponent<ARPlaneManager>();
             _planeManager.requestedDetectionMode = PlaneDetectionMode.Horizontal;
             _planeManager.planePrefab = BuildPlaneTemplate();
@@ -377,6 +381,8 @@ namespace ARVirtualLab.AR
                 Debug.Log("[ARMode] phase=" + _phase + " session=" + ARSession.state + " planes=" + _planeManager.trackables.count +
                           " camPos=" + _arCamera.transform.position.ToString("F2") + " pose=" + (_poseDriver != null ? _poseDriver.Source : "-"));
             }
+
+            if (_phase == Phase.Placed || _phase == Phase.Repositioning) FollowAnchor();
 
             bool placing = _phase == Phase.Scanning || _phase == Phase.Ready || _phase == Phase.Repositioning;
             if (placing)
@@ -513,6 +519,7 @@ namespace ARVirtualLab.AR
             Vector3 lookInTracking = Quaternion.Inverse(o.rotation) * look;
             _anchorYaw = Mathf.Atan2(lookInTracking.x, lookInTracking.z) * Mathf.Rad2Deg;
 
+            CreateAnchor(surface);       // before the origin moves: the anchor takes the surface point as it is in the world right now
             ApplyPlacement();
 
             _phase = Phase.Placed;
@@ -521,6 +528,37 @@ namespace ARVirtualLab.AR
             _blockPlacing = false;
             RefreshButtons();
             SetStatus("Lab placed. Pinch with two fingers to resize it. Follow the steps to do the experiment", false, 5f);
+        }
+
+        private async void CreateAnchor(Pose world)
+        {
+            if (_anchorManager == null) return;
+            int ticket = ++_anchorTicket;
+            if (_anchor != null) { _anchorManager.TryRemoveAnchor(_anchor); _anchor = null; }
+            try
+            {
+                var result = await _anchorManager.TryAddAnchorAsync(world);
+                if (this == null) return;
+                if (!result.status.IsSuccess() || result.value == null)
+                {
+                    Debug.LogWarning("[ARMode] could not anchor the lab (" + result.status + "), it will not follow ARCore's corrections");
+                    return;
+                }
+                if (ticket != _anchorTicket) { _anchorManager.TryRemoveAnchor(result.value); return; }     // placed again meanwhile
+                _anchor = result.value;
+                Debug.Log("[ARMode] lab anchored");
+            }
+            catch (Exception e) { Debug.LogWarning("[ARMode] anchor failed: " + e.Message); }
+        }
+
+        /// <summary>The anchor's position is corrected by ARCore as it learns the room; the lab follows it so it stays on the spot.</summary>
+        private void FollowAnchor()
+        {
+            if (_anchor == null || _origin == null || _anchor.trackingState != TrackingState.Tracking) return;
+            Vector3 p = _origin.TrackablesParent.InverseTransformPoint(_anchor.transform.position);
+            if ((p - _anchorTracking).sqrMagnitude < 1e-8f) return;
+            _anchorTracking = p;
+            ApplyPlacement();
         }
 
         /// <summary>Puts the tapped surface point exactly on the middle of the lab bench, at the current size.</summary>
