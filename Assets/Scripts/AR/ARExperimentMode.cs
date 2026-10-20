@@ -89,7 +89,7 @@ namespace ARVirtualLab.AR
         private float _scanStart, _nextTip;
         private Button _placeBtn, _moveBtn, _cancelBtn, _exitBtn;
         private float _statusHideAt = -1f;
-        private float _nextLog, _nextDiag, _nextReset;
+        private float _nextLog, _nextDiag, _nextReset, _nextReason;
         private static Texture2D _ringTex;
 
         // The lab is shown larger than life so it reads well on a phone: world = tracking x (1 / _arScale).
@@ -386,7 +386,7 @@ namespace ARVirtualLab.AR
                 _nextLog = Time.unscaledTime + 2.5f;
                 Debug.Log("[ARMode] phase=" + _phase + " session=" + ARSession.state + " planes=" + _planeManager.trackables.count +
                           " anchor=" + (_anchor != null ? _anchor.trackingState + " " + _origin.TrackablesParent.InverseTransformPoint(_anchor.transform.position).ToString("F2") : "none") +
-                          " scale=" + _arScale.ToString("F1") +
+                          " scale=" + _arScale.ToString("F1") + " why=" + ARSession.notTrackingReason + " fps=" + (1f / Mathf.Max(0.0001f, Time.smoothDeltaTime)).ToString("F0") +
                           " camPos=" + _arCamera.transform.position.ToString("F2") + " pose=" + (_poseDriver != null ? _poseDriver.Source : "-"));
             }
 
@@ -396,13 +396,27 @@ namespace ARVirtualLab.AR
             // A hand-held phone does not travel metres while we are still searching: the tracking has lost its scale (usually the
             // camera was too close to the surface or moved too fast). Start the AR session again so it re-learns the room.
             if ((_phase == Phase.Scanning || _phase == Phase.Ready) && Time.unscaledTime >= _nextReset &&
-                _arCamera.transform.localPosition.magnitude > 4f)
+                _arCamera.transform.localPosition.magnitude > 6f)
             {
                 _nextReset = Time.unscaledTime + 6f;
                 Debug.Log("[ARMode] tracking lost its scale (camera " + _arCamera.transform.localPosition.ToString("F1") + " from the start), restarting AR");
                 if (_sessionGO != null) _sessionGO.GetComponent<ARSession>().Reset();
                 _phase = Phase.Scanning; _scanStart = Time.unscaledTime;
                 SetStatus("AR lost track. Hold the phone at arm's length, about half a metre or more above the surface, and move it slowly", false, 6f);
+            }
+
+            if ((_phase == Phase.Scanning || _phase == Phase.Ready) && Time.unscaledTime >= _nextReason)
+            {
+                _nextReason = Time.unscaledTime + 4f;
+                string tip = null;
+                switch (ARSession.notTrackingReason)
+                {
+                    case NotTrackingReason.ExcessiveMotion: tip = "You are moving too fast. Move the phone slowly and smoothly"; break;
+                    case NotTrackingReason.InsufficientFeatures: tip = "Not enough detail to see here. Aim at a surface with some texture (a book, a printed cloth) about 1 metre away"; break;
+                    case NotTrackingReason.InsufficientLight: tip = "It is too dark. Turn on more light"; break;
+                    case NotTrackingReason.Relocalizing: tip = "AR is finding its place again. Hold the phone still for a moment"; break;
+                }
+                if (tip != null) SetStatus(tip, false, 3.5f);
             }
 
             bool placing = _phase == Phase.Scanning || _phase == Phase.Ready || _phase == Phase.Repositioning;
