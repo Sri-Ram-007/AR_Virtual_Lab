@@ -43,6 +43,7 @@ namespace ARVirtualLab.Editor
             ARPluginConfiguration.ConfigureXRAndARPlugins();
 
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
+            PlayerSettings.Android.forceInternetPermission = true;      // the AI mentor talks to the internet
             PlayerSettings.Android.targetSdkVersion = AndroidSdkVersions.AndroidApiLevelAuto;
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;

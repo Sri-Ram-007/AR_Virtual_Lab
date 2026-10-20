@@ -65,3 +65,7 @@ Assets/Resources/VuforiaConfiguration.asset.meta
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# ── AI mentor: your personal API key file (never commit it; see Assets/Resources/AIConfig.example.json) ──
+/Assets/Resources/AIConfig.json
+/Assets/Resources/AIConfig.json.meta

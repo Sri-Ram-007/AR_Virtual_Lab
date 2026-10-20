@@ -1242,6 +1242,8 @@ namespace ARVirtualLab.Electrolysis
             BuildEquipmentLabels(root);
             CircuitWire.UiRoot = root;                 // wire target rings are drawn on this UI layer, above the 3D scene
             CircuitWire.UiCamera = () => _cam;
+            ARVirtualLab.AI.AIMentorUI.Attach(this, ARVirtualLab.AI.MentorKnowledge.Electrolysis,
+                () => _step == ElectrolysisStep.Intro ? null : StepTitle(_step) + ". " + StepDesc(_step));
         }
 
         /// <summary>The small white name-tags floating over each piece of apparatus, matching the earlier experiments.</summary>

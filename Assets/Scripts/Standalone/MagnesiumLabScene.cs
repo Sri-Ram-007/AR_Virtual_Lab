@@ -2409,6 +2409,7 @@ namespace ARVirtualLab.Lab
         {
             BuildUIRaw();
             if (_canvas != null) ARVirtualLab.UI.EduTheme.Apply(_canvas.transform);   // light, textbook-style theme
+            ARVirtualLab.AI.AIMentorUI.Attach(this, ARVirtualLab.AI.MentorKnowledge.Magnesium, () => _state == LabState.Intro ? null : (_stepTitle != null ? _stepTitle.text : "") + ". " + (_stepDesc != null ? _stepDesc.text : ""));
         }
 
         private void BuildUIRaw()

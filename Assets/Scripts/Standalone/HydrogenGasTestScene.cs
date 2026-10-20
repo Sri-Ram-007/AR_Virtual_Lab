@@ -2638,6 +2638,7 @@ namespace ARVirtualLab.HydrogenGasTest
         {
             BuildUIRaw();
             if (_canvas != null) ARVirtualLab.UI.EduTheme.Apply(_canvas.transform);   // light, textbook-style theme
+            ARVirtualLab.AI.AIMentorUI.Attach(this, ARVirtualLab.AI.MentorKnowledge.HydrogenGas, () => _step == HydrogenGasTestStep.Intro ? null : StepTitle(_step) + ". " + StepDesc(_step));
         }
 
         private void BuildUIRaw()
