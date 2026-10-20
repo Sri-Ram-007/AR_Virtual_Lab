@@ -89,7 +89,8 @@ namespace ARVirtualLab.AR
 
         // The lab is shown larger than life so it reads well on a phone: world = tracking x (1 / _arScale).
         private float _arScale = 1.6f;
-        private const float MinScale = 0.25f, MaxScale = 3.5f;
+        private const float MinScale = 0.25f, MaxScale = 40f;
+        private float _baseScale = 1.6f;      // the size that looks right about a metre away; placing further off enlarges it to match
         private const float TargetFootprint = 0.40f;   // m of real table the apparatus first covers; pinch to change
         private Vector3 _anchorTracking;       // the tapped surface point, in tracking space
         private float _anchorYaw;
@@ -97,8 +98,9 @@ namespace ARVirtualLab.AR
         private float _lastPinchDistance;
 
         private const float MinPlaneArea = 0.12f;      // m² — big enough for the lab
-        private const float MaxPlaceDistance = 2.2f, MinPlaceDistance = 0.3f;   // metres from the phone to the spot the lab may be put on
+        private const float MaxPlaceDistance = 40f, MinPlaceDistance = 0.25f;   // metres from the phone to the spot the lab may be put on
         private float _reticleDistance;
+        private const float FeaturePointAfter = 5f;      // seconds of searching before loose feature points are accepted too
 
         // ═════════════════════════════════════════════════════
         //  PUBLIC API
@@ -109,7 +111,7 @@ namespace ARVirtualLab.AR
             var go = new GameObject("ARExperimentMode");
             _instance = go.AddComponent<ARExperimentMode>();
             _instance._setup = setup;
-            _instance._arScale = setup.DefaultScale > 0f ? setup.DefaultScale : FitScale(setup);
+            _instance._arScale = _instance._baseScale = setup.DefaultScale > 0f ? setup.DefaultScale : FitScale(setup);
             _instance.StartCoroutine(_instance.Run());
         }
 
@@ -123,7 +125,7 @@ namespace ARVirtualLab.AR
             float footprint = ApparatusBounds.TryGet(setup.SceneRoot, setup.Bench, out b) ? Mathf.Max(b.size.x, b.size.z) : 0f;
             float scale = footprint > 0.01f ? TargetFootprint / footprint : 1f;
             Debug.Log("[ARMode] apparatus footprint " + footprint.ToString("F2") + " m -> starting size x" + scale.ToString("F2"));
-            return Mathf.Clamp(scale, MinScale, MaxScale);
+            return Mathf.Clamp(scale, MinScale, 3.5f);
         }
 
         public static void End()
@@ -382,6 +384,15 @@ namespace ARVirtualLab.AR
                 // reticle follows the middle of the screen
                 Vector2 center = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
                 _reticleOnPlane = _raycastManager.Raycast(center, _hits, TrackableType.PlaneWithinPolygon | TrackableType.PlaneWithinBounds);
+                // Soft or busy surfaces (a bedsheet, a rug) can take ARCore a long time to turn into a plane. After a few
+                // seconds also accept the loose points it has found there, as long as they face up like a table or floor.
+                if (!_reticleOnPlane && Time.unscaledTime - _scanStart > FeaturePointAfter &&
+                    _raycastManager.Raycast(center, _hits, TrackableType.FeaturePoint))
+                {
+                    foreach (var h in _hits)
+                        if ((h.pose.rotation * Vector3.up).y > 0.6f && h.pose.position.y < _arCamera.transform.position.y - 0.15f * _origin.transform.localScale.x) { _hits.Clear(); _hits.Add(h); _reticleOnPlane = true; break; }
+                    if (!_reticleOnPlane) _hits.Clear();
+                }
                 _reticleDistance = 0f;
                 if (_reticleOnPlane)
                 {
@@ -395,7 +406,7 @@ namespace ARVirtualLab.AR
                         {
                             _nextTip = Time.unscaledTime + 3f;
                             SetStatus(_reticleDistance > MaxPlaceDistance
-                                ? "That surface is " + _reticleDistance.ToString("F1") + " m away. Move closer, about 1 metre, and aim the circle at the table"
+                                ? "That surface is " + _reticleDistance.ToString("F1") + " m away. Aim the circle at a nearer spot"
                                 : "Too close. Move the phone back a little", false, 3f);
                         }
                     }
@@ -419,7 +430,7 @@ namespace ARVirtualLab.AR
                 else if (_phase == Phase.Scanning && Time.unscaledTime - _scanStart > 8f && Time.unscaledTime >= _nextTip)
                 {
                     _nextTip = Time.unscaledTime + 8f;
-                    SetStatus("Still searching. Sweep the phone slowly side to side over a plain, well-lit table or floor, about 1 metre away", false);
+                    SetStatus("Still searching. Stand about 1 metre from a table or floor, tilt the phone down a little and sweep it slowly side to side", false);
                 }
                 if (_placeBtn != null) _placeBtn.gameObject.SetActive(_reticleOnPlane);
 
@@ -487,7 +498,10 @@ namespace ARVirtualLab.AR
         {
             var o = _origin.transform;
             float k = o.localScale.x;
-            Debug.Log("[ARMode] placing the lab at " + surface.position.ToString("F2") + " (size x" + _arScale.ToString("F1") + ")");
+            // ARCore's distances are unreliable on soft or patterned cloth (it can read 3 m for a bed half a metre away), so a far
+            // spot is not refused: the lab is simply made bigger by the same factor, so it looks the same size as at a metre
+            _arScale = Mathf.Clamp(_baseScale * Mathf.Max(1f, _reticleDistance), MinScale, MaxScale);
+            Debug.Log("[ARMode] placing the lab at " + surface.position.ToString("F2") + " spot " + _reticleDistance.ToString("F1") + " m away (size x" + _arScale.ToString("F1") + ")");
 
             // where the tapped point sits in tracking space (before we move anything)
             _anchorTracking = Quaternion.Inverse(o.rotation) * (surface.position - o.position) / Mathf.Max(0.0001f, k);
