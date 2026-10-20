@@ -252,7 +252,7 @@ namespace ARVirtualLab.AR
             _arCamera.farClipPlane = 30f;
             camGO.AddComponent<AudioListener>();
             var camMgr = camGO.AddComponent<ARCameraManager>();
-            camMgr.autoFocusRequested = true;
+            camMgr.autoFocusRequested = false;      // ARCore tracks best with fixed focus: refocusing changes the image scale and can make the tracked position wander
             camGO.AddComponent<ARCameraBackground>();
 
             _poseDriver = camGO.AddComponent<ARCameraPoseDriver>();     // the camera must actually follow the phone
