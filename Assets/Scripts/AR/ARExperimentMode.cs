@@ -87,7 +87,7 @@ namespace ARVirtualLab.AR
         private TextMeshProUGUI _statusText, _diagText;
         private Image _diagBg;
         private float _scanStart, _nextTip;
-        private Button _placeBtn, _frontBtn, _moveBtn, _cancelBtn, _exitBtn;
+        private Button _placeBtn, _frontBtn, _moveBtn, _cancelBtn, _exitBtn, _steadyBtn;
         private float _statusHideAt = -1f;
         private float _nextLog, _nextDiag, _nextReset, _nextReason;
         private static Texture2D _ringTex;
@@ -589,6 +589,17 @@ namespace ARVirtualLab.AR
             PlaceLab(new Pose(p, Quaternion.identity), null);
         }
 
+        private void ToggleSteady()
+        {
+            if (_poseDriver == null) return;
+            _poseDriver.SetHold(!_poseDriver.Holding);
+            var label = _steadyBtn.GetComponentInChildren<TMP_Text>();
+            if (label != null) label.text = _poseDriver.Holding ? "Steady view: on" : "Steady view: off";
+            SetStatus(_poseDriver.Holding
+                ? "Steady view on. The lab stays still; turn the phone to look around it"
+                : "Steady view off. The lab follows the phone's movement again", false, 4f);
+        }
+
         private async void CreateAnchor(Pose world, ARPlane plane)
         {
             if (_anchorManager == null) return;
@@ -620,6 +631,7 @@ namespace ARVirtualLab.AR
         private void FollowAnchor()
         {
             if (_anchor == null || _origin == null || _anchor.trackingState != TrackingState.Tracking) return;
+            if (_poseDriver != null && _poseDriver.Holding) return;
             Vector3 p = _origin.TrackablesParent.InverseTransformPoint(_anchor.transform.position);
             if ((p - _anchorTracking).sqrMagnitude < 1e-8f) return;
             _anchorTracking = p;
@@ -760,8 +772,12 @@ namespace ARVirtualLab.AR
             _frontBtn.onClick.AddListener(PlaceInFront);
             _frontBtn.gameObject.SetActive(false);
 
+            _steadyBtn = UiKit.Button(safe, "SteadyView", "Steady view: off", EduTheme.Neutral, EduTheme.Ink, 28, 18);
+            _steadyBtn.onClick.AddListener(ToggleSteady);
+            _steadyBtn.gameObject.SetActive(false);
+
             _moveBtn = UiKit.Button(safe, "MoveLab", "Move lab", EduTheme.Neutral, EduTheme.Ink, 32, 18);
-            _moveBtn.onClick.AddListener(() => { _phase = Phase.Repositioning; _blockPlacing = true; RefreshButtons(); SetStatus("Aim at a new spot and tap to move the lab", false); });
+            _moveBtn.onClick.AddListener(() => { if (_poseDriver != null && _poseDriver.Holding) ToggleSteady(); _phase = Phase.Repositioning; _blockPlacing = true; RefreshButtons(); SetStatus("Aim at a new spot and tap to move the lab", false); });
 
             _cancelBtn = UiKit.Button(safe, "CancelMove", "Keep here", EduTheme.Neutral, EduTheme.Ink, 32, 18);
             _cancelBtn.onClick.AddListener(() => { _phase = Phase.Placed; _blockPlacing = false; _blockPinch = false; _reticle.SetActive(false); RefreshButtons(); _statusBg.gameObject.SetActive(false); });
@@ -785,6 +801,7 @@ namespace ARVirtualLab.AR
             _scaler.referenceResolution = landscape ? new Vector2(1920f, 1080f) : new Vector2(1080f, 1920f);
             var place = _placeBtn.GetComponent<RectTransform>();
             var front = _frontBtn.GetComponent<RectTransform>();
+            var steady = _steadyBtn.GetComponent<RectTransform>();
             var move = _moveBtn.GetComponent<RectTransform>();
             var cancel = _cancelBtn.GetComponent<RectTransform>();
             var exit = _exitBtn.GetComponent<RectTransform>();
@@ -793,6 +810,7 @@ namespace ARVirtualLab.AR
                 UiKit.Pin(_statusBg.rectTransform, 0.5f, 1f, 0f, -40f, 600f, 110f);
                 UiKit.Pin(place, 0.5f, 0f, 0f, 40f, 440f, 96f);
                 UiKit.Pin(front, 0.5f, 0f, 0f, 40f, 520f, 96f);
+                UiKit.Pin(steady, 1f, 0f, -256f, 124f, 300f, 80f);
                 UiKit.Pin(move, 1f, 0f, -256f, 32f, 200f, 80f);
                 UiKit.Pin(cancel, 1f, 0f, -256f, 32f, 200f, 80f);
                 UiKit.Pin(exit, 1f, 0f, -40f, 32f, 200f, 80f);
@@ -801,8 +819,9 @@ namespace ARVirtualLab.AR
             else
             {
                 UiKit.Anchor(_statusBg.rectTransform, 0.06f, 0.715f, 0.94f, 0.795f);
-                UiKit.Anchor(place, 0.20f, 0.20f, 0.80f, 0.265f);
-                UiKit.Anchor(front, 0.15f, 0.20f, 0.85f, 0.265f);
+                UiKit.Anchor(place, 0.20f, 0.265f, 0.80f, 0.33f);
+                UiKit.Anchor(front, 0.15f, 0.265f, 0.85f, 0.33f);
+                UiKit.Anchor(steady, 0.05f, 0.175f, 0.55f, 0.235f);
                 UiKit.Anchor(move, 0.05f, 0.105f, 0.47f, 0.165f);
                 UiKit.Anchor(cancel, 0.05f, 0.105f, 0.47f, 0.165f);
                 UiKit.Anchor(exit, 0.53f, 0.105f, 0.95f, 0.165f);
@@ -816,6 +835,7 @@ namespace ARVirtualLab.AR
             if (_cancelBtn != null) _cancelBtn.gameObject.SetActive(_phase == Phase.Repositioning);
             if (_placeBtn != null && _phase == Phase.Placed) _placeBtn.gameObject.SetActive(false);
             if (_frontBtn != null && _phase == Phase.Placed) _frontBtn.gameObject.SetActive(false);
+            if (_steadyBtn != null) _steadyBtn.gameObject.SetActive(_phase == Phase.Placed);
         }
 
         private void SetStatus(string text, bool problem, float autoHideSeconds = -1f)
@@ -836,6 +856,12 @@ namespace ARVirtualLab.AR
     public class ARCameraPoseDriver : MonoBehaviour
     {
         public string Source { get; private set; } = "none";
+        private bool _hold;
+        private Vector3 _heldPos;
+        /// <summary>Freeze the camera where it is: the phone can still turn, but ARCore's (sometimes wandering) movement is ignored.</summary>
+        public void SetHold(bool on) { _hold = on; _heldPos = transform.localPosition; }
+        public bool Holding { get { return _hold; } }
+        private void SetPose(Vector3 pos, Quaternion rot) { transform.SetLocalPositionAndRotation(_hold ? _heldPos : pos, rot); }
         private static readonly List<UnityEngine.XR.InputDevice> _xrDevices = new List<UnityEngine.XR.InputDevice>();
         private float _enabledAt;
         private bool _loggedDevices;
@@ -859,7 +885,7 @@ namespace ARVirtualLab.AR
                 if (pc == null || rc == null) continue;
                 Quaternion r = rc.ReadValue();
                 if (r.x == 0f && r.y == 0f && r.z == 0f && r.w == 0f) continue;      // no data yet
-                transform.SetLocalPositionAndRotation(pc.ReadValue(), r);
+                SetPose(pc.ReadValue(), r);
                 Source = d.layout;
                 return;
             }
@@ -873,7 +899,7 @@ namespace ARVirtualLab.AR
                     dev.TryGetFeatureValue(UnityEngine.XR.CommonUsages.deviceRotation, out rot) &&
                     !(rot.x == 0f && rot.y == 0f && rot.z == 0f && rot.w == 0f))
                 {
-                    transform.SetLocalPositionAndRotation(pos, rot);
+                    SetPose(pos, rot);
                     Source = "XR:" + dev.name;
                     return;
                 }
