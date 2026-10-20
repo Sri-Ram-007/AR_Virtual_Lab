@@ -1395,6 +1395,23 @@ namespace ARVirtualLab.Lab
                     _tongs.transform.rotation = Quaternion.RotateTowards(_tongs.transform.rotation, want, 120f * Time.deltaTime);
                 }
 
+                // Near the flame the tongs are gently drawn so the ribbon tip lands in the middle of it: a fingertip cannot
+                // aim to a couple of centimetres, least of all on a phone held in the air in AR.
+                if (!toDish && _burnerOn && _state == LabState.Step5_MoveIntoFlame && _ribbon != null && _ribbon.activeSelf)
+                {
+                    Vector3 tipNow = GetRibbonTipPosition();
+                    Vector2 tipOffset = new Vector2(tipNow.x - _tongs.transform.position.x, tipNow.z - _tongs.transform.position.z);
+                    Vector3 want = transform.TransformPoint(local);
+                    Vector2 tipIfFollowed = new Vector2(want.x + tipOffset.x, want.z + tipOffset.y);
+                    float dFlame = Vector2.Distance(tipIfFollowed, new Vector2(aim.x, aim.z));
+                    float pull = 0.9f * (1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((dFlame - 0.012f) / 0.07f)));
+                    want.x = Mathf.Lerp(want.x, aim.x - tipOffset.x, pull);
+                    want.z = Mathf.Lerp(want.z, aim.z - tipOffset.y, pull);
+                    float keepY = local.y;
+                    local = transform.InverseTransformPoint(want);
+                    local.y = keepY;
+                }
+
                 float carryY = transform.TransformPoint(new Vector3(0f, 0.045f, 0f)).y;     // held a little above the bench
                 float worldTarget = carryY;
                 if (!toDish && _ribbon != null && _ribbon.activeSelf && _flameHeatZone != null)
@@ -1605,7 +1622,7 @@ namespace ARVirtualLab.Lab
                 float distY = Mathf.Abs(ribbonTip.y - triggerCenter.y);
 
                 // Detected when the ribbon TIP enters FlameTrigger volume
-                if (distToTrigger <= 0.026f)   // the ribbon tip must be well INSIDE the flame, not touching its top edge
+                if (distToTrigger <= 0.032f)   // the ribbon tip must be INSIDE the flame (the tongs are drawn to its middle), not touching its top edge
                 {
                     _dragging = null;
                     SetHighlight(_tongs, false);
