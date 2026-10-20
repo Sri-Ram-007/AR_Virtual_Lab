@@ -20,8 +20,8 @@ namespace ARVirtualLab.Editor
         public const string AppName     = "EduAR";
         public const string CompanyName = "EduAR";
         public const string PackageName = "com.eduar.virtuallab";
-        public const string Version     = "0.2.0";
-        public const int    VersionCode = 2;
+        public const string Version     = "0.3.0";
+        public const int    VersionCode = 3;
 
         // adb from the Android SDK Unity is configured with, so Build And Run works on Windows and macOS alike
         private static string ADB_PATH
@@ -46,7 +46,39 @@ namespace ARVirtualLab.Editor
             BuildAndRunInternal(true);
         }
 
-        private static void BuildAndRunInternal(bool autoRun)
+        // The APK handed to other people must not carry the developer's Gemini key (Assets/Resources/AIConfig.json): anyone
+        // can unpack an APK. This build sets the file aside, builds, and puts it back, so the AI Mentor in the shared app
+        // answers from its built-in English and Telugu answers. The file is kept in Library/ meanwhile, never deleted.
+        [MenuItem("AR Lab/Build Android APK for sharing (no AI key)", priority = 102)]
+        public static void BuildForSharing()
+        {
+            const string cfg = "Assets/Resources/AIConfig.json";
+            const string held = "Library/AIConfig.json.held";
+            bool moved = false;
+            try
+            {
+                if (File.Exists(cfg))
+                {
+                    File.Copy(cfg, held, true);
+                    if (File.Exists(cfg + ".meta")) File.Copy(cfg + ".meta", held + ".meta", true);
+                    AssetDatabase.DeleteAsset(cfg);
+                    moved = true;
+                }
+                BuildAndRunInternal(false, "-share");
+            }
+            finally
+            {
+                if (moved)
+                {
+                    File.Copy(held, cfg, true);
+                    if (File.Exists(held + ".meta")) File.Copy(held + ".meta", cfg + ".meta", true);
+                    AssetDatabase.Refresh();
+                    UnityEngine.Debug.Log("[Build] AIConfig.json restored after the sharing build");
+                }
+            }
+        }
+
+        private static void BuildAndRunInternal(bool autoRun, string nameSuffix = "")
         {
             var sb = new StringBuilder();
             sb.AppendLine("=== STARTING ANDROID BUILD & RUN DIAGNOSTICS ===");
@@ -54,7 +86,7 @@ namespace ARVirtualLab.Editor
             // 1. Ensure build output directory
             string buildDir = "Builds/Android";
             if (!Directory.Exists(buildDir)) Directory.CreateDirectory(buildDir);
-            string apkPath = Path.GetFullPath(Path.Combine(buildDir, AppName + "-" + Version + ".apk"));
+            string apkPath = Path.GetFullPath(Path.Combine(buildDir, AppName + "-" + Version + nameSuffix + ".apk"));
 
             // 2. Configure Build Target & Settings
             EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
