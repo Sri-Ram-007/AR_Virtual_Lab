@@ -57,7 +57,7 @@ namespace ARVirtualLab.Lab
         private Transform  _gripPoint, _flamePoint, _collectionPoint;
         private ParticleSystem _sparkPS, _baseFlamePS, _mainFlamePS, _smokePS;
         private Light _burnLight, _flameLight;
-        private Material _ribbonMat, _burnerMat, _tongsMat, _glassMat, _tableMat, _sandpaperMat, _mgoMat;
+        private Material _ribbonMat, _burnerMat, _tongsMat, _glassMat, _sandpaperMat, _mgoMat;
         private Material _outerFlameMat, _innerFlameMat;
         private Renderer _ribbonRenderer;
         private Camera _cam;
@@ -198,12 +198,11 @@ namespace ARVirtualLab.Lab
         private GameObject      _obsPanel, _eqPanel, _resultPanel, _safetyPanel, _aboutPanel, _resetConfirmDialog;
         private TMP_Text        _stepTitle, _stepDesc, _progressLabel;
         private TMP_Text        _stepNumberBadge;
-        private readonly List<Image> _stepPillIndicators = new List<Image>();
-        private TMP_Text        _feedbackText;
-        private Button          _startBtn, _resetBtn, _safetyBtn;
+        private Button          _resetBtn, _safetyBtn;
         private Button          _obsBtn, _eqBtn, _resultBtn;
         private Button          _prevBtn, _nextBtn;
-        private Coroutine       _feedbackCoroutine;
+        private Bounds          _apparatus;              // measured once, for the camera framing
+        private bool            _haveApparatus;
 
         // Cleaning progress bar
         private Image           _cleaningBarFill;
@@ -215,21 +214,6 @@ namespace ARVirtualLab.Lab
         private TMP_Text        _burnerStatusText, _ribbonStatusText, _observationText;
         private Image           _heatingBarFill;
         private TMP_Text        _heatingTimerText;
-
-        // Equation panel (persistent bottom)
-        private GameObject      _equationPanel;
-
-        // Landscape HUD (floating cards at the edges; the middle of the screen stays clear for the lab)
-        private const float     HudMargin = 40f;                 // canvas units on the 1920 x 1080 reference
-        private RectTransform   _stepCardRT, _rightColumnRT;
-        private GameObject      _stepPillRow;
-        private TMP_Text        _stepToggleLabel;
-        private bool            _stepCardCollapsed;
-        private bool            _hudInAR;
-        private readonly List<Image> _arTranslucent = new List<Image>();
-
-        // Equipment label GameObjects
-        private readonly List<GameObject> _equipLabels = new List<GameObject>();
 
         // ── Experiment State ──────────────────────────────────
         private LabState _state = LabState.Intro;
@@ -279,6 +263,7 @@ namespace ARVirtualLab.Lab
             BuildBurnVFX();
             BuildSmokeVFX();
             BuildUI();
+            _haveApparatus = ARVirtualLab.UI.ApparatusBounds.TryGet(transform, _table, out _apparatus);
         }
 
         private void Start()
@@ -316,7 +301,6 @@ namespace ARVirtualLab.Lab
                 Bench = _table,
                 BenchSurfaceY = 0f,
                 BenchCenterZ = 0f,
-                DefaultScale = 2.6f,        // its apparatus is much smaller than the other experiments
                 OnStarted = c => { _cam = c; },
                 OnStopped = c => { _cam = c; }
             });
@@ -350,24 +334,9 @@ namespace ARVirtualLab.Lab
         private void Update()
         {
             UpdateHint();
-            ARVirtualLab.UI.CameraFit.Apply(_cam, 48f);   // keep the same width of view on tall phones
-            UpdateHudForAR();
+            if (_haveApparatus) ARVirtualLab.UI.CameraFit.Frame(_cam, _apparatus);   // the whole bench in the clear middle
             HandleInput();
             AnimateFlame();
-        }
-
-        /// <summary>In AR the cards become see-through and Reset/Safety step up to make room for the AR buttons.</summary>
-        private void UpdateHudForAR()
-        {
-            bool inAR = ARVirtualLab.AR.ARExperimentMode.Active;
-            if (inAR == _hudInAR) return;
-            _hudInAR = inAR;
-            foreach (var img in _arTranslucent)
-            {
-                if (img == null) continue;
-                var c = img.color; c.a = inAR ? 0.86f : 1f; img.color = c;
-            }
-            if (_rightColumnRT != null) _rightColumnRT.anchoredPosition = new Vector2(-HudMargin, inAR ? 32f + 96f : 32f);
         }
 
         private void AnimateFlame()
@@ -468,9 +437,6 @@ namespace ARVirtualLab.Lab
         private void CreateMaterials()
         {
             Shader lit = GetValidUrpShader(false);
-
-            // Table: grey laminate
-            _tableMat     = CreatePbrMaterial(lit, new Color(0.68f, 0.72f, 0.76f, 1f), 0.05f, 0.30f);
 
             // Burner: classic laboratory warm brass
             _burnerMat    = CreatePbrMaterial(lit, new Color(0.82f, 0.70f, 0.38f, 1f), 0.65f, 0.55f);
@@ -658,8 +624,7 @@ namespace ARVirtualLab.Lab
         private void BuildSceneEquipment()
         {
             // 1. Table
-            _table = CreateObjectWithMesh("LaboratoryTable", transform, POS_TABLE,
-                LoadObjMesh("LaboratoryTable"), _tableMat);
+            _table = ARVirtualLab.UI.LabBench.Create(transform, POS_TABLE, new Vector2(0.52f, 0.36f));   // the shared grey lab table
 
             // 2. Sandpaper Pad (Far Left)
             _sandpaper = CreateObjectWithMesh("Sandpaper", transform, POS_SANDPAPER,
@@ -975,6 +940,7 @@ namespace ARVirtualLab.Lab
             psGO.transform.SetParent(parentTarget, false);
             psGO.transform.localPosition = new Vector3(0f, 0f, 0.0275f);
             _sparkPS = psGO.AddComponent<ParticleSystem>();
+            _sparkPS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);   // a new system plays at once; it must be stopped before its duration can be set
 
             var psr  = psGO.GetComponent<ParticleSystemRenderer>();
             var pMat = CreateParticleMaterial(new Color(1f, 0.98f, 0.90f, 1f), true);
@@ -1038,6 +1004,7 @@ namespace ARVirtualLab.Lab
             smokeGO.transform.localPosition = new Vector3(0f, 0.015f, 0.0275f);
 
             _smokePS = smokeGO.AddComponent<ParticleSystem>();
+            _smokePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
             var smokePsr  = smokeGO.GetComponent<ParticleSystemRenderer>();
             var smokeMat  = CreateParticleMaterial(new Color(0.90f, 0.90f, 0.92f, 0.55f), false);
@@ -1125,6 +1092,7 @@ namespace ARVirtualLab.Lab
             baseGO.transform.SetParent(parent.transform, false);
             baseGO.transform.localPosition = Vector3.zero;
             _baseFlamePS = baseGO.AddComponent<ParticleSystem>();
+            _baseFlamePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var bpsr  = baseGO.GetComponent<ParticleSystemRenderer>();
             var bpMat = CreateParticleMaterial(new Color(1.00f, 0.18f, 0.01f, 0.9f), true);
             bpsr.material = bpsr.sharedMaterial = bpMat;
@@ -1144,6 +1112,7 @@ namespace ARVirtualLab.Lab
 
             // 4. Orange / warm-yellow main plume (scaled another +18%)
             _mainFlamePS = parent.AddComponent<ParticleSystem>();
+            _mainFlamePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var mpsr  = parent.GetComponent<ParticleSystemRenderer>();
             var mpMat = CreateParticleMaterial(new Color(1.00f, 0.55f, 0.03f, 0.85f), true);
             mpsr.material = mpsr.sharedMaterial = mpMat;
@@ -2032,14 +2001,6 @@ namespace ARVirtualLab.Lab
             if (_watchGlass != null) _watchGlass.SetActive(false);
             Debug.Log("[ARLab] OnEnterARMode: all equipment hidden — awaiting user placement.");
 
-            foreach (var l in _equipLabels)
-            {
-                if (l != null)
-                {
-                    var pos = l.GetComponent<EquipmentLabelPositioner>();
-                    if (pos != null) pos.SetCamera(_cam);
-                }
-            }
         }
 
         public void OnExitARMode()
@@ -2068,14 +2029,6 @@ namespace ARVirtualLab.Lab
             if (_tongs != null) { _tongs.transform.SetParent(transform, false); _tongs.transform.localPosition = POS_TONGS; _tongs.transform.localRotation = Quaternion.identity; }
             if (_watchGlass != null) { _watchGlass.transform.SetParent(transform, false); _watchGlass.transform.localPosition = POS_WATCHGLASS; _watchGlass.transform.localRotation = Quaternion.identity; }
 
-            foreach (var l in _equipLabels)
-            {
-                if (l != null)
-                {
-                    var pos = l.GetComponent<EquipmentLabelPositioner>();
-                    if (pos != null) pos.SetCamera(_cam);
-                }
-            }
         }
 
         public void ResetExperiment()
@@ -2172,8 +2125,8 @@ namespace ARVirtualLab.Lab
                 _cleaningBarRoot.SetActive(newState == LabState.Step2_CleanRibbon);
 
             // Show/hide equation panel
-            if (_equationPanel != null)
-                _equationPanel.SetActive(
+            if (_hud != null)
+                _hud.ShowEquation(
                     newState == LabState.Step7_Burning ||
                     newState == LabState.Step8_Cooling ||
                     newState == LabState.Step9_Collect  ||
@@ -2405,435 +2358,142 @@ namespace ARVirtualLab.Lab
         //  UI — Matches Reference Image Style
         //  1080 × 1920 portrait canvas, dark navy theme
         // ═════════════════════════════════════════════════════
+        // ═════════════════════════════════════════════════════
+        //  UI — the shared landscape screen (ExperimentHud), plus Magnesium's own cleaning bar and burning status
+        // ═════════════════════════════════════════════════════
+        private ExperimentHud _hud;
+
         private void BuildUI()
         {
-            BuildUIRaw();
-            if (_canvas != null) ARVirtualLab.UI.EduTheme.Apply(_canvas.transform);   // light, textbook-style theme
-            ARVirtualLab.AI.AIMentorUI.Attach(this, ARVirtualLab.AI.MentorKnowledge.Magnesium, () => _state == LabState.Intro ? null : (_stepTitle != null ? _stepTitle.text : "") + ". " + (_stepDesc != null ? _stepDesc.text : ""));
-        }
-
-        private void BuildUIRaw()
-        {
-            var canvasGO = new GameObject("ExperimentCanvas");
-            canvasGO.transform.SetParent(transform, false);
-            _canvas = canvasGO.AddComponent<Canvas>();
-            _canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
-            _canvas.sortingOrder = 10;
-
-            var scaler = canvasGO.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920f, 1080f);   // the experiment runs in landscape
-            scaler.matchWidthOrHeight  = 0.5f;
-
-            canvasGO.AddComponent<GraphicRaycaster>();
-
-            if (UnityEngine.Object.FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
+            var root = ExperimentHud.CreateCanvas(transform, "ExperimentCanvas");
+            _canvas = root.GetComponent<Canvas>();
+            _hud = ExperimentHud.Build(this, root, new HudConfig
             {
-                var esGO = new GameObject("EventSystem");
-                esGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
-                esGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
-            }
-
-            var root = canvasGO.GetComponent<RectTransform>();
-
-            // ── 1. Intro Panel ────────────────────────────────
-            BuildIntroPanel(root);
-
-            // ── 2. HUD Panel ──────────────────────────────────
-            BuildHUDPanel(root);
-
-            // ── 3. Burning Status Info Panel (hidden by default)
-            BuildBurningInfoPanel(root);
-
-            // ── 4. Reaction Equation Panel (hidden by default)
-            BuildEquationPanel(root);
-
-            // ── 5. Equipment Labels ───────────────────────────
-            BuildEquipmentLabels(root);
-
-            // ── 6. Modal Info Panels ──────────────────────────
-            BuildModalPanels(root);
-        }
-
-        private void BuildIntroPanel(RectTransform root)
-        {
-            _introPanel = MakePanel(root, "IntroPanel", new Color(0.02f, 0.04f, 0.09f, 0.95f));
-            var rootRT = _introPanel.GetComponent<RectTransform>();
-
-            // Center card
-            var card = MakePanel(rootRT, "Card", new Color(0.06f, 0.10f, 0.20f, 0.98f));
-            var cardRT = card.GetComponent<RectTransform>();
-            cardRT.anchorMin = new Vector2(0.22f, 0.04f);
-            cardRT.anchorMax = new Vector2(0.78f, 0.96f);
-            var cardImg = card.GetComponent<Image>();
-            if (cardImg != null) cardImg.raycastTarget = true;
-
-            var cardOutline = card.AddComponent<Outline>();
-            cardOutline.effectColor = new Color(0.18f, 0.55f, 0.95f, 0.70f);
-            cardOutline.effectDistance = new Vector2(2f, -2f);
-
-            // Badge Pill at top
-            var badge = MakePanel(cardRT, "Badge", new Color(0.12f, 0.25f, 0.48f, 0.90f));
-            var bRT = badge.GetComponent<RectTransform>();
-            bRT.anchorMin = new Vector2(0.15f, 0.90f);
-            bRT.anchorMax = new Vector2(0.85f, 0.96f);
-            MakeText(bRT, "BadgeText", "VIRTUAL CHEMISTRY LABORATORY",
-                new Vector2(0f, 0f), new Vector2(1f, 1f),
-                18, new Color(0.45f, 0.85f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
-
-            // Title
-            MakeText(cardRT, "Title", "MAGNESIUM RIBBON",
-                new Vector2(0.05f, 0.79f), new Vector2(0.95f, 0.89f),
-                38, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
-
-            // Subtitle
-            MakeText(cardRT, "Subtitle", "Interactive Chemistry Experiment",
-                new Vector2(0.05f, 0.73f), new Vector2(0.95f, 0.79f),
-                20, new Color(0.70f, 0.82f, 0.98f), FontStyles.Normal, TextAlignmentOptions.Center);
-
-            // Reaction Equation Pill
-            var eqPill = MakePanel(cardRT, "EqPill", new Color(0.08f, 0.15f, 0.30f, 0.95f));
-            var eqRT = eqPill.GetComponent<RectTransform>();
-            eqRT.anchorMin = new Vector2(0.12f, 0.63f);
-            eqRT.anchorMax = new Vector2(0.88f, 0.71f);
-            var eqOut = eqPill.AddComponent<Outline>();
-            eqOut.effectColor = new Color(0.15f, 0.60f, 1.0f, 0.50f);
-            eqOut.effectDistance = new Vector2(1.5f, -1.5f);
-            MakeText(eqRT, "EqText", "2Mg(s) + O\u2082(g) \u2192 2MgO(s)",
-                new Vector2(0f, 0f), new Vector2(1f, 1f),
-                22, new Color(0.35f, 0.90f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
-
-            // Experiment Overview Summary Box
-            var infoBox = MakePanel(cardRT, "InfoBox", new Color(0.04f, 0.07f, 0.15f, 0.90f));
-            var ibRT = infoBox.GetComponent<RectTransform>();
-            ibRT.anchorMin = new Vector2(0.06f, 0.28f);
-            ibRT.anchorMax = new Vector2(0.94f, 0.61f);
-
-            MakeText(ibRT, "InfoTitle", "EXPERIMENT OVERVIEW",
-                new Vector2(0.06f, 0.85f), new Vector2(0.94f, 0.98f),
-                16, new Color(0.40f, 0.75f, 1f), FontStyles.Bold, TextAlignmentOptions.Left);
-
-            MakeText(ibRT, "InfoBody",
-                "1. Clean ribbon with sandpaper to expose reactive metal\n" +
-                "2. Hold securely using laboratory crucible tongs\n" +
-                "3. Ignite Bunsen burner and place ribbon into flame\n" +
-                "4. Observe dazzling combustion & energy release\n" +
-                "5. Collect white Magnesium Oxide (MgO) powder",
-                new Vector2(0.06f, 0.05f), new Vector2(0.94f, 0.84f),
-                17, new Color(0.82f, 0.88f, 0.96f), FontStyles.Normal, TextAlignmentOptions.Left);
-
-            // Primary Button: START EXPERIMENT
-            _startBtn = MakeButton(cardRT, "StartBtn", "Start Experiment",
-                new Vector2(0.10f, 0.16f), new Vector2(0.90f, 0.25f),
-                new Color(0.02f, 0.50f, 0.88f));
-            var sbOut = _startBtn.gameObject.AddComponent<Outline>();
-            sbOut.effectColor = new Color(0.30f, 0.80f, 1f, 0.80f);
-            sbOut.effectDistance = new Vector2(1.5f, -1.5f);
-            _startBtn.onClick.AddListener(() => SetState(LabState.Step1_SelectRibbon));
-
-            // Secondary Button: AR LAB
-            var arIntroBtn = MakeButton(cardRT, "ARIntroBtn", "AR Lab",
-                new Vector2(0.10f, 0.07f), new Vector2(0.90f, 0.145f),
-                new Color(0.32f, 0.24f, 0.72f));
-            arIntroBtn.onClick.AddListener(() => {
-                SetState(LabState.Step1_SelectRibbon);
-                ToggleUnifiedAR();
+                AppLabel = "MAGNESIUM RIBBON",
+                IntroTitle = "MAGNESIUM RIBBON",
+                IntroSubtitle = "Interactive Chemistry Experiment",
+                Equation = "2Mg(s) + O₂(g) → 2MgO(s)",
+                EquationCaption = "(Magnesium + Oxygen → Magnesium Oxide)",
+                OverviewSteps = new[]
+                {
+                    "Clean ribbon with sandpaper to expose reactive metal",
+                    "Hold securely using laboratory crucible tongs",
+                    "Ignite Bunsen burner and place ribbon into flame",
+                    "Observe dazzling combustion & energy release",
+                    "Collect white Magnesium Oxide (MgO) powder",
+                },
+                StepCount = 9,
+                ObservationBody =
+                    "• The magnesium ribbon burns with a dazzling, intense bright white flame.\n\n" +
+                    "• A large amount of thermal and light energy (UV) is released.\n\n" +
+                    "• A white powder / ash — Magnesium Oxide (MgO) — forms and is collected in the watch glass.\n\n" +
+                    "• White smoke particulate: finely dispersed MgO solid particles rise into the air.\n\n" +
+                    "• Reaction Type: Combination / Oxidation reaction.\n\n" +
+                    "NOTE: MgO is a WHITE SOLID (ash), not a gas.",
+                EquationBody =
+                    "Magnesium + Oxygen → Magnesium Oxide\n\n" +
+                    "2Mg(s)   +   O₂(g)   →   2MgO(s)\n\n" +
+                    "Reactants:\n" +
+                    "  • Magnesium (Mg) — Silvery-white metal strip\n" +
+                    "  • Oxygen (O₂) — Atmospheric gas\n\n" +
+                    "Product:\n" +
+                    "  • Magnesium Oxide (MgO) — White solid ash\n\n" +
+                    "Classification: Exothermic Synthesis / Oxidation Reaction",
+                ResultBody =
+                    "EXPERIMENT CONCLUSION:\n\n" +
+                    "Magnesium reacts vigorously with atmospheric oxygen at high temperatures to form magnesium oxide.\n\n" +
+                    "Key Conclusions:\n\n" +
+                    "1. Combination Reaction: Mg + O₂ combine to produce MgO.\n\n" +
+                    "2. Exothermic Reaction: Dazzling white light and heat are released.\n\n" +
+                    "3. Product: Magnesium Oxide (MgO) — basic white solid ash.\n\n" +
+                    "4. White smoke = finely dispersed MgO particulate, NOT a gas.\n\n" +
+                    "Equation: 2Mg(s) + O₂(g) → 2MgO(s)",
+                SafetyBody =
+                    "LABORATORY SAFETY GUIDELINES:\n\n" +
+                    "1. Wear certified safety goggles at all times to protect your eyes.\n\n" +
+                    "2. Perform this experiment only under teacher / adult supervision.\n\n" +
+                    "3. Do NOT look directly at the intense white flame (UV radiation).\n\n" +
+                    "4. Always hold the burning ribbon with crucible tongs — never bare hands.\n\n" +
+                    "5. Allow the hot ash to cool completely before collecting.\n\n" +
+                    "6. Keep flammable substances away from the Bunsen burner flame.",
+                AboutBody =
+                    "MAGNESIUM RIBBON BURNING EXPERIMENT\n\n" +
+                    "Curriculum Topic: Chemical Reactions & Equations\n" +
+                    "Subject: Secondary School Chemistry\n\n" +
+                    "Learning Objectives:\n" +
+                    "• Demonstrate combination & combustion reactions\n" +
+                    "• Understand oxidation of metals in air\n" +
+                    "• Observe physical & chemical transformations\n\n" +
+                    "Developed for Virtual & Augmented Reality Science Education.",
+                OnStart = () => SetState(LabState.Step1_SelectRibbon),
+                OnArToggle = () =>
+                {
+                    if (_state == LabState.Intro) SetState(LabState.Step1_SelectRibbon);
+                    ToggleUnifiedAR();
+                },
+                OnPrev = GoBack,
+                OnNext = AdvanceStep,
+                OnReset = ResetExperiment,
             });
+            ARVirtualLab.AI.AIMentorUI.Attach(this, ARVirtualLab.AI.MentorKnowledge.Magnesium, () => _state == LabState.Intro ? null : (_stepTitle != null ? _stepTitle.text : "") + ". " + (_stepDesc != null ? _stepDesc.text : ""));
 
-            // Footer Options: Home, Safety & About
-            var homeLink = MakeButton(cardRT, "HomeLink", "← Home",
-                new Vector2(0.08f, 0.01f), new Vector2(0.34f, 0.055f),
-                new Color(0.12f, 0.22f, 0.38f));
-            homeLink.onClick.AddListener(() => ARVirtualLab.AppShell.AppNavigation.GoToHome());
+            _introPanel = _hud.IntroPanel;            _hudPanel = _hud.HudPanel;
+            _stepTitle = _hud.StepTitle;              _stepDesc = _hud.StepDesc;
+            _stepNumberBadge = _hud.StepNumberBadge;
+            _prevBtn = _hud.PrevBtn;                  _nextBtn = _hud.NextBtn;
+            _obsBtn = _hud.ObsBtn;                    _eqBtn = _hud.EqBtn;          _resultBtn = _hud.ResultBtn;
+            _resetBtn = _hud.ResetBtn;                _safetyBtn = _hud.SafetyBtn;
+            _obsPanel = _hud.ObsPanel;                _eqPanel = _hud.EqPanel;      _resultPanel = _hud.ResultPanel;
+            _safetyPanel = _hud.SafetyPanel;          _aboutPanel = _hud.AboutPanel;
+            _resetConfirmDialog = _hud.ResetConfirmDialog;
 
-            var safetyLink = MakeButton(cardRT, "SafetyLink", "Safety",
-                new Vector2(0.37f, 0.01f), new Vector2(0.63f, 0.055f),
-                new Color(0.15f, 0.22f, 0.35f));
-            safetyLink.onClick.AddListener(() => TogglePanel(_safetyPanel));
-
-            var aboutLink = MakeButton(cardRT, "AboutLink", "About",
-                new Vector2(0.66f, 0.01f), new Vector2(0.92f, 0.055f),
-                new Color(0.15f, 0.22f, 0.35f));
-            aboutLink.onClick.AddListener(() => TogglePanel(_aboutPanel));
+            BuildCleaningBar(_hud.TopCentreSlot);
+            BuildBurningInfoPanel(_hud.StatusSlot);
+            BuildEquipmentLabels(root);
         }
 
-        private const float StepCardExpandedH = 340f, StepCardCollapsedH = 152f;
-        private const float StepTextWidth = 592f, StepTextMaxH = 220f;
-
-        // Landscape layout on a 1920 x 1080 canvas: Back + name and the step card top-left, AR toggle and equation
-        // top-right, Reset/Safety bottom-right (above the AR buttons when in AR), step buttons bottom-centre.
-        private void BuildHUDPanel(RectTransform root)
+        // Step 2: how clean the ribbon is (top-centre)
+        private void BuildCleaningBar(RectTransform slot)
         {
-            _hudPanel = MakePanel(root, "HUD", Color.clear);
-            _hudPanel.AddComponent<ARVirtualLab.AppShell.SafeAreaHelper>();
-            _hudPanel.SetActive(false);
-            var hud = _hudPanel.GetComponent<RectTransform>();
-            const float M = HudMargin;
-
-            // ── Top-left: Back + experiment name ──────────────
-            var backBtn = HudButton(hud, "BackButton", "Back", new Color(0.12f, 0.22f, 0.38f), 30f);
-            UiKit.Pin(Rt(backBtn), 0f, 1f, M, -32f, 170f, 80f);
-            backBtn.onClick.AddListener(() => ARVirtualLab.AppShell.AppNavigation.GoToHome());
-
-            // name on its own chip so it stays readable over the camera feed in AR
-            // (layout components size the chip to its text whenever it is shown; measuring while the HUD was hidden gave 0)
-            var chip = MakePanel(hud, "AppLabelChip", new Color(0.04f, 0.08f, 0.16f, 0.95f));
-            var chipRT = UiKit.Pin(chip.GetComponent<RectTransform>(), 0f, 1f, M + 186f, -44f, 300f, 56f);
-            AddBorder(chip);
-            _arTranslucent.Add(chip.GetComponent<Image>());
-            var chipLayout = chip.AddComponent<HorizontalLayoutGroup>();
-            chipLayout.padding = new RectOffset(20, 20, 0, 0);
-            chipLayout.childAlignment = TextAnchor.MiddleCenter;
-            chipLayout.childControlWidth = chipLayout.childControlHeight = true;
-            chipLayout.childForceExpandWidth = chipLayout.childForceExpandHeight = false;
-            chip.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-            var appLabel = Fixed(MakeText(chipRT, "AppLabel", "MAGNESIUM RIBBON", Vector2.zero, Vector2.one,
-                24, new Color(0.35f, 0.85f, 1f), FontStyles.Bold, TextAlignmentOptions.Center), 24f);
-            appLabel.textWrappingMode = TextWrappingModes.NoWrap;
-
-            // ── Top-right: AR toggle ──────────────────────────
-            var arBtn = HudButton(hud, "ARButton", "AR LAB", new Color(0.32f, 0.24f, 0.72f), 30f);
-            UiKit.Pin(Rt(arBtn), 1f, 1f, -M, -32f, 220f, 80f);
-            arBtn.onClick.AddListener(ToggleUnifiedAR);
-
-            // ── Step card: badge + Hide/Show, title, progress pills, instruction ──
-            var card = MakePanel(hud, "StepCard", new Color(0.04f, 0.08f, 0.16f, 0.95f));
-            _stepCardRT = UiKit.Pin(card.GetComponent<RectTransform>(), 0f, 1f, M, -128f, 640f, StepCardExpandedH);
-            AddBorder(card);
-            _arTranslucent.Add(card.GetComponent<Image>());
-
-            var stepBadge = MakePanel(_stepCardRT, "StepBadge", new Color(0.10f, 0.28f, 0.58f, 0.95f));
-            UiKit.Pin(stepBadge.GetComponent<RectTransform>(), 0f, 1f, 20f, -18f, 220f, 52f);
-            _stepNumberBadge = Fixed(MakeText(stepBadge.GetComponent<RectTransform>(), "BadgeText", "STEP 1 OF 9",
-                Vector2.zero, Vector2.one, 22, Color.white, FontStyles.Bold, TextAlignmentOptions.Center), 22f);
-
-            var toggle = HudButton(_stepCardRT, "StepToggle", "Hide", new Color(0.18f, 0.24f, 0.36f), 24f);
-            UiKit.Pin(Rt(toggle), 1f, 1f, -20f, -18f, 120f, 52f);
-            _stepToggleLabel = toggle.GetComponentInChildren<TMP_Text>();
-            toggle.onClick.AddListener(() => SetStepCardCollapsed(!_stepCardCollapsed));
-
-            _stepTitle = MakeText(_stepCardRT, "StepTitle", "Select Magnesium Ribbon", Vector2.zero, Vector2.zero,
-                32, Color.white, FontStyles.Bold, TextAlignmentOptions.MidlineLeft);
-            FitText(_stepTitle, 24f, 32f);
-            UiKit.Pin(_stepTitle.rectTransform, 0f, 1f, 24f, -80f, 592f, 60f);
-
-            _stepPillRow = new GameObject("StepPillRow", typeof(RectTransform));
-            _stepPillRow.transform.SetParent(_stepCardRT, false);
-            var prRT = UiKit.Pin(_stepPillRow.GetComponent<RectTransform>(), 0f, 1f, 24f, -152f, 592f, 12f);
-
-            _stepPillIndicators.Clear();
-            float stepWidth = 1.0f / 9.0f;
-            for (int i = 0; i < 9; i++)
-            {
-                var pill = new GameObject($"Pill_{i + 1}", typeof(RectTransform), typeof(Image));
-                pill.transform.SetParent(prRT, false);
-                var pRT = pill.GetComponent<RectTransform>();
-                pRT.anchorMin = new Vector2(i * stepWidth + 0.008f, 0f);
-                pRT.anchorMax = new Vector2((i + 1) * stepWidth - 0.008f, 1f);
-                pRT.offsetMin = pRT.offsetMax = Vector2.zero;
-                var pImg = pill.GetComponent<Image>();
-                pImg.color = (i == 0) ? ARVirtualLab.UI.EduTheme.PillActive : ARVirtualLab.UI.EduTheme.PillIdle;
-                _stepPillIndicators.Add(pImg);
-            }
-
-            _stepDesc = Fixed(MakeText(_stepCardRT, "StepDesc", "Tap the silver magnesium ribbon on the table.", Vector2.zero, Vector2.zero,
-                26, new Color(0.85f, 0.92f, 0.98f), FontStyles.Normal, TextAlignmentOptions.TopLeft), 26f);
-            UiKit.Pin(_stepDesc.rectTransform, 0f, 1f, 24f, -180f, StepTextWidth, 144f);
-
-            // ── Cleaning progress bar (Step 2 only), top-centre ──
-            _cleaningBarRoot = new GameObject("CleaningBarRoot", typeof(RectTransform));
-            _cleaningBarRoot.transform.SetParent(hud, false);
-            var cbRootRT = UiKit.Pin(_cleaningBarRoot.GetComponent<RectTransform>(), 0.5f, 1f, 0f, -40f, 600f, 56f);
-
-            var cbBg = new GameObject("BarBg", typeof(RectTransform), typeof(Image));
-            cbBg.transform.SetParent(cbRootRT, false);
-            var cbBgRT = cbBg.GetComponent<RectTransform>();
-            cbBgRT.anchorMin = Vector2.zero; cbBgRT.anchorMax = Vector2.one;
-            cbBgRT.offsetMin = cbBgRT.offsetMax = Vector2.zero;
-            cbBg.GetComponent<Image>().color = new Color(0.08f, 0.14f, 0.25f, 0.95f);
-
-            var cbFill = new GameObject("BarFill", typeof(RectTransform), typeof(Image));
-            cbFill.transform.SetParent(cbRootRT, false);
-            var cbFillRT = cbFill.GetComponent<RectTransform>();
-            cbFillRT.anchorMin = new Vector2(0.005f, 0.12f);
-            cbFillRT.anchorMax = new Vector2(0.995f, 0.88f);
-            cbFillRT.offsetMin = cbFillRT.offsetMax = Vector2.zero;
-            _cleaningBarFill = cbFill.GetComponent<Image>();
-            _cleaningBarFill.color = new Color(0.05f, 0.65f, 1.00f, 1f);
+            var bg = UiKit.Box(slot, "CleaningBar", EduTheme.Paper, 14);
+            UiKit.Fill(bg.rectTransform);
+            _cleaningBarRoot = bg.gameObject;
+            var track = UiKit.Box(bg.transform, "Track", EduTheme.PillIdle, 10);
+            UiKit.Anchor(track.rectTransform, 0.02f, 0.14f, 0.98f, 0.86f);
+            _cleaningBarFill = UiKit.Box(track.transform, "Fill", EduTheme.Teal, 10);
+            UiKit.Fill(_cleaningBarFill.rectTransform);
             _cleaningBarFill.type = Image.Type.Filled;
             _cleaningBarFill.fillMethod = Image.FillMethod.Horizontal;
             _cleaningBarFill.fillAmount = 0f;
-
-            _cleaningPctText = Fixed(MakeText(cbRootRT, "PctText", "CLEANING: 0%",
-                Vector2.zero, Vector2.one, 22, Color.white, FontStyles.Bold, TextAlignmentOptions.Center), 22f);
-
+            _cleaningPctText = UiKit.Text(bg.transform, "Pct", "CLEANING: 0%", 22, EduTheme.Ink, FontStyles.Bold, TextAlignmentOptions.Center);
+            UiKit.Fill(_cleaningPctText.rectTransform);
             _cleaningBarRoot.SetActive(false);
-
-            // ── Toast feedback, bottom-centre above the step buttons ──
-            var toastBg = MakePanel(hud, "Toast", new Color(0.04f, 0.10f, 0.22f, 0.94f));
-            var toastRT = UiKit.Pin(toastBg.GetComponent<RectTransform>(), 0.5f, 0f, 60f, 130f, 700f, 100f);
-            AddBorder(toastBg);
-            _arTranslucent.Add(toastBg.GetComponent<Image>());
-            _feedbackText = MakeText(toastRT, "FeedbackText", "",
-                new Vector2(0.04f, 0.05f), new Vector2(0.96f, 0.95f),
-                26, new Color(0.92f, 0.97f, 1f), FontStyles.Normal, TextAlignmentOptions.Center);
-            FitText(_feedbackText, 20f, 26f);
-            toastBg.SetActive(false);
-
-            // ── Bottom-centre: step navigation and end-of-experiment buttons (only the active ones show) ──
-            var row = new GameObject("BottomRow", typeof(RectTransform));
-            row.transform.SetParent(hud, false);
-            var rowRT = UiKit.Pin(row.GetComponent<RectTransform>(), 0.5f, 0f, 60f, 32f, 960f, 80f);
-            var hlg = row.AddComponent<HorizontalLayoutGroup>();
-            hlg.spacing = 16f;
-            hlg.childAlignment = TextAnchor.MiddleCenter;
-            hlg.childControlWidth = hlg.childControlHeight = false;
-            hlg.childForceExpandWidth = hlg.childForceExpandHeight = false;
-
-            _prevBtn = SizedButton(rowRT, "Prev", "Previous", new Color(0.18f, 0.24f, 0.36f), 220f);
-            _prevBtn.onClick.AddListener(GoBack);
-            _prevBtn.gameObject.SetActive(false);
-
-            _nextBtn = SizedButton(rowRT, "Next", "Next", new Color(0.02f, 0.50f, 0.88f), 220f);
-            _nextBtn.onClick.AddListener(AdvanceStep);
-            _nextBtn.gameObject.SetActive(false);
-
-            _obsBtn = SizedButton(rowRT, "Obs", "Observation", new Color(0.06f, 0.45f, 0.28f), 220f);
-            _obsBtn.onClick.AddListener(() => TogglePanel(_obsPanel));
-            _obsBtn.gameObject.SetActive(false);
-
-            _eqBtn = SizedButton(rowRT, "Eq", "Equation", new Color(0.35f, 0.20f, 0.65f), 220f);
-            _eqBtn.onClick.AddListener(() => TogglePanel(_eqPanel));
-            _eqBtn.gameObject.SetActive(false);
-
-            _resultBtn = SizedButton(rowRT, "Result", "Result", new Color(0.08f, 0.48f, 0.62f), 220f);
-            _resultBtn.onClick.AddListener(() => TogglePanel(_resultPanel));
-            _resultBtn.gameObject.SetActive(false);
-
-            // ── Bottom-right: Reset / Safety (lifted above Move lab / Exit AR while in AR) ──
-            var column = new GameObject("RightColumn", typeof(RectTransform));
-            column.transform.SetParent(hud, false);
-            _rightColumnRT = UiKit.Pin(column.GetComponent<RectTransform>(), 1f, 0f, -M, 32f, 200f, 172f);
-            var vlg = column.AddComponent<VerticalLayoutGroup>();
-            vlg.spacing = 12f;
-            vlg.childAlignment = TextAnchor.LowerCenter;
-            vlg.childControlWidth = vlg.childControlHeight = false;
-            vlg.childForceExpandWidth = vlg.childForceExpandHeight = false;
-
-            _resetBtn = SizedButton(_rightColumnRT, "Reset", "Reset", new Color(0.48f, 0.12f, 0.16f), 200f);
-            _resetBtn.onClick.AddListener(() => {
-                if (_resetConfirmDialog != null) _resetConfirmDialog.SetActive(true);
-                else ResetExperiment();
-            });
-
-            _safetyBtn = SizedButton(_rightColumnRT, "Safety", "Safety", new Color(0.55f, 0.35f, 0.05f), 200f);
-            _safetyBtn.onClick.AddListener(() => TogglePanel(_safetyPanel));
         }
 
-        private void SetStepCardCollapsed(bool collapsed)
+        // Steps 6-7: burner, ribbon and heating progress (bottom-left)
+        private void BuildBurningInfoPanel(RectTransform slot)
         {
-            _stepCardCollapsed = collapsed;
-            if (_stepPillRow != null) _stepPillRow.SetActive(!collapsed);
-            if (_stepDesc != null) _stepDesc.gameObject.SetActive(!collapsed);
-            if (_stepToggleLabel != null) _stepToggleLabel.text = collapsed ? "Show" : "Hide";
-            RefreshStepCardHeight();
-        }
+            var card = UiKit.Box(slot, "BurningInfoPanel", EduTheme.Paper, 18);
+            UiKit.Fill(card.rectTransform);
+            var outline = card.gameObject.AddComponent<Outline>();
+            outline.effectColor = EduTheme.Border; outline.effectDistance = new Vector2(1.5f, -1.5f);
+            _burningInfoPanel = card.gameObject;
+            var rt = card.rectTransform;
 
-        // The card grows with the instruction text instead of reserving space for the longest one
-        private void RefreshStepCardHeight()
-        {
-            if (_stepCardRT == null || _stepDesc == null) return;
-            float h = StepCardCollapsedH;
-            if (!_stepCardCollapsed)
-            {
-                float textH = Mathf.Clamp(_stepDesc.GetPreferredValues(_stepDesc.text, StepTextWidth, 0f).y, 34f, StepTextMaxH);
-                _stepDesc.rectTransform.sizeDelta = new Vector2(StepTextWidth, textH);
-                h = 180f + textH + 22f;
-            }
-            _stepCardRT.sizeDelta = new Vector2(_stepCardRT.sizeDelta.x, h);
-        }
+            _burnerStatusText = UiKit.Text(rt, "BurnerStatus", "Bunsen Burner: <color=#2E8B4E>ON</color>", 28, EduTheme.Ink, FontStyles.Bold, TextAlignmentOptions.MidlineLeft);
+            UiKit.Anchor(_burnerStatusText.rectTransform, 0.04f, 0.76f, 0.96f, 0.95f);
+            _ribbonStatusText = UiKit.Text(rt, "RibbonStatus", "Ribbon: Heating...", 26, EduTheme.Ink, FontStyles.Normal, TextAlignmentOptions.MidlineLeft);
+            UiKit.Anchor(_ribbonStatusText.rectTransform, 0.04f, 0.58f, 0.96f, 0.76f);
+            _observationText = UiKit.Text(rt, "Observation", "Observation: —", 24, EduTheme.InkSoft, FontStyles.Normal, TextAlignmentOptions.MidlineLeft);
+            UiKit.Anchor(_observationText.rectTransform, 0.04f, 0.40f, 0.96f, 0.58f);
+            _heatingTimerText = UiKit.Text(rt, "TimerText", "Keep the ribbon in the flame for a little longer...", 22, EduTheme.InkSoft, FontStyles.Italic, TextAlignmentOptions.MidlineLeft);
+            _heatingTimerText.enableAutoSizing = true; _heatingTimerText.fontSizeMin = 18f; _heatingTimerText.fontSizeMax = 22f;
+            UiKit.Anchor(_heatingTimerText.rectTransform, 0.04f, 0.20f, 0.96f, 0.40f);
 
-        private static RectTransform Rt(Component c) { return c.GetComponent<RectTransform>(); }
-
-        // MobileText auto-grows every label to fill its box, which made neighbouring labels different sizes.
-        private static TMP_Text Fixed(TMP_Text t, float size)
-        {
-            t.enableAutoSizing = false;
-            t.fontSize = size;
-            return t;
-        }
-
-        private static void FitText(TMP_Text t, float min, float max)
-        {
-            t.enableAutoSizing = true;
-            t.fontSizeMin = min;
-            t.fontSizeMax = max;
-        }
-
-        private static Button HudButton(RectTransform parent, string name, string label, Color col, float fontSize)
-        {
-            var b = MakeButton(parent, name, label, Vector2.zero, Vector2.one, col);
-            Fixed(b.GetComponentInChildren<TMP_Text>(), fontSize);
-            return b;
-        }
-
-        private static Button SizedButton(RectTransform parent, string name, string label, Color col, float width)
-        {
-            var b = HudButton(parent, name, label, col, 28f);
-            Rt(b).sizeDelta = new Vector2(width, 80f);
-            return b;
-        }
-
-        private static void AddBorder(GameObject panel)
-        {
-            var o = panel.AddComponent<Outline>();
-            o.effectColor = new Color(0.15f, 0.45f, 0.85f, 0.60f);
-            o.effectDistance = new Vector2(1.5f, -1.5f);
-        }
-
-        // Heating status, bottom-left (steps 6-7)
-        private void BuildBurningInfoPanel(RectTransform root)
-        {
-            _burningInfoPanel = MakePanel(_hudPanel.GetComponent<RectTransform>(), "BurningInfoPanel",
-                new Color(0.04f, 0.08f, 0.18f, 0.95f));
-            var bRT = UiKit.Pin(_burningInfoPanel.GetComponent<RectTransform>(), 0f, 0f, HudMargin, 32f, 640f, 290f);
-            AddBorder(_burningInfoPanel);
-            _arTranslucent.Add(_burningInfoPanel.GetComponent<Image>());
-
-            _burnerStatusText = Fixed(MakeText(bRT, "BurnerStatus", "Bunsen Burner: <color=#2E8B4E>ON</color>",
-                new Vector2(0.04f, 0.76f), new Vector2(0.96f, 0.95f),
-                28, Color.white, FontStyles.Bold, TextAlignmentOptions.Left), 28f);
-
-            _ribbonStatusText = Fixed(MakeText(bRT, "RibbonStatus", "Ribbon: Heating...",
-                new Vector2(0.04f, 0.58f), new Vector2(0.96f, 0.76f),
-                26, Color.white, FontStyles.Normal, TextAlignmentOptions.Left), 26f);
-
-            _observationText = Fixed(MakeText(bRT, "Observation", "Observation: —",
-                new Vector2(0.04f, 0.40f), new Vector2(0.96f, 0.58f),
-                24, new Color(0.85f, 0.92f, 0.98f), FontStyles.Normal, TextAlignmentOptions.Left), 24f);
-
-            _heatingTimerText = MakeText(bRT, "TimerText",
-                "Keep the ribbon in the flame for a little longer...",
-                new Vector2(0.04f, 0.20f), new Vector2(0.96f, 0.40f),
-                22, new Color(0.75f, 0.85f, 0.98f), FontStyles.Italic, TextAlignmentOptions.Left);
-            FitText(_heatingTimerText, 18f, 22f);
-
-            var barTrack = new GameObject("BarTrack", typeof(RectTransform), typeof(Image));
-            barTrack.transform.SetParent(bRT, false);
-            var btRT = barTrack.GetComponent<RectTransform>();
-            btRT.anchorMin = new Vector2(0.04f, 0.06f);
-            btRT.anchorMax = new Vector2(0.96f, 0.16f);
-            btRT.offsetMin = btRT.offsetMax = Vector2.zero;
-            barTrack.GetComponent<Image>().color = new Color(0.08f, 0.14f, 0.28f, 1f);
-
-            var barFillGO = new GameObject("BarFill", typeof(RectTransform), typeof(Image));
-            barFillGO.transform.SetParent(btRT, false);
-            var bfRT = barFillGO.GetComponent<RectTransform>();
-            bfRT.anchorMin = new Vector2(0.005f, 0.10f);
-            bfRT.anchorMax = new Vector2(0.995f, 0.90f);
-            bfRT.offsetMin = bfRT.offsetMax = Vector2.zero;
-            _heatingBarFill = barFillGO.GetComponent<Image>();
-            _heatingBarFill.color = new Color(0.95f, 0.55f, 0.05f, 1f);
+            var track = UiKit.Box(rt, "BarTrack", EduTheme.PillIdle, 8);
+            UiKit.Anchor(track.rectTransform, 0.04f, 0.06f, 0.96f, 0.16f);
+            _heatingBarFill = UiKit.Box(track.transform, "BarFill", EduTheme.Orange, 8);
+            UiKit.Fill(_heatingBarFill.rectTransform);
             _heatingBarFill.type = Image.Type.Filled;
             _heatingBarFill.fillMethod = Image.FillMethod.Horizontal;
             _heatingBarFill.fillAmount = 0f;
@@ -2841,223 +2501,15 @@ namespace ARVirtualLab.Lab
             _burningInfoPanel.SetActive(false);
         }
 
-        // Reaction equation, top-right under the AR toggle (steps 7-9)
-        private void BuildEquationPanel(RectTransform root)
-        {
-            _equationPanel = MakePanel(_hudPanel.GetComponent<RectTransform>(), "EquationPanel",
-                new Color(0.04f, 0.07f, 0.16f, 0.95f));
-            var eRT = UiKit.Pin(_equationPanel.GetComponent<RectTransform>(), 1f, 1f, -HudMargin, -128f, 560f, 150f);
-            AddBorder(_equationPanel);
-            _arTranslucent.Add(_equationPanel.GetComponent<Image>());
-
-            Fixed(MakeText(eRT, "ReactionLabel", "Reaction:",
-                new Vector2(0.05f, 0.70f), new Vector2(0.95f, 0.94f),
-                22, new Color(0.40f, 0.85f, 1f), FontStyles.Bold, TextAlignmentOptions.Left), 22f);
-
-            var eq = MakeText(eRT, "Equation", "2Mg(s) + O₂(g) → 2MgO(s)",
-                new Vector2(0.05f, 0.30f), new Vector2(0.95f, 0.70f),
-                32, Color.white, FontStyles.Bold, TextAlignmentOptions.Left);
-            FitText(eq, 24f, 32f);
-
-            var sub = MakeText(eRT, "Sub", "(Magnesium + Oxygen → Magnesium Oxide)",
-                new Vector2(0.05f, 0.06f), new Vector2(0.95f, 0.30f),
-                20, new Color(0.75f, 0.85f, 0.95f), FontStyles.Normal, TextAlignmentOptions.Left);
-            FitText(sub, 16f, 20f);
-
-            _equationPanel.SetActive(false);
-        }
-
         private void BuildEquipmentLabels(RectTransform root)
         {
-            Color labelBg = new Color(0.06f, 0.10f, 0.20f, 0.85f);
-            CreateEquipLabel(root, "TongsLabel",      _tongs,      "Tongs",            labelBg);
-            CreateEquipLabel(root, "SandpaperLabel",  _sandpaper,  "Sandpaper",        labelBg);
-            CreateEquipLabel(root, "RibbonLabel",     _ribbon,     "Magnesium Ribbon", labelBg);
-            CreateEquipLabel(root, "WatchGlassLabel", _watchGlass, "Watch Glass",      labelBg);
-            CreateEquipLabel(root, "BurnerLabel",     _burner,     "Bunsen Burner",    labelBg);
-        }
-
-        // One-line label of a fixed text size, sitting just above its object and following it when it moves
-        private void CreateEquipLabel(RectTransform root, string name, GameObject target, string text, Color bg)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
-            go.transform.SetParent(root, false);
-            var rt = go.GetComponent<RectTransform>();
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0f);
-
-            var img = go.GetComponent<Image>();
-            img.color = bg;
-            img.raycastTarget = false;
-
-            var outl = go.AddComponent<Outline>();
-            outl.effectColor = new Color(0.20f, 0.50f, 0.85f, 0.60f);
-            outl.effectDistance = new Vector2(1f, -1f);
-
-            var lbl = Fixed(MakeText(rt, "Lbl", text, Vector2.zero, Vector2.one,
-                22f, Color.white, FontStyles.Bold, TextAlignmentOptions.Center), 22f);
-            lbl.textWrappingMode = TextWrappingModes.NoWrap;
-            rt.sizeDelta = new Vector2(lbl.GetPreferredValues(text, 2000f, 100f).x + 28f, 42f);
-
-            go.AddComponent<EquipmentLabelPositioner>().Init(_cam, target != null ? target.transform : null, root);
-            go.transform.SetAsFirstSibling();       // drawn behind the HUD cards and dialogs, never on top of them
-            _equipLabels.Add(go);
-        }
-
-        private void BuildModalPanels(RectTransform root)
-        {
-            _obsPanel = MakeInfoPanel(root, "ObsPanel", "OBSERVATION",
-                "• The magnesium ribbon burns with a dazzling, intense bright white flame.\n\n" +
-                "• A large amount of thermal and light energy (UV) is released.\n\n" +
-                "• A white powder / ash — Magnesium Oxide (MgO) — forms and is collected in the watch glass.\n\n" +
-                "• White smoke particulate: finely dispersed MgO solid particles rise into the air.\n\n" +
-                "• Reaction Type: Combination / Oxidation reaction.\n\n" +
-                "NOTE: MgO is a WHITE SOLID (ash), not a gas.");
-            _obsPanel.SetActive(false);
-
-            _eqPanel = MakeInfoPanel(root, "EqPanel", "CHEMICAL EQUATION",
-                "Magnesium + Oxygen \u2192 Magnesium Oxide\n\n" +
-                "2Mg(s)   +   O\u2082(g)   \u2192   2MgO(s)\n\n" +
-                "Reactants:\n" +
-                "  \u2022 Magnesium (Mg) \u2014 Silvery-white metal strip\n" +
-                "  \u2022 Oxygen (O\u2082) \u2014 Atmospheric gas\n\n" +
-                "Product:\n" +
-                "  \u2022 Magnesium Oxide (MgO) \u2014 White solid ash\n\n" +
-                "Classification: Exothermic Synthesis / Oxidation Reaction");
-            _eqPanel.SetActive(false);
-
-            _resultPanel = MakeInfoPanel(root, "ResultPanel", "EXPERIMENT RESULT",
-                "EXPERIMENT CONCLUSION:\n\n" +
-                "Magnesium reacts vigorously with atmospheric oxygen at high temperatures to form magnesium oxide.\n\n" +
-                "Key Conclusions:\n\n" +
-                "1. Combination Reaction: Mg + O\u2082 combine to produce MgO.\n\n" +
-                "2. Exothermic Reaction: Dazzling white light and heat are released.\n\n" +
-                "3. Product: Magnesium Oxide (MgO) \u2014 basic white solid ash.\n\n" +
-                "4. White smoke = finely dispersed MgO particulate, NOT a gas.\n\n" +
-                "Equation: 2Mg(s) + O\u2082(g) \u2192 2MgO(s)");
-            _resultPanel.SetActive(false);
-
-            _safetyPanel = MakeInfoPanel(root, "SafetyPanel", "SAFETY PRECAUTIONS",
-                "LABORATORY SAFETY GUIDELINES:\n\n" +
-                "1. Wear certified safety goggles at all times to protect your eyes.\n\n" +
-                "2. Perform this experiment only under teacher / adult supervision.\n\n" +
-                "3. Do NOT look directly at the intense white flame (UV radiation).\n\n" +
-                "4. Always hold the burning ribbon with crucible tongs — never bare hands.\n\n" +
-                "5. Allow the hot ash to cool completely before collecting.\n\n" +
-                "6. Keep flammable substances away from the Bunsen burner flame.");
-            _safetyPanel.SetActive(false);
-
-            _aboutPanel = MakeInfoPanel(root, "AboutPanel", "ABOUT EXPERIMENT",
-                "MAGNESIUM RIBBON BURNING EXPERIMENT\n\n" +
-                "Curriculum Topic: Chemical Reactions & Equations\n" +
-                "Subject: Secondary School Chemistry\n\n" +
-                "Learning Objectives:\n" +
-                "• Demonstrate combination & combustion reactions\n" +
-                "• Understand oxidation of metals in air\n" +
-                "• Observe physical & chemical transformations\n\n" +
-                "Developed for Virtual & Augmented Reality Science Education.");
-            _aboutPanel.SetActive(false);
-
-            // Reset Confirmation Dialog
-            BuildResetConfirmationDialog(root);
-        }
-
-        private void BuildResetConfirmationDialog(RectTransform root)
-        {
-            _resetConfirmDialog = MakePanel(root, "ResetConfirmOverlay", new Color(0f, 0f, 0f, 0.70f));
-            var oImg = _resetConfirmDialog.GetComponent<Image>();
-            if (oImg != null) oImg.raycastTarget = true;
-
-            var bg = MakePanel(_resetConfirmDialog.GetComponent<RectTransform>(), "Bg",
-                new Color(0.06f, 0.10f, 0.20f, 0.98f));
-            var bgRT = bg.GetComponent<RectTransform>();
-            bgRT.anchorMin = new Vector2(0.30f, 0.28f);
-            bgRT.anchorMax = new Vector2(0.70f, 0.72f);
-            bgRT.offsetMin = bgRT.offsetMax = Vector2.zero;
-
-            var bgOut = bg.AddComponent<Outline>();
-            bgOut.effectColor = new Color(0.20f, 0.60f, 1.0f, 0.70f);
-            bgOut.effectDistance = new Vector2(2f, -2f);
-
-            MakeText(bgRT, "Heading", "Reset Experiment?",
-                new Vector2(0.05f, 0.65f), new Vector2(0.95f, 0.92f),
-                26, Color.white, FontStyles.Bold, TextAlignmentOptions.Center);
-
-            MakeText(bgRT, "Message", "Your current experiment progress will be cleared.\nAre you sure you want to restart?",
-                new Vector2(0.05f, 0.30f), new Vector2(0.95f, 0.65f),
-                18, new Color(0.82f, 0.88f, 0.96f), FontStyles.Normal, TextAlignmentOptions.Center);
-
-            var cancelBtn = MakeButton(bgRT, "CancelBtn", "Cancel",
-                new Vector2(0.08f, 0.08f), new Vector2(0.46f, 0.28f),
-                new Color(0.20f, 0.26f, 0.38f));
-            cancelBtn.onClick.AddListener(() => _resetConfirmDialog.SetActive(false));
-
-            var confirmBtn = MakeButton(bgRT, "ConfirmBtn", "Reset",
-                new Vector2(0.54f, 0.08f), new Vector2(0.92f, 0.28f),
-                new Color(0.58f, 0.14f, 0.18f));
-            confirmBtn.onClick.AddListener(() => {
-                _resetConfirmDialog.SetActive(false);
-                ResetExperiment();
-            });
-
-            _resetConfirmDialog.SetActive(false);
-        }
-
-        private static GameObject MakeInfoPanel(RectTransform root, string name, string heading, string body)
-        {
-            var overlay = MakePanel(root, name + "_Overlay", new Color(0f, 0f, 0f, 0.70f));
-            var oImg = overlay.GetComponent<Image>();
-            if (oImg != null) oImg.raycastTarget = true;
-
-            var bg = MakePanel(overlay.GetComponent<RectTransform>(), "Bg",
-                new Color(0.05f, 0.09f, 0.18f, 0.98f));
-            var bgRT = bg.GetComponent<RectTransform>();
-            bgRT.anchorMin = new Vector2(0.22f, 0.06f);
-            bgRT.anchorMax = new Vector2(0.78f, 0.94f);
-            bgRT.offsetMin = bgRT.offsetMax = Vector2.zero;
-
-            var bgOut = bg.AddComponent<Outline>();
-            bgOut.effectColor = new Color(0.18f, 0.55f, 0.95f, 0.70f);
-            bgOut.effectDistance = new Vector2(2f, -2f);
-
-            MakeText(bgRT, "Heading", heading,
-                new Vector2(0.06f, 0.88f), new Vector2(0.94f, 0.97f),
-                28, new Color(0.40f, 0.85f, 1f), FontStyles.Bold, TextAlignmentOptions.Center);
-
-            MakeText(bgRT, "Body", body,
-                new Vector2(0.06f, 0.12f), new Vector2(0.94f, 0.86f),
-                18, new Color(0.85f, 0.92f, 0.98f), FontStyles.Normal, TextAlignmentOptions.Left);
-
-            var closeBtn = MakeButton(bgRT, "Close", "Close",
-                new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.09f),
-                new Color(0.15f, 0.45f, 0.85f));
-            closeBtn.onClick.AddListener(() => overlay.SetActive(false));
-
-            return overlay;
-        }
-
-        private static TMP_Text MakeText(RectTransform parent, string name, string text,
-            Vector2 anchorMin, Vector2 anchorMax, float fontSize, Color col, FontStyles style,
-            TextAlignmentOptions alignment = TextAlignmentOptions.Left)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var rt = go.GetComponent<RectTransform>();
-            rt.anchorMin = anchorMin; rt.anchorMax = anchorMax;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            var tmp = go.AddComponent<TextMeshProUGUI>();
-            tmp.text = text;
-            tmp.fontSize = fontSize;
-            tmp.color = col;
-            tmp.fontStyle = style;
-            tmp.alignment = alignment;
-            tmp.raycastTarget = false;
-            tmp.textWrappingMode = TextWrappingModes.Normal;
-            tmp.overflowMode = TextOverflowModes.Overflow;
-            var f = GetFont();
-            if (f != null) tmp.font = f;
-            MobileText.Setup(tmp, name, fontSize);
-            return tmp;
+            System.Func<Camera> cam = () => _cam;
+            System.Func<bool> inLab = () => _state != LabState.Intro && _state != LabState.Completed;
+            EquipmentLabel.Create(root, cam, _tongs.transform, "Tongs", LabelAnchor.Top, null, inLab);
+            EquipmentLabel.Create(root, cam, _sandpaper.transform, "Sandpaper", LabelAnchor.Top, null, inLab);
+            EquipmentLabel.Create(root, cam, _ribbon.transform, "Magnesium Ribbon", LabelAnchor.Top, null, inLab);
+            EquipmentLabel.Create(root, cam, _watchGlass.transform, "Watch Glass", LabelAnchor.Top, null, inLab);
+            EquipmentLabel.Create(root, cam, _burner.transform, "Bunsen Burner", LabelAnchor.Top, null, inLab);
         }
 
         private void SetPanelButtonsVisible(bool show)
@@ -3068,61 +2520,15 @@ namespace ARVirtualLab.Lab
             if (show) { if (_prevBtn) _prevBtn.gameObject.SetActive(false); if (_nextBtn) _nextBtn.gameObject.SetActive(false); }
         }
 
-        private static void TogglePanel(GameObject panel)
-        {
-            if (panel != null) panel.SetActive(!panel.activeSelf);
-        }
+        private void TogglePanel(GameObject panel) { _hud.TogglePanel(panel); }
 
-        private void ShowFeedback(string msg)
-        {
-            if (_feedbackText == null) return;
-            _feedbackText.text = MobileText.Clean(msg);
-            _feedbackText.transform.parent.gameObject.SetActive(true);
-            if (_feedbackCoroutine != null) StopCoroutine(_feedbackCoroutine);
-            _feedbackCoroutine = StartCoroutine(HideFeedback(4.0f));
-        }
-
-        private IEnumerator HideFeedback(float delay)
-        {
-            yield return new WaitForSeconds(delay);
-            if (_feedbackText != null)
-                _feedbackText.transform.parent.gameObject.SetActive(false);
-        }
+        private void ShowFeedback(string msg) { _hud.ShowFeedback(msg); }
 
         private void SetStepInfo(string title, string desc, string progress)
         {
-            if (_stepTitle)     _stepTitle.text     = MobileText.Clean(title);
-            if (_stepDesc)      _stepDesc.text      = MobileText.Clean(desc);
-            if (_progressLabel) _progressLabel.text = MobileText.Clean(progress);
-            RefreshStepCardHeight();
-
-            int stepIdx = (int)_state;
-            if (_stepNumberBadge != null)
-            {
-                if (stepIdx >= 1 && stepIdx <= 9)
-                    _stepNumberBadge.text = MobileText.Clean($"STEP {stepIdx} OF 9");
-                else if (_state == LabState.Completed)
-                    _stepNumberBadge.text = MobileText.Clean("COMPLETE");
-                else
-                    _stepNumberBadge.text = MobileText.Clean("START");
-            }
-
-            for (int i = 0; i < _stepPillIndicators.Count; i++)
-            {
-                if (_stepPillIndicators[i] == null) continue;
-                if (i < stepIdx - 1)
-                {
-                    _stepPillIndicators[i].color = ARVirtualLab.UI.EduTheme.PillDone; // Emerald completed
-                }
-                else if (i == stepIdx - 1)
-                {
-                    _stepPillIndicators[i].color = ARVirtualLab.UI.EduTheme.PillActive; // Cyan active
-                }
-                else
-                {
-                    _stepPillIndicators[i].color = new Color(0.14f, 0.20f, 0.32f, 0.7f); // Inactive
-                }
-            }
+            int step = (int)_state;
+            string badge = step >= 1 && step <= 9 ? null : _state == LabState.Completed ? "COMPLETE" : "START";
+            _hud.SetStep(step, title, desc, badge);
         }
 
         // ═════════════════════════════════════════════════════
@@ -3158,86 +2564,6 @@ namespace ARVirtualLab.Lab
             }
             return _tmpFont;
         }
-
-        private static GameObject MakePanel(RectTransform parent, string name, Color col)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            var rt = go.AddComponent<RectTransform>();
-            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            if (col.a > 0.001f)
-            {
-                var img = go.AddComponent<Image>();
-                img.color = col;
-                img.raycastTarget = false;
-            }
-            return go;
-        }
-
-        private static TMP_Text MakeText(RectTransform parent, string name, string text,
-            Vector2 anchorMin, Vector2 anchorMax, float fontSize, Color col, FontStyles style)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            var rt = go.AddComponent<RectTransform>();
-            rt.anchorMin = anchorMin; rt.anchorMax = anchorMax;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            var tmp = go.AddComponent<TextMeshProUGUI>();
-            tmp.text     = text;
-            tmp.fontSize = fontSize;
-            tmp.color    = col;
-            tmp.fontStyle = style;
-            tmp.raycastTarget = false;
-            tmp.textWrappingMode = TextWrappingModes.Normal;
-            tmp.overflowMode = TextOverflowModes.Overflow;
-            var f = GetFont();
-            if (f != null) tmp.font = f;
-            MobileText.Setup(tmp, name, fontSize);
-            return tmp;
-        }
-
-        private static Button MakeButton(RectTransform parent, string name, string label,
-            Vector2 anchorMin, Vector2 anchorMax, Color bgCol)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            var rt = go.AddComponent<RectTransform>();
-            rt.anchorMin = anchorMin; rt.anchorMax = anchorMax;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-
-            var img = go.AddComponent<Image>();
-            img.color = bgCol;
-            img.raycastTarget = true;
-
-            var btn = go.AddComponent<Button>();
-            var cb  = btn.colors;
-            cb.highlightedColor = bgCol * 1.3f;
-            cb.pressedColor     = bgCol * 0.7f;
-            btn.colors          = cb;
-            btn.targetGraphic   = img;
-
-            var txtGO = new GameObject("Label");
-            txtGO.transform.SetParent(go.transform, false);
-            var trt = txtGO.AddComponent<RectTransform>();
-            trt.anchorMin = new Vector2(0.02f, 0.02f);
-            trt.anchorMax = new Vector2(0.98f, 0.98f);
-            trt.offsetMin = trt.offsetMax = Vector2.zero;
-
-            var tmp = txtGO.AddComponent<TextMeshProUGUI>();
-            tmp.text      = label;
-            tmp.fontSize  = 20f;
-            tmp.color     = Color.white;
-            tmp.fontStyle = FontStyles.Bold;
-            tmp.alignment = TextAlignmentOptions.Center;
-            tmp.raycastTarget = false;
-            tmp.textWrappingMode = TextWrappingModes.Normal;
-            var f = GetFont();
-            if (f != null) tmp.font = f;
-            MobileText.Setup(tmp, "Lbl", 20f);
-            return btn;
-        }
-
 
         // ═════════════════════════════════════════════════════
         //  RESOURCES & OBJ MESH LOADER
@@ -3350,91 +2676,6 @@ namespace ARVirtualLab.Lab
             m.name = name + "_Fallback";
             Destroy(go);
             return m;
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────
-    //  Helper MonoBehaviour: projects 3D world-space equipment
-    //  positions to screen-space label positions each frame.
-    // ─────────────────────────────────────────────────────────
-    public class EquipmentLabelPositioner : MonoBehaviour
-    {
-        private Camera _cam;
-        private Transform _target;
-        private readonly List<Renderer> _renderers = new List<Renderer>();
-        private RectTransform _canvasRT;
-        private RectTransform _rt;
-        private const float LabelGap = 10f;      // canvas units between the object's top and the label
-
-        public void Init(Camera cam, Transform target, RectTransform canvasRT)
-        {
-            _cam      = cam;
-            _target   = target;
-            _canvasRT = canvasRT;
-            _rt       = GetComponent<RectTransform>();
-        }
-
-        // Screen point just above the object's on-screen outline, so the label never covers the object itself.
-        // Particles are excluded: smoke bounds would push the label off screen.
-        private bool TryGetScreenAnchor(out Vector3 screen)
-        {
-            screen = Vector3.zero;
-            if (_target == null || !_target.gameObject.activeInHierarchy) return false;
-            if (_renderers.Count == 0)
-                foreach (var r in _target.GetComponentsInChildren<Renderer>(true))
-                    if (r is MeshRenderer || r is SkinnedMeshRenderer) _renderers.Add(r);
-
-            bool any = false;
-            Bounds b = default;
-            foreach (var r in _renderers)
-            {
-                if (r == null || !r.enabled || !r.gameObject.activeInHierarchy) continue;
-                if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds);
-            }
-            if (!any) return false;
-
-            Vector3 centre = _cam.WorldToScreenPoint(b.center);
-            if (centre.z < 0f) return false;
-            float top = float.MinValue;
-            for (int i = 0; i < 8; i++)
-            {
-                var corner = new Vector3(
-                    (i & 1) == 0 ? b.min.x : b.max.x,
-                    (i & 2) == 0 ? b.min.y : b.max.y,
-                    (i & 4) == 0 ? b.min.z : b.max.z);
-                Vector3 s = _cam.WorldToScreenPoint(corner);
-                if (s.z > 0f && s.y > top) top = s.y;
-            }
-            screen = new Vector3(centre.x, top, centre.z);
-            return true;
-        }
-
-        private CanvasGroup _cg;
-
-        public void SetCamera(Camera cam)
-        {
-            _cam = cam;
-        }
-
-        private void LateUpdate()
-        {
-            if (_cam == null || !_cam.gameObject.activeInHierarchy) _cam = Camera.main;
-            if (_cam == null || _rt == null) return;
-            // fade instead of SetActive: an inactive label would never get another LateUpdate to come back
-            if (_cg == null)
-            {
-                _cg = GetComponent<CanvasGroup>();
-                if (_cg == null) _cg = gameObject.AddComponent<CanvasGroup>();
-                _cg.blocksRaycasts = false; _cg.interactable = false;
-            }
-            bool visible = TryGetScreenAnchor(out Vector3 screen)
-                           && !ARVirtualLab.AR.ARExperimentMode.BlockSceneInput;    // hidden until the AR lab is placed
-            _cg.alpha = visible ? 1f : 0f;
-            if (!visible) return;
-
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _canvasRT, screen, null, out Vector2 local);
-            _rt.anchoredPosition = local + new Vector2(0f, LabelGap);
         }
     }
 }

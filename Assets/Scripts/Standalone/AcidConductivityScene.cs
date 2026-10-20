@@ -18,7 +18,7 @@ namespace ARVirtualLab.AcidConductivity
 {
     public enum AcTag { None, ElectrodeAssembly, BottleHCl, BottleH2SO4, BottleGlucose, BottleAlcohol, SwitchObj, Beaker }
 
-    public class AcInteractable : MonoBehaviour { public AcTag tag = AcTag.None; }
+    public class AcInteractable : MonoBehaviour { public new AcTag tag = AcTag.None; }
 
     public enum ConductStep
     {
@@ -40,6 +40,8 @@ namespace ARVirtualLab.AcidConductivity
         private AudioSource _audio;
         private Camera _cam;
         private GameObject _table;
+        private Bounds _apparatus;                 // measured once, for the camera framing
+        private bool _haveApparatus;
         private ExperimentHud _hud;
         private HintRing _hint;
         private bool _animating;
@@ -118,16 +120,23 @@ namespace ARVirtualLab.AcidConductivity
         // ═════════════════════════════════════════════════════
         private void Awake()
         {
+            LabOrientation.Landscape(this);
             BuildCameraAndLighting();
             EnsureEventSystem();
             _audio = GetComponent<AudioSource>();
             if (_audio == null) _audio = gameObject.AddComponent<AudioSource>();
         }
 
+        private void OnDestroy()
+        {
+            LabOrientation.Portrait();
+        }
+
         private void Start()
         {
             CreateMaterials();
             BuildScene();
+            _haveApparatus = ApparatusBounds.TryGet(transform, _table, out _apparatus);
             BuildUI();
 
             if (AppNavigation.LaunchDirectlyToAR)
@@ -147,7 +156,7 @@ namespace ARVirtualLab.AcidConductivity
         private void Update()
         {
             UpdateHint();
-            CameraFit.Apply(_cam, 48f, 1.40f);
+            if (_haveApparatus) CameraFit.Frame(_cam, _apparatus);   // the whole bench in the clear middle of the screen
             UpdateInteraction();
             UpdateBulbHalo();
         }
@@ -233,10 +242,7 @@ namespace ARVirtualLab.AcidConductivity
         // =========================================================
         private void BuildScene()
         {
-            _table = new GameObject("LabPlatform");
-            _table.transform.SetParent(transform, false);
-            Box("LabTable", _table.transform, new Vector3(0f, -0.06f, 0.05f), new Vector3(1.20f, 0.04f, 0.70f), Simple(new Color(0.30f, 0.18f, 0.10f), 0.35f, 0.02f));
-            Box("BenchSurface", _table.transform, new Vector3(0f, -0.038f, 0.05f), new Vector3(1.18f, 0.012f, 0.68f), Simple(new Color(0.42f, 0.26f, 0.15f), 0.45f, 0.02f));
+            _table = LabBench.Create(transform, new Vector3(0f, TABLE_TOP_Y, 0.05f), new Vector2(1.20f, 0.70f));   // the shared grey lab table
 
             // ── Beaker ─────────────────────────────────────────
             var beakerContainer = new GameObject("Beaker");
@@ -960,7 +966,6 @@ namespace ARVirtualLab.AcidConductivity
                 Bench = _table,
                 BenchSurfaceY = TABLE_TOP_Y,
                 BenchCenterZ = 0.05f,
-                DefaultScale = 2.6f,
                 OnStarted = c => { _cam = c; },
                 OnStopped = c => { _cam = c; }
             });
@@ -1000,17 +1005,7 @@ namespace ARVirtualLab.AcidConductivity
         // =========================================================
         private void BuildUI()
         {
-            var canvasGO = new GameObject("AcidConductivityCanvas", typeof(RectTransform));
-            canvasGO.transform.SetParent(transform, false);
-            var canvas = canvasGO.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 10;
-            var scaler = canvasGO.AddComponent<UnityEngine.UI.CanvasScaler>();
-            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080f, 1920f);
-            scaler.matchWidthOrHeight = 0.5f;
-            canvasGO.AddComponent<UnityEngine.UI.GraphicRaycaster>();
-            var root = canvasGO.GetComponent<RectTransform>();
+            var root = ExperimentHud.CreateCanvas(transform, "AcidConductivityCanvas");
 
             _hud = ExperimentHud.Build(this, root, new HudConfig
             {

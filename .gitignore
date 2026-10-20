@@ -69,3 +69,9 @@ Desktop.ini
 # ── AI mentor: your personal API key file (never commit it; see Assets/Resources/AIConfig.example.json) ──
 /Assets/Resources/AIConfig.json
 /Assets/Resources/AIConfig.json.meta
+# Localization tool output (regenerate with Tools/Localization/extract_strings.py)
+Tools/Localization/te_missing.txt
+Tools/Localization/te_missing_runtime.txt
+
+# Shared signing key for test builds: never commit it, pass it on privately (see AndroidBuildRunner.cs)
+/Signing/

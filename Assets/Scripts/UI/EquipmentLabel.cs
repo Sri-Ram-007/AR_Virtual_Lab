@@ -34,21 +34,30 @@ namespace ARVirtualLab.UI
         public static EquipmentLabel Create(RectTransform canvasRoot, System.Func<Camera> getCamera, Transform target,
             string text, LabelAnchor anchor = LabelAnchor.Top, Vector2? screenOffset = null, System.Func<bool> visibleWhen = null)
         {
-            var box = UiKit.Box(canvasRoot, "Label_" + text, new Color(1f, 1f, 1f, 0.92f), 8);
+            var paper = EduTheme.Paper;
+            var box = UiKit.Box(canvasRoot, "Label_" + text, new Color(paper.r, paper.g, paper.b, 0.92f), 8);
             box.raycastTarget = false;
             var outline = box.gameObject.AddComponent<Outline>();
             outline.effectColor = EduTheme.Border;
             outline.effectDistance = new Vector2(1f, -1f);
             var rt = box.rectTransform;
-            rt.sizeDelta = new Vector2(Mathf.Clamp(text.Length * 10.5f + 18f, 70f, 230f), 28f);
+            rt.sizeDelta = new Vector2(120f, 42f);
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.SetAsFirstSibling();                 // behind the HUD cards and dialogs, never on top of them
 
-            var label = UiKit.Text(box.transform, "T", text, 15, EduTheme.Ink, FontStyles.Bold, TextAlignmentOptions.Center);
-            UiKit.Fill(label.rectTransform);
-            label.text = MobileText.Clean(label.text);
+            // one line, one size for every label; the box widens to the text (also when Telugu is longer)
+            var layout = box.gameObject.AddComponent<HorizontalLayoutGroup>();
+            layout.padding = new RectOffset(14, 14, 0, 0);
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childControlWidth = layout.childControlHeight = true;
+            layout.childForceExpandWidth = layout.childForceExpandHeight = false;
+            box.gameObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var label = UiKit.Text(box.transform, "T", text, 22, EduTheme.Ink, FontStyles.Bold, TextAlignmentOptions.Center);
             label.enableAutoSizing = false;
-            label.fontSize = 15f;
+            label.fontSize = 22f;
+            label.textWrappingMode = TextWrappingModes.NoWrap;
             label.raycastTarget = false;
 
             var comp = box.gameObject.AddComponent<EquipmentLabel>();

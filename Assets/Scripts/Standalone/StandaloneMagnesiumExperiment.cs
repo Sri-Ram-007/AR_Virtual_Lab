@@ -56,11 +56,8 @@ namespace ARVirtualLab.Standalone
         private Material _ribbonMaterial;
 
         // Flags
-        private bool _ribbonSelected = false;
-        private bool _ribbonCleaned = false;
         private bool _tongsHoldingRibbon = false;
         private bool _burnerOn = false;
-        private bool _ribbonBurned = false;
         private bool _productCooled = false;
         private bool _productCollected = false;
         private bool _isHeatingOrBurning = false;
@@ -172,11 +169,8 @@ namespace ARVirtualLab.Standalone
         {
             StopAllCoroutines();
 
-            _ribbonSelected = false;
-            _ribbonCleaned = false;
             _tongsHoldingRibbon = false;
             _burnerOn = false;
-            _ribbonBurned = false;
             _productCooled = false;
             _productCollected = false;
             _isHeatingOrBurning = false;
@@ -450,7 +444,6 @@ namespace ARVirtualLab.Standalone
                     if (currentState == StandaloneState.Introduction || currentState == StandaloneState.Ready)
                     {
                         if (currentState == StandaloneState.Introduction) StartButtonTriggered();
-                        _ribbonSelected = true;
                         io.Highlight(true);
                         Debug.Log("Ribbon selected");
                         uiController?.ShowFeedback("Ribbon selected. Rub it on the Sandpaper.", true);
@@ -625,7 +618,6 @@ namespace ARVirtualLab.Standalone
         // ── State Processors ───────────────────────────────────────
         private void FinishCleaning()
         {
-            _ribbonCleaned = true;
             currentState = StandaloneState.RibbonReady;
             _draggingObject = null;
 

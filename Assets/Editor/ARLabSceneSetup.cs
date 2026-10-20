@@ -404,7 +404,7 @@ namespace ARVirtualLab.Editor
             sdRT.anchoredPosition = new Vector2(0, 80);
             sdRT.sizeDelta        = new Vector2(740, 300);
             stepDesc.color         = Color.white;
-            stepDesc.enableWordWrapping = true;
+            stepDesc.textWrappingMode = TextWrappingModes.Normal;
 
             TMP_Text eqText = CreateTextChild(panel, "EquationText",
                 "", 36, TextAlignmentOptions.Center);
@@ -418,7 +418,7 @@ namespace ARVirtualLab.Editor
             obsRT.anchoredPosition = new Vector2(0, -120);
             obsRT.sizeDelta        = new Vector2(740, 120);
             obsText.color          = new Color(0.8f, 1f, 0.8f);
-            obsText.enableWordWrapping = true;
+            obsText.textWrappingMode = TextWrappingModes.Normal;
             obsText.gameObject.SetActive(false);
 
             // Feedback Toast.
@@ -455,7 +455,7 @@ namespace ARVirtualLab.Editor
             ctrl.feedbackToastText     = toastText;
 
             // Set MagnesiumExperiment text refs.
-            MagnesiumExperiment magExp = GameObject.FindObjectOfType<MagnesiumExperiment>();
+            MagnesiumExperiment magExp = GameObject.FindFirstObjectByType<MagnesiumExperiment>();
             if (magExp != null)
             {
                 magExp.stepDescriptionText = stepDesc;
@@ -490,7 +490,7 @@ namespace ARVirtualLab.Editor
                 RectTransform r = t.GetComponent<RectTransform>();
                 r.anchoredPosition = new Vector2(0, yStart - i * 62f);
                 r.sizeDelta        = new Vector2(760, 55);
-                t.enableWordWrapping = true;
+                t.textWrappingMode = TextWrappingModes.Normal;
                 t.color = Color.white;
                 fields[i] = t;
             }
@@ -563,7 +563,7 @@ namespace ARVirtualLab.Editor
             respRT.anchoredPosition = new Vector2(0, 10);
             respRT.sizeDelta        = new Vector2(760, 250);
             responseText.color          = Color.white;
-            responseText.enableWordWrapping = true;
+            responseText.textWrappingMode = TextWrappingModes.Normal;
 
             // Input field for custom questions.
             GameObject inputGO = new GameObject("QuestionInput");
@@ -685,7 +685,7 @@ namespace ARVirtualLab.Editor
             tmp.fontSize          = fontSize;
             tmp.alignment         = align;
             tmp.color             = Color.white;
-            tmp.enableWordWrapping = true;
+            tmp.textWrappingMode = TextWrappingModes.Normal;
 
             RectTransform rt = go.GetComponent<RectTransform>();
             if (rt == null) rt = go.AddComponent<RectTransform>();

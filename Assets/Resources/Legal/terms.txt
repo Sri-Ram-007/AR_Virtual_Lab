@@ -1,0 +1,20 @@
+# Terms of Use
+Version 1 · test release · 12 October 2026
+
+## A test version
+This is an early version of EduAR, shared with a small group of testers. It may have mistakes and may change or stop without notice. It is provided as it is, without any warranty.
+
+## Safety comes first
+The experiments in EduAR are virtual. They help you understand and prepare for the activities in your textbook; they do not replace real practical work.
+Never try an experiment at home or without your teacher. Burning metals and handling acids can cause burns and injuries.
+Always follow your teacher's instructions and the safety rules in your textbook.
+
+## The textbook
+The experiments follow the Class 10 Physical Science textbook of Andhra Pradesh (SCERT). The textbook and its contents belong to their publisher.
+
+## Using the app
+Use EduAR for learning. Do not change, copy or sell the app.
+The 3D models, fonts and software libraries in EduAR belong to their authors; see Open-source licences.
+
+## Agreement
+By choosing "Agree and continue", you accept these terms and the Privacy Policy. If you are under 18, please read them with a parent or teacher.

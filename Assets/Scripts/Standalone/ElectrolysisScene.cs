@@ -31,7 +31,7 @@ namespace ARVirtualLab.Electrolysis
 
     public enum ElTag { None, ElectrodeLeft, ElectrodeRight, AcidBottle, TubeAnode, TubeCathode, SwitchBox, Candle, Mug, WaterJug }
 
-    public class ElInteractable : MonoBehaviour { public ElTag tag = ElTag.None; }
+    public class ElInteractable : MonoBehaviour { public new ElTag tag = ElTag.None; }
 
     [RequireComponent(typeof(AudioSource))]
     public class ElectrolysisScene : MonoBehaviour
@@ -43,6 +43,8 @@ namespace ARVirtualLab.Electrolysis
         private AudioSource _audio;
         private Camera _cam;
         private GameObject _table;
+        private Bounds _apparatus;                 // measured once, for the camera framing
+        private bool _haveApparatus;
         private ExperimentHud _hud;
         private HintRing _hint;
         private bool _animating;
@@ -93,7 +95,7 @@ namespace ARVirtualLab.Electrolysis
         private float _tubeH = 0.21f, _tubeDia = 0.026f;
         private bool _waterAdded, _leftPlaced, _rightPlaced, _acidAdded, _anodeTubePlaced, _cathodeTubePlaced, _switchedOn, _anodeTested, _cathodeTested;
 
-        private Material _glassMat, _liquidMat, _acidTintMat, _metalMat, _bubbleMat, _tableMat, _benchMat;
+        private Material _glassMat, _liquidMat, _acidTintMat, _metalMat, _bubbleMat;
         private ParticleSystem _anodeBubblesPS, _cathodeBubblesPS;
         private GameObject _draggingObject;
         private Plane _dragPlane;
@@ -103,16 +105,23 @@ namespace ARVirtualLab.Electrolysis
         // ═════════════════════════════════════════════════════
         private void Awake()
         {
+            LabOrientation.Landscape(this);
             BuildCameraAndLighting();
             EnsureEventSystem();
             _audio = GetComponent<AudioSource>();
             if (_audio == null) _audio = gameObject.AddComponent<AudioSource>();
         }
 
+        private void OnDestroy()
+        {
+            LabOrientation.Portrait();
+        }
+
         private void Start()
         {
             CreateMaterials();
             BuildScene();
+            _haveApparatus = ApparatusBounds.TryGet(transform, _table, out _apparatus);
             BuildUI();
 
             if (AppNavigation.LaunchDirectlyToAR)
@@ -132,7 +141,7 @@ namespace ARVirtualLab.Electrolysis
         private void Update()
         {
             UpdateHint();
-            CameraFit.Apply(_cam, 48f, 1.50f);   // wide bench: zoom out so both ends stay on a tall phone screen
+            if (_haveApparatus) CameraFit.Frame(_cam, _apparatus);   // the whole bench in the clear middle of the screen
             UpdateInteraction();
             CheckFlameContact();
         }
@@ -206,8 +215,6 @@ namespace ARVirtualLab.Electrolysis
             _acidTintMat = new Material(lit); ApplyTransparent(_acidTintMat, new Color(0.50f, 0.85f, 0.65f, 0.70f)); _acidTintMat.SetFloat("_Smoothness", 0.85f);
             _metalMat = Simple(new Color(0.30f, 0.32f, 0.35f), 0.55f, 0.7f);
             _bubbleMat = new Material(lit); ApplyTransparent(_bubbleMat, new Color(0.9f, 0.97f, 1f, 0.85f));
-            _tableMat = Simple(new Color(0.30f, 0.18f, 0.10f), 0.35f, 0.02f);
-            _benchMat = Simple(new Color(0.42f, 0.26f, 0.15f), 0.45f, 0.02f);
         }
 
         private Material Simple(Color c, float smooth, float metal)
@@ -239,10 +246,7 @@ namespace ARVirtualLab.Electrolysis
         // =========================================================
         private void BuildScene()
         {
-            _table = new GameObject("LabPlatform");
-            _table.transform.SetParent(transform, false);
-            Box("LabTable", _table.transform, new Vector3(0f, -0.06f, 0.05f), new Vector3(1.20f, 0.04f, 0.70f), _tableMat);
-            Box("BenchSurface", _table.transform, new Vector3(0f, -0.038f, 0.05f), new Vector3(1.18f, 0.012f, 0.68f), _benchMat);
+            _table = LabBench.Create(transform, new Vector3(0f, TABLE_TOP_Y, 0.05f), new Vector2(1.20f, 0.70f));   // the shared grey lab table
 
             // ── Mug ────────────────────────────────────────────
             var mugContainer = new GameObject("PlasticMug");
@@ -1130,7 +1134,6 @@ namespace ARVirtualLab.Electrolysis
                 Bench = _table,
                 BenchSurfaceY = TABLE_TOP_Y,
                 BenchCenterZ = 0.05f,
-                DefaultScale = 2.2f,
                 OnStarted = c => { _cam = c; },
                 OnStopped = c => { _cam = c; }
             });
@@ -1185,17 +1188,7 @@ namespace ARVirtualLab.Electrolysis
         // =========================================================
         private void BuildUI()
         {
-            var canvasGO = new GameObject("ElectrolysisCanvas", typeof(RectTransform));
-            canvasGO.transform.SetParent(transform, false);
-            var canvas = canvasGO.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 10;
-            var scaler = canvasGO.AddComponent<UnityEngine.UI.CanvasScaler>();
-            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080f, 1920f);
-            scaler.matchWidthOrHeight = 0.5f;
-            canvasGO.AddComponent<UnityEngine.UI.GraphicRaycaster>();
-            var root = canvasGO.GetComponent<RectTransform>();
+            var root = ExperimentHud.CreateCanvas(transform, "ElectrolysisCanvas");
 
             _hud = ExperimentHud.Build(this, root, new HudConfig
             {

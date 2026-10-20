@@ -266,26 +266,12 @@ namespace ARVirtualLab.Scan
         private IEnumerator StartScanning()
         {
 #if UNITY_ANDROID && !UNITY_EDITOR
-            if (!Permission.HasUserAuthorizedPermission(Permission.Camera))
+            bool granted = false;
+            yield return CameraPermission.Request("EduAR uses the camera to recognise your textbook page.", g => granted = g);
+            if (!granted)
             {
-                bool granted = false, denied = false;
-                var cb = new PermissionCallbacks();
-                cb.PermissionGranted += _ => granted = true;
-                cb.PermissionDenied += _ => denied = true;
-                cb.PermissionDeniedAndDontAskAgain += _ => denied = true;
-                Permission.RequestUserPermission(Permission.Camera, cb);
-                float t = 0f;
-                while (!granted && !denied && t < 20f)
-                {
-                    t += Time.unscaledDeltaTime;
-                    if (Permission.HasUserAuthorizedPermission(Permission.Camera)) granted = true;
-                    yield return null;
-                }
-                if (!granted)
-                {
-                    SetStatus("Camera permission is needed to scan. Choose your page below instead.", StatusKind.Problem);
-                    yield break;
-                }
+                SetStatus("Camera permission is needed to scan. Choose your page below instead.", StatusKind.Problem);
+                yield break;
             }
 #endif
             yield return ARSession.CheckAvailability();

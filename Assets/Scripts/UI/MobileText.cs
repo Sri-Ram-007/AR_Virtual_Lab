@@ -46,6 +46,7 @@ namespace ARVirtualLab.UI
                     case '☢': case '⚪': case '⚓': case '️':   // misc symbols, variation selector
                         continue;
                 }
+                if (c >= 'ఀ' && c <= '౿') { sb.Append(c); continue; }   // Telugu: drawn by Android (NativeText), not this font
                 if (c > 0x7F && !FontHasGlyph(c)) continue;               // anything else the font cannot draw would show as a box
                 sb.Append(c);
             }

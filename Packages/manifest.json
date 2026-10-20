@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.gamelovers.mcp-unity": "https://github.com/CoderGamester/mcp-unity.git",
+    "com.gamelovers.mcp-unity": "https://github.com/CoderGamester/mcp-unity.git#d572dc88f1b982a0fdfc09cd14cfdfd760b658e8",
     "com.unity.ai.navigation": "2.0.9",
     "com.unity.cloud.gltfast": "6.10.2",
     "com.unity.collab-proxy": "2.11.2",

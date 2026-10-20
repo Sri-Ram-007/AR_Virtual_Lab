@@ -1,0 +1,20 @@
+# Open-source licences
+EduAR is built with these tools and libraries. Thank you to their authors.
+
+## Unity
+Unity engine, Universal Render Pipeline, Input System, TextMesh Pro and XR packages, under the Unity Companion License and the Unity Terms of Service.
+
+## AR Foundation and ARCore
+AR Foundation and the Google ARCore XR Plugin, under the Unity Companion License. Google Play Services for AR (ARCore) is provided by Google LLC under the Google APIs Terms of Service.
+
+## Google ML Kit
+On-device translation, under the ML Kit Terms of Service.
+
+## glTFast
+Loading of 3D models, under the Apache License 2.0.
+
+## Liberation Sans
+The app's Latin font, under the SIL Open Font License 1.1.
+
+## 3D models
+The laboratory apparatus models were created with Meshy AI.
