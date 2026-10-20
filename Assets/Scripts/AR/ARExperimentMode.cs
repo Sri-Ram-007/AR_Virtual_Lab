@@ -96,6 +96,8 @@ namespace ARVirtualLab.AR
         private float _lastPinchDistance;
 
         private const float MinPlaneArea = 0.12f;      // m² — big enough for the lab
+        private const float MaxPlaceDistance = 2.2f, MinPlaceDistance = 0.3f;   // metres from the phone to the spot the lab may be put on
+        private float _reticleDistance;
 
         // ═════════════════════════════════════════════════════
         //  PUBLIC API
@@ -361,7 +363,7 @@ namespace ARVirtualLab.AR
                 string loader = "none";
                 try { var m = UnityEngine.XR.Management.XRGeneralSettings.Instance?.Manager; if (m != null && m.activeLoader != null) loader = m.activeLoader.name; } catch { }
                 _diagText.text = "session " + ARSession.state + "  |  pose " + (_poseDriver != null ? _poseDriver.Source : "-") +
-                                 "  |  planes " + (_planeManager != null ? _planeManager.trackables.count : 0) + "  |  xr " + loader + "  |  " + _phase;
+                                 "  |  planes " + (_planeManager != null ? _planeManager.trackables.count : 0) + "  |  xr " + loader + "  |  " + _phase + (_reticleDistance > 0f ? "  |  spot " + _reticleDistance.ToString("F1") + " m" : "");
             }
             if (_scaler != null && IsLandscape() != _layoutLandscape) ApplyLayout(IsLandscape());   // the phone was turned
             if (_arCamera == null || _raycastManager == null) return;
@@ -380,6 +382,24 @@ namespace ARVirtualLab.AR
                 // reticle follows the middle of the screen
                 Vector2 center = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
                 _reticleOnPlane = _raycastManager.Raycast(center, _hits, TrackableType.PlaneWithinPolygon | TrackableType.PlaneWithinBounds);
+                _reticleDistance = 0f;
+                if (_reticleOnPlane)
+                {
+                    // real-world distance from the phone to the spot (the tracking origin may already be scaled once a lab exists)
+                    _reticleDistance = Vector3.Distance(_hits[0].pose.position, _arCamera.transform.position) / Mathf.Max(0.0001f, _origin.transform.localScale.x);
+                    if (_reticleDistance > MaxPlaceDistance || _reticleDistance < MinPlaceDistance)
+                    {
+                        // a surface metres away would put the lab far off as a tiny speck, so it is not offered
+                        _reticleOnPlane = false;
+                        if (Time.unscaledTime >= _nextTip && _phase != Phase.Repositioning)
+                        {
+                            _nextTip = Time.unscaledTime + 3f;
+                            SetStatus(_reticleDistance > MaxPlaceDistance
+                                ? "That surface is " + _reticleDistance.ToString("F1") + " m away. Move closer, about 1 metre, and aim the circle at the table"
+                                : "Too close. Move the phone back a little", false, 3f);
+                        }
+                    }
+                }
                 if (_reticleOnPlane)
                 {
                     _reticlePose = _hits[0].pose;
@@ -403,8 +423,10 @@ namespace ARVirtualLab.AR
                 }
                 if (_placeBtn != null) _placeBtn.gameObject.SetActive(_reticleOnPlane);
 
-                if (TapPosition(out Vector2 tap) && _raycastManager.Raycast(tap, _hits, TrackableType.PlaneWithinPolygon | TrackableType.PlaneWithinBounds))
-                    PlaceLab(_hits[0].pose);
+                // a tap anywhere places the lab where the CIRCLE is (the instruction says "aim and tap"), never at the
+                // point that was touched — that used to drop the lab on a far wall or floor
+                if (TapPosition(out Vector2 tap) && _reticleOnPlane)
+                    PlaceLab(_reticlePose);
             }
             else
             {
