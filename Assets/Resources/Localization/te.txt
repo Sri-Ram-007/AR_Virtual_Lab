@@ -632,3 +632,4 @@ Offline mode: built-in answers	ఆఫ్‌లైన్ మోడ్: అంత�
 Answered by AI	AI సమాధానం ఇచ్చింది
 Sorry, I could not answer that. Please try again.	క్షమించండి, దానికి సమాధానం ఇవ్వలేకపోయాను. దయచేసి మళ్లీ ప్రయత్నించండి.
 Why is the ribbon cleaned first?	రిబ్బన్ను మొదట ఎందుకు శుభ్రం చేస్తారు?
+Place in front of me	నా ముందు ఉంచండి

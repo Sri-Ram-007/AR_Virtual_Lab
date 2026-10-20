@@ -87,7 +87,7 @@ namespace ARVirtualLab.AR
         private TextMeshProUGUI _statusText, _diagText;
         private Image _diagBg;
         private float _scanStart, _nextTip;
-        private Button _placeBtn, _moveBtn, _cancelBtn, _exitBtn;
+        private Button _placeBtn, _frontBtn, _moveBtn, _cancelBtn, _exitBtn;
         private float _statusHideAt = -1f;
         private float _nextLog, _nextDiag, _nextReset, _nextReason;
         private static Texture2D _ringTex;
@@ -102,8 +102,9 @@ namespace ARVirtualLab.AR
         private bool _pinching;
         private float _lastPinchDistance;
 
+        private const float FrontButtonAfter = 4f;       // seconds of searching before "Place in front of me" is offered
         private const float MinPlaneArea = 0.12f;      // m² — big enough for the lab
-        private const float MaxPlaceDistance = 4f, MinPlaceDistance = 0.25f;   // metres from the phone to the spot the lab may be put on
+        private const float MaxPlaceDistance = 4f, MinPlaceDistance = 0.15f;   // metres from the phone to the spot the lab may be put on
         private float _reticleDistance;
 
         // ═════════════════════════════════════════════════════
@@ -466,6 +467,9 @@ namespace ARVirtualLab.AR
                     SetStatus("Still searching. Stand about 1 metre from a table or floor, tilt the phone down a little and sweep it slowly side to side", false);
                 }
                 if (_placeBtn != null) _placeBtn.gameObject.SetActive(_reticleOnPlane);
+                // ARCore can take a long while to turn a soft or patterned surface into a plane, so after a few seconds the lab can
+                // also be put straight in front of the phone, on the table level a phone is usually held above
+                if (_frontBtn != null) _frontBtn.gameObject.SetActive(!_reticleOnPlane && _phase != Phase.Repositioning && Time.unscaledTime - _scanStart > FrontButtonAfter);
 
                 // a tap anywhere places the lab where the CIRCLE is (the instruction says "aim and tap"), never at the
                 // point that was touched — that used to drop the lab on a far wall or floor
@@ -533,7 +537,7 @@ namespace ARVirtualLab.AR
             float k = o.localScale.x;
             // ARCore's distances are unreliable on soft or patterned cloth (it can read 3 m for a bed half a metre away), so a far
             // spot is not refused: the lab is simply made bigger by the same factor, so it looks the same size as at a metre
-            _arScale = Mathf.Clamp(_baseScale * Mathf.Clamp(_reticleDistance, 1f, 2.5f), MinScale, MaxScale);
+            _arScale = Mathf.Clamp(_baseScale * Mathf.Clamp(_reticleDistance, 0.4f, 2.5f), MinScale, MaxScale);
             Debug.Log("[ARMode] placing the lab at " + surface.position.ToString("F2") + " spot " + _reticleDistance.ToString("F1") + " m away (size x" + _arScale.ToString("F1") + ")");
 
             // where the tapped point sits in tracking space (before we move anything)
@@ -555,6 +559,34 @@ namespace ARVirtualLab.AR
             _blockPlacing = false;
             RefreshButtons();
             SetStatus("Lab placed. Pinch with two fingers to resize it. Follow the steps to do the experiment", false, 5f);
+        }
+
+        /// <summary>
+        /// No surface needed: the lab goes in front of the phone on the level of a table below it (about 55 cm under the phone),
+        /// along where the camera is aiming, 0.4 to 1.4 m away. "Move lab" and the pinch fix any difference afterwards.
+        /// </summary>
+        private void PlaceInFront()
+        {
+            if (_phase != Phase.Scanning && _phase != Phase.Ready) return;
+            Transform c = _arCamera.transform;
+            float k = Mathf.Max(0.0001f, _origin.transform.localScale.x);
+            float drop = 0.55f * k;
+            Vector3 fwd = c.forward, p;
+            if (fwd.y < -0.25f)
+            {
+                float t = Mathf.Clamp(drop / -fwd.y, 0.4f * k, 1.4f * k);
+                p = c.position + fwd * t;
+            }
+            else
+            {
+                Vector3 flat = new Vector3(fwd.x, 0f, fwd.z);
+                if (flat.sqrMagnitude < 0.01f) flat = new Vector3(c.up.x, 0f, c.up.z);
+                p = c.position + flat.normalized * 0.7f * k;
+            }
+            p.y = c.position.y - drop;
+            _reticleDistance = Vector3.Distance(p, c.position) / k;
+            Debug.Log("[ARMode] placing in front of the phone, " + _reticleDistance.ToString("F2") + " m away");
+            PlaceLab(new Pose(p, Quaternion.identity), null);
         }
 
         private async void CreateAnchor(Pose world, ARPlane plane)
@@ -724,6 +756,10 @@ namespace ARVirtualLab.AR
             _placeBtn.onClick.AddListener(() => { if (_reticleOnPlane) PlaceLab(_reticlePose, _reticlePlane); });
             _placeBtn.gameObject.SetActive(false);
 
+            _frontBtn = UiKit.Button(safe, "PlaceInFront", "Place in front of me", EduTheme.Neutral, EduTheme.Ink, 34, 22);
+            _frontBtn.onClick.AddListener(PlaceInFront);
+            _frontBtn.gameObject.SetActive(false);
+
             _moveBtn = UiKit.Button(safe, "MoveLab", "Move lab", EduTheme.Neutral, EduTheme.Ink, 32, 18);
             _moveBtn.onClick.AddListener(() => { _phase = Phase.Repositioning; _blockPlacing = true; RefreshButtons(); SetStatus("Aim at a new spot and tap to move the lab", false); });
 
@@ -748,6 +784,7 @@ namespace ARVirtualLab.AR
             _layoutLandscape = landscape;
             _scaler.referenceResolution = landscape ? new Vector2(1920f, 1080f) : new Vector2(1080f, 1920f);
             var place = _placeBtn.GetComponent<RectTransform>();
+            var front = _frontBtn.GetComponent<RectTransform>();
             var move = _moveBtn.GetComponent<RectTransform>();
             var cancel = _cancelBtn.GetComponent<RectTransform>();
             var exit = _exitBtn.GetComponent<RectTransform>();
@@ -755,6 +792,7 @@ namespace ARVirtualLab.AR
             {
                 UiKit.Pin(_statusBg.rectTransform, 0.5f, 1f, 0f, -40f, 600f, 110f);
                 UiKit.Pin(place, 0.5f, 0f, 0f, 40f, 440f, 96f);
+                UiKit.Pin(front, 0.5f, 0f, 0f, 40f, 520f, 96f);
                 UiKit.Pin(move, 1f, 0f, -256f, 32f, 200f, 80f);
                 UiKit.Pin(cancel, 1f, 0f, -256f, 32f, 200f, 80f);
                 UiKit.Pin(exit, 1f, 0f, -40f, 32f, 200f, 80f);
@@ -764,6 +802,7 @@ namespace ARVirtualLab.AR
             {
                 UiKit.Anchor(_statusBg.rectTransform, 0.06f, 0.715f, 0.94f, 0.795f);
                 UiKit.Anchor(place, 0.20f, 0.20f, 0.80f, 0.265f);
+                UiKit.Anchor(front, 0.15f, 0.20f, 0.85f, 0.265f);
                 UiKit.Anchor(move, 0.05f, 0.105f, 0.47f, 0.165f);
                 UiKit.Anchor(cancel, 0.05f, 0.105f, 0.47f, 0.165f);
                 UiKit.Anchor(exit, 0.53f, 0.105f, 0.95f, 0.165f);
@@ -776,6 +815,7 @@ namespace ARVirtualLab.AR
             if (_moveBtn != null) _moveBtn.gameObject.SetActive(_phase == Phase.Placed);
             if (_cancelBtn != null) _cancelBtn.gameObject.SetActive(_phase == Phase.Repositioning);
             if (_placeBtn != null && _phase == Phase.Placed) _placeBtn.gameObject.SetActive(false);
+            if (_frontBtn != null && _phase == Phase.Placed) _frontBtn.gameObject.SetActive(false);
         }
 
         private void SetStatus(string text, bool problem, float autoHideSeconds = -1f)
