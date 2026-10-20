@@ -312,6 +312,7 @@ namespace ARVirtualLab.Scan
             var offset = new GameObject("Camera Offset");
             offset.transform.SetParent(originGO.transform, false);
             _origin.CameraFloorOffsetObject = offset;
+            _origin.CameraYOffset = 0f;      // a phone's AR pose already includes its height; the default 1.12 m lift would put the camera above where ARCore thinks it is
 
             var camGO = new GameObject("AR Camera");
             camGO.tag = "MainCamera";
