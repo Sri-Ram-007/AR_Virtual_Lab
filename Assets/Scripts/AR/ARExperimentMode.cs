@@ -266,6 +266,11 @@ namespace ARVirtualLab.AR
             var camMgr = camGO.AddComponent<ARCameraManager>();
             camMgr.autoFocusRequested = false;      // ARCore tracks best with fixed focus: refocusing changes the image scale and can make the tracked position wander
             camGO.AddComponent<ARCameraBackground>();
+            // ARCore's depth estimate lets a ray hit the table within a second or two, long before a flat surface has been fully
+            // detected. It is only used for placing (no occlusion is drawn), and is ignored on phones that cannot do it.
+            var depth = camGO.AddComponent<AROcclusionManager>();
+            depth.requestedEnvironmentDepthMode = EnvironmentDepthMode.Fastest;
+            depth.requestedOcclusionPreferenceMode = OcclusionPreferenceMode.NoOcclusion;
 
             _poseDriver = camGO.AddComponent<ARCameraPoseDriver>();     // the camera must actually follow the phone
 
@@ -398,7 +403,7 @@ namespace ARVirtualLab.AR
                 _nextLog = Time.unscaledTime + 2.5f;
                 Debug.Log("[ARMode] phase=" + _phase + " session=" + ARSession.state + " planes=" + _planeManager.trackables.count +
                           " anchor=" + (_anchor != null ? _anchor.trackingState + " " + _origin.TrackablesParent.InverseTransformPoint(_anchor.transform.position).ToString("F2") : "none") +
-                          " scale=" + _arScale.ToString("F1") + " why=" + ARSession.notTrackingReason + " fps=" + (1f / Mathf.Max(0.0001f, Time.smoothDeltaTime)).ToString("F0") +
+                          " hit=" + _hitSource + " scale=" + _arScale.ToString("F1") + " why=" + ARSession.notTrackingReason + " fps=" + (1f / Mathf.Max(0.0001f, Time.smoothDeltaTime)).ToString("F0") +
                           " camPos=" + _arCamera.transform.position.ToString("F2") + " pose=" + (_poseDriver != null ? _poseDriver.Source : "-"));
             }
 
@@ -437,6 +442,14 @@ namespace ARVirtualLab.AR
                 // reticle follows the middle of the screen
                 Vector2 center = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
                 _reticleOnPlane = _raycastManager.Raycast(center, _hits, TrackableType.PlaneWithinPolygon | TrackableType.PlaneWithinBounds);
+                _hitSource = _reticleOnPlane ? "plane" : "none";
+                if (!_reticleOnPlane)
+                {
+                    // no flat surface detected yet: use what ARCore already sees under the circle, first its depth estimate, then
+                    // (after a moment) the loose points it has tracked. Both must face up and lie below the phone, like a table or floor.
+                    if (_raycastManager.Raycast(center, _hits, TrackableType.Depth) && AcceptLooseHit(_hits)) { _reticleOnPlane = true; _hitSource = "depth"; }
+                    else if (Time.unscaledTime - _scanStart > 3f && _raycastManager.Raycast(center, _hits, TrackableType.FeaturePoint) && AcceptLooseHit(_hits)) { _reticleOnPlane = true; _hitSource = "point"; }
+                }
                 _reticleDistance = 0f;
                 if (_reticleOnPlane)
                 {
@@ -467,7 +480,7 @@ namespace ARVirtualLab.AR
                 }
                 else _reticle.SetActive(false);
 
-                if (_phase == Phase.Scanning && HasUsablePlane())
+                if (_phase == Phase.Scanning && (HasUsablePlane() || _reticleOnPlane))
                 {
                     _phase = Phase.Ready;
                     SetStatus("Surface found. Aim at the spot you want and tap to place the lab", false);
@@ -506,6 +519,23 @@ namespace ARVirtualLab.AR
                 var lr = plane.GetComponent<LineRenderer>();
                 if (lr != null && lr.enabled != show) lr.enabled = show;
             }
+        }
+
+        private string _hitSource = "none";
+
+        /// <summary>Keeps the first hit that faces up and is below the phone, and puts it first in the list.</summary>
+        private bool AcceptLooseHit(List<ARRaycastHit> hits)
+        {
+            float k = Mathf.Max(0.0001f, _origin.transform.localScale.x);
+            for (int i = 0; i < hits.Count; i++)
+            {
+                var h = hits[i];
+                bool facesUp = (h.pose.rotation * Vector3.up).y > 0.6f;
+                bool belowPhone = h.pose.position.y < _arCamera.transform.position.y - 0.12f * k;
+                if (facesUp && belowPhone) { var keep = h; hits.Clear(); hits.Add(keep); return true; }
+            }
+            hits.Clear();
+            return false;
         }
 
         private bool HasUsablePlane()
