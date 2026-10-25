@@ -565,11 +565,12 @@ namespace ARVirtualLab.AR
             ApplyPlacement();
 
             _phase = Phase.Placed;
+            SetSteady(true, false);
             _reticle.SetActive(false);
             ShowExperiment();
             _blockPlacing = false;
             RefreshButtons();
-            SetStatus("Lab placed. Pinch with two fingers to resize it. Follow the steps to do the experiment", false, 5f);
+            SetStatus("Lab placed and held steady. Turn the phone to look around it, pinch with two fingers to resize it. Follow the steps to do the experiment", false, 6f);
         }
 
         /// <summary>
@@ -600,12 +601,17 @@ namespace ARVirtualLab.AR
             PlaceLab(new Pose(p, Quaternion.identity), null);
         }
 
-        private void ToggleSteady()
+        private void ToggleSteady() { SetSteady(_poseDriver != null && !_poseDriver.Holding, true); }
+
+        /// <summary>Steady view freezes the camera's position (the phone can still turn), so ARCore's wandering cannot make the lab slide.
+        /// It is on from the moment the lab is placed; the button turns it off.</summary>
+        private void SetSteady(bool on, bool announce)
         {
             if (_poseDriver == null) return;
-            _poseDriver.SetHold(!_poseDriver.Holding);
-            var label = _steadyBtn.GetComponentInChildren<TMP_Text>();
-            if (label != null) label.text = _poseDriver.Holding ? "Steady view: on" : "Steady view: off";
+            if (_poseDriver.Holding != on) _poseDriver.SetHold(on);
+            var label = _steadyBtn != null ? _steadyBtn.GetComponentInChildren<TMP_Text>() : null;
+            if (label != null) label.text = on ? "Steady view: on" : "Steady view: off";
+            if (!announce) return;
             SetStatus(_poseDriver.Holding
                 ? "Steady view on. The lab stays still; turn the phone to look around it"
                 : "Steady view off. The lab follows the phone's movement again", false, 4f);
@@ -791,7 +797,7 @@ namespace ARVirtualLab.AR
             _moveBtn.onClick.AddListener(() => { if (_poseDriver != null && _poseDriver.Holding) ToggleSteady(); _phase = Phase.Repositioning; _blockPlacing = true; RefreshButtons(); SetStatus("Aim at a new spot and tap to move the lab", false); });
 
             _cancelBtn = UiKit.Button(safe, "CancelMove", "Keep here", EduTheme.Neutral, EduTheme.Ink, 32, 18);
-            _cancelBtn.onClick.AddListener(() => { _phase = Phase.Placed; _blockPlacing = false; _blockPinch = false; _reticle.SetActive(false); RefreshButtons(); _statusBg.gameObject.SetActive(false); });
+            _cancelBtn.onClick.AddListener(() => { _phase = Phase.Placed; SetSteady(true, false); _blockPlacing = false; _blockPinch = false; _reticle.SetActive(false); RefreshButtons(); _statusBg.gameObject.SetActive(false); });
 
             _exitBtn = UiKit.Button(safe, "ExitAR", "Exit AR", EduTheme.Red, Color.white, 32, 18);
             _exitBtn.onClick.AddListener(Stop);
