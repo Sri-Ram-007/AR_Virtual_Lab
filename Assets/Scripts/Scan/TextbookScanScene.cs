@@ -417,14 +417,13 @@ namespace ARVirtualLab.Scan
             _launching = true;
             _scanning = false;
             SetStatus((scanned ? "Found  " : "Opening  ") + page.Activity + "  -  " + page.Title, StatusKind.Found);
-            StartCoroutine(LaunchAfterDelay(page, scanned ? 1.1f : 0.35f, scanned));
+            StartCoroutine(LaunchAfterDelay(page, scanned ? 1.1f : 0.35f));
         }
 
-        private IEnumerator LaunchAfterDelay(TextbookPage page, float seconds, bool scanned)
+        private IEnumerator LaunchAfterDelay(TextbookPage page, float seconds)
         {
             yield return new WaitForSecondsRealtime(seconds);
-            // a scanned page opens the experiment in AR, sitting on that page; choosing from the list opens it on screen as before
-            if (scanned) page.LaunchOnPage(); else page.Launch(false);
+            page.Launch(false);
         }
     }
 }

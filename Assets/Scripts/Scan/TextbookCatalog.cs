@@ -26,12 +26,6 @@ namespace ARVirtualLab.Scan
         {
             AppNavigation.LaunchScene(SceneName, arMode);
         }
-
-        /// <summary>Opens the experiment in AR with the lab sitting on this printed page (the page is tracked, so it cannot drift).</summary>
-        public void LaunchOnPage()
-        {
-            AppNavigation.LaunchScene(SceneName, true, Id);
-        }
     }
 
     public static class TextbookCatalog

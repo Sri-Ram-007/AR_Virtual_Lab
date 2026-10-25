@@ -21,7 +21,6 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
-using ARVirtualLab.Scan;
 using ARVirtualLab.UI;
 #if UNITY_ANDROID
 using UnityEngine.Android;
@@ -68,19 +67,6 @@ namespace ARVirtualLab.AR
         private ARAnchor _anchor;            // pins the lab to the real spot: ARCore keeps correcting it as its map of the room improves
         private int _anchorTicket;
         private readonly List<ARRaycastHit> _hits = new List<ARRaycastHit>();
-
-        // Page mode: the experiment was opened from a textbook scan, so the lab sits ON that printed page. ARCore keeps
-        // recognising the page every frame, which re-aligns the lab to it and stops it drifting. The table/floor mode below
-        // stays available ("Use the table instead", "Move lab").
-        private string _pageId;
-        private ARTrackedImageManager _imageManager;
-        private bool _pageLibraryReady;
-        private ARTrackedImage _pageImage;
-        private float _nextPageHint;
-        private Button _tableBtn;
-        private readonly List<Texture2D> _pageTextures = new List<Texture2D>();
-        private bool PageMode { get { return !string.IsNullOrEmpty(_pageId) && _imageManager != null && _pageLibraryReady; } }
-        private bool PageSearching { get { return PageMode && (_phase == Phase.Scanning || _phase == Phase.Ready); } }
 
         // scene state
         private readonly List<Renderer> _hiddenRenderers = new List<Renderer>();
@@ -130,7 +116,6 @@ namespace ARVirtualLab.AR
             var go = new GameObject("ARExperimentMode");
             _instance = go.AddComponent<ARExperimentMode>();
             _instance._setup = setup;
-            _instance._pageId = ARVirtualLab.AppShell.AppNavigation.TakeLaunchPage();
             _instance._arScale = _instance._baseScale = setup.DefaultScale > 0f ? setup.DefaultScale : FitScale(setup);
             _instance.StartCoroutine(_instance.Run());
         }
@@ -223,26 +208,8 @@ namespace ARVirtualLab.AR
 
             _phase = Phase.Scanning;
             _scanStart = Time.unscaledTime;
-
-            if (!string.IsNullOrEmpty(_pageId))
-            {
-                SetStatus("Getting the page ready...", false);
-                yield return BuildPageLibrary();
-                if (!_pageLibraryReady) { Debug.LogWarning("[ARMode] page tracking is not available, using the table instead"); _pageId = null; }
-                _scanStart = Time.unscaledTime;
-            }
-
-            if (PageMode)
-            {
-                Debug.Log("[ARMode] looking for the textbook page " + _pageId);
-                _nextPageHint = Time.unscaledTime + 12f;
-                SetStatus("Point the camera at the textbook page and hold it steady", false);
-            }
-            else
-            {
-                Debug.Log("[ARMode] scanning for a flat surface");
-                SetStatus("Hold the phone at arm's length above a table, bed or the floor (not close to it) and move it slowly to find a flat surface", false);
-            }
+            Debug.Log("[ARMode] scanning for a flat surface");
+            SetStatus("Hold the phone at arm's length above a table, bed or the floor (not close to it) and move it slowly to find a flat surface", false);
         }
 
         private IEnumerator RequestCameraPermission()
@@ -313,7 +280,6 @@ namespace ARVirtualLab.AR
             // plane detection + raycasts against the detected planes
             _raycastManager = _originGO.AddComponent<ARRaycastManager>();
             _anchorManager = _originGO.AddComponent<ARAnchorManager>();
-            if (!string.IsNullOrEmpty(_pageId)) _imageManager = _originGO.AddComponent<ARTrackedImageManager>();
             _planeManager = _originGO.AddComponent<ARPlaneManager>();
             _planeManager.requestedDetectionMode = PlaneDetectionMode.Horizontal;
             _planeManager.planePrefab = BuildPlaneTemplate();
@@ -432,12 +398,11 @@ namespace ARVirtualLab.AR
                 _nextLog = Time.unscaledTime + 2.5f;
                 Debug.Log("[ARMode] phase=" + _phase + " session=" + ARSession.state + " planes=" + _planeManager.trackables.count +
                           " anchor=" + (_anchor != null ? _anchor.trackingState + " " + _origin.TrackablesParent.InverseTransformPoint(_anchor.transform.position).ToString("F2") : "none") +
-                          " scale=" + _arScale.ToString("F1") + " page=" + (PageMode ? (_pageImage != null ? _pageImage.trackingState.ToString() : "searching") : "off") + " why=" + ARSession.notTrackingReason + " fps=" + (1f / Mathf.Max(0.0001f, Time.smoothDeltaTime)).ToString("F0") +
+                          " scale=" + _arScale.ToString("F1") + " why=" + ARSession.notTrackingReason + " fps=" + (1f / Mathf.Max(0.0001f, Time.smoothDeltaTime)).ToString("F0") +
                           " camPos=" + _arCamera.transform.position.ToString("F2") + " pose=" + (_poseDriver != null ? _poseDriver.Source : "-"));
             }
 
             if (_offsetGO != null && _offsetGO.transform.localPosition != Vector3.zero) _offsetGO.transform.localPosition = Vector3.zero;   // see BuildRig
-            if (_tableBtn != null) _tableBtn.gameObject.SetActive(PageSearching);
             if (_phase == Phase.Placed || _phase == Phase.Repositioning) FollowAnchor();
 
             // A hand-held phone does not travel metres while we are still searching: the tracking has lost its scale (usually the
@@ -466,15 +431,7 @@ namespace ARVirtualLab.AR
                 if (tip != null) SetStatus(tip, false, 3.5f);
             }
 
-            bool pageSearching = PageSearching;
-            if (pageSearching && Time.unscaledTime >= _nextPageHint)
-            {
-                _nextPageHint = Time.unscaledTime + 10f;
-                SetStatus("Not finding the page? Lay it flat, hold the phone about 30 cm above it so the whole page is in view, in good light", false, 6f);
-            }
-            if (_phase == Phase.Placed && PageMode && _pageImage != null && _pageImage.trackingState == TrackingState.Tracking) FollowPage();
-
-            bool placing = !pageSearching && (_phase == Phase.Scanning || _phase == Phase.Ready || _phase == Phase.Repositioning);
+            bool placing = _phase == Phase.Scanning || _phase == Phase.Ready || _phase == Phase.Repositioning;
             if (placing)
             {
                 // reticle follows the middle of the screen
@@ -541,7 +498,7 @@ namespace ARVirtualLab.AR
         {
             // once placed, the detected-surface sheets are hidden (the lab is what matters)
             if (_planeManager == null) return;
-            bool show = _phase != Phase.Placed && !PageSearching;
+            bool show = _phase != Phase.Placed;
             foreach (var plane in _planeManager.trackables)
             {
                 if (plane == null) continue;
@@ -604,7 +561,7 @@ namespace ARVirtualLab.AR
             Vector3 lookInTracking = Quaternion.Inverse(o.rotation) * look;
             _anchorYaw = Mathf.Atan2(lookInTracking.x, lookInTracking.z) * Mathf.Rad2Deg;
 
-            if (!PageMode) CreateAnchor(surface, plane);       // before the origin moves: the anchor takes the surface point as it is in the world right now (the page itself is the anchor in page mode)
+            CreateAnchor(surface, plane);       // before the origin moves: the anchor takes the surface point as it is in the world right now
             ApplyPlacement();
 
             _phase = Phase.Placed;
@@ -641,83 +598,6 @@ namespace ARVirtualLab.AR
             _reticleDistance = Vector3.Distance(p, c.position) / k;
             Debug.Log("[ARMode] placing in front of the phone, " + _reticleDistance.ToString("F2") + " m away");
             PlaceLab(new Pose(p, Quaternion.identity), null);
-        }
-
-        // ═════════════════════════════════════════════════════
-        //  PAGE MODE (the lab sits on the scanned textbook page)
-        // ═════════════════════════════════════════════════════
-        private IEnumerator BuildPageLibrary()
-        {
-            _pageLibraryReady = false;
-            TextbookPage page = null;
-            foreach (var p in TextbookCatalog.Pages) if (p.Id == _pageId) page = p;
-            if (page == null || _imageManager == null) yield break;
-
-            _imageManager.referenceLibrary = _imageManager.CreateRuntimeLibrary();
-            var library = _imageManager.referenceLibrary as MutableRuntimeReferenceImageLibrary;
-            if (library == null) yield break;
-
-            int added = 0;
-            for (int variant = 0; variant < 2; variant++)
-            {
-                string name = variant == 0 ? page.Id : page.Id + "_fig";
-                var asset = Resources.Load<TextAsset>("Textbook/" + name);
-                if (asset == null) continue;
-                var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                if (!tex.LoadImage(asset.bytes, false)) { Destroy(tex); continue; }
-                _pageTextures.Add(tex);
-                float width = page.PageWidthMeters * (variant == 0 ? 1f : page.FigureWidthFraction);
-                var job = library.ScheduleAddImageWithValidationJob(tex, name, width);
-                while (!job.jobHandle.IsCompleted) yield return null;
-                job.jobHandle.Complete();
-                if (job.status == AddReferenceImageJobStatus.Success) added++;
-                else Debug.LogWarning("[ARMode] could not add " + name + ": " + job.status);
-            }
-            if (added == 0) yield break;
-
-            _imageManager.requestedMaxNumberOfMovingImages = 1;
-            _imageManager.trackablesChanged.AddListener(OnImagesChanged);
-            _pageLibraryReady = true;
-        }
-
-        private void OnImagesChanged(ARTrackablesChangedEventArgs<ARTrackedImage> args)
-        {
-            foreach (var img in args.added) ConsiderPage(img);
-            foreach (var img in args.updated) ConsiderPage(img);
-        }
-
-        private void ConsiderPage(ARTrackedImage img)
-        {
-            if (!PageMode || img == null || img.trackingState != TrackingState.Tracking) return;
-            string n = img.referenceImage.name;
-            if (n != _pageId && n != _pageId + "_fig") return;
-            if (_pageImage == null || _pageImage.trackingState != TrackingState.Tracking) _pageImage = img;     // stay with one image so the lab never jumps between the page and its figure
-            if (img != _pageImage) return;
-            if (_phase == Phase.Scanning || _phase == Phase.Ready) PlaceOnPage(img);
-        }
-
-        private void PlaceOnPage(ARTrackedImage img)
-        {
-            _reticleDistance = 1f;                       // the lab keeps its normal size: the page is the right distance by definition
-            Debug.Log("[ARMode] page found, placing the lab on it");
-            PlaceLab(new Pose(img.transform.position, img.transform.rotation), null);
-            SetStatus("Lab placed on the page. Pinch with two fingers to resize it. Follow the steps to do the experiment", false, 6f);
-        }
-
-        /// <summary>While the page is in view ARCore knows exactly where it is: keep the lab on it (smoothly, so it does not jitter).</summary>
-        private void FollowPage()
-        {
-            Vector3 p = _origin.TrackablesParent.InverseTransformPoint(_pageImage.transform.position);
-            if ((p - _anchorTracking).sqrMagnitude < 1e-8f) return;
-            _anchorTracking = Vector3.Lerp(_anchorTracking, p, 0.3f);
-            ApplyPlacement();
-        }
-
-        private void LeavePageMode()
-        {
-            _pageId = null;
-            _pageImage = null;
-            if (_tableBtn != null) _tableBtn.gameObject.SetActive(false);
         }
 
         private void ToggleSteady()
@@ -844,9 +724,6 @@ namespace ARVirtualLab.AR
                 if (_setup.OnStopped != null) _setup.OnStopped(_setup.StandaloneCamera);
             }
 
-            if (_imageManager != null) _imageManager.trackablesChanged.RemoveListener(OnImagesChanged);
-            foreach (var t in _pageTextures) if (t != null) Destroy(t);
-            _pageTextures.Clear();
             if (_reticle != null) Destroy(_reticle);
             if (_sessionGO != null) Destroy(_sessionGO);
             if (_originGO != null) Destroy(_originGO);
@@ -906,21 +783,12 @@ namespace ARVirtualLab.AR
             _frontBtn.onClick.AddListener(PlaceInFront);
             _frontBtn.gameObject.SetActive(false);
 
-            _tableBtn = UiKit.Button(safe, "UseTable", "Use the table instead", EduTheme.Neutral, EduTheme.Ink, 34, 22);
-            _tableBtn.onClick.AddListener(() =>
-            {
-                LeavePageMode();
-                _scanStart = Time.unscaledTime;
-                SetStatus("Hold the phone at arm's length above a table, bed or the floor (not close to it) and move it slowly to find a flat surface", false);
-            });
-            _tableBtn.gameObject.SetActive(false);
-
             _steadyBtn = UiKit.Button(safe, "SteadyView", "Steady view: off", EduTheme.Neutral, EduTheme.Ink, 28, 18);
             _steadyBtn.onClick.AddListener(ToggleSteady);
             _steadyBtn.gameObject.SetActive(false);
 
             _moveBtn = UiKit.Button(safe, "MoveLab", "Move lab", EduTheme.Neutral, EduTheme.Ink, 32, 18);
-            _moveBtn.onClick.AddListener(() => { if (_poseDriver != null && _poseDriver.Holding) ToggleSteady(); LeavePageMode(); _scanStart = Time.unscaledTime; _phase = Phase.Repositioning; _blockPlacing = true; RefreshButtons(); SetStatus("Aim at a new spot and tap to move the lab", false); });
+            _moveBtn.onClick.AddListener(() => { if (_poseDriver != null && _poseDriver.Holding) ToggleSteady(); _phase = Phase.Repositioning; _blockPlacing = true; RefreshButtons(); SetStatus("Aim at a new spot and tap to move the lab", false); });
 
             _cancelBtn = UiKit.Button(safe, "CancelMove", "Keep here", EduTheme.Neutral, EduTheme.Ink, 32, 18);
             _cancelBtn.onClick.AddListener(() => { _phase = Phase.Placed; _blockPlacing = false; _blockPinch = false; _reticle.SetActive(false); RefreshButtons(); _statusBg.gameObject.SetActive(false); });
@@ -944,7 +812,6 @@ namespace ARVirtualLab.AR
             _scaler.referenceResolution = landscape ? new Vector2(1920f, 1080f) : new Vector2(1080f, 1920f);
             var place = _placeBtn.GetComponent<RectTransform>();
             var front = _frontBtn.GetComponent<RectTransform>();
-            var table = _tableBtn.GetComponent<RectTransform>();
             var steady = _steadyBtn.GetComponent<RectTransform>();
             var move = _moveBtn.GetComponent<RectTransform>();
             var cancel = _cancelBtn.GetComponent<RectTransform>();
@@ -954,7 +821,6 @@ namespace ARVirtualLab.AR
                 UiKit.Pin(_statusBg.rectTransform, 0.5f, 1f, 0f, -40f, 600f, 110f);
                 UiKit.Pin(place, 0.5f, 0f, 0f, 40f, 440f, 96f);
                 UiKit.Pin(front, 0.5f, 0f, 0f, 40f, 520f, 96f);
-                UiKit.Pin(table, 0.5f, 0f, 0f, 40f, 520f, 96f);
                 UiKit.Pin(steady, 1f, 0f, -256f, 124f, 300f, 80f);
                 UiKit.Pin(move, 1f, 0f, -256f, 32f, 200f, 80f);
                 UiKit.Pin(cancel, 1f, 0f, -256f, 32f, 200f, 80f);
@@ -966,7 +832,6 @@ namespace ARVirtualLab.AR
                 UiKit.Anchor(_statusBg.rectTransform, 0.06f, 0.715f, 0.94f, 0.795f);
                 UiKit.Anchor(place, 0.20f, 0.265f, 0.80f, 0.33f);
                 UiKit.Anchor(front, 0.15f, 0.265f, 0.85f, 0.33f);
-                UiKit.Anchor(table, 0.15f, 0.265f, 0.85f, 0.33f);
                 UiKit.Anchor(steady, 0.05f, 0.175f, 0.55f, 0.235f);
                 UiKit.Anchor(move, 0.05f, 0.105f, 0.47f, 0.165f);
                 UiKit.Anchor(cancel, 0.05f, 0.105f, 0.47f, 0.165f);
