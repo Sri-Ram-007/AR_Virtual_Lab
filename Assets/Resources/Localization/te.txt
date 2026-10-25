@@ -635,3 +635,6 @@ Why is the ribbon cleaned first?	రిబ్బన్ను మొదట ఎం
 Place in front of me	నా ముందు ఉంచండి
 Steady view: on	స్థిర దృశ్యం: ఆన్
 Steady view: off	స్థిర దృశ్యం: ఆఫ్
+Use the table instead	టేబుల్‌ని వాడండి
+Point the camera at the textbook page and hold it steady	కెమెరాను పాఠ్యపుస్తకం పేజీ వైపు చూపించి స్థిరంగా పట్టుకోండి
+Getting the page ready...	పేజీని సిద్ధం చేస్తోంది...

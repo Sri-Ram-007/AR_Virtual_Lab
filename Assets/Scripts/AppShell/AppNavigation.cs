@@ -26,6 +26,13 @@ namespace ARVirtualLab.AppShell
         public static bool LaunchDirectlyToAR = false;
 
         /// <summary>
+        /// Set when an experiment is opened from a textbook scan: the AR mode then puts the lab ON that printed page and keeps
+        /// it locked to it (instead of searching for a table). Read once by the AR mode.
+        /// </summary>
+        public static string LaunchPageId = null;
+        public static string TakeLaunchPage() { string id = LaunchPageId; LaunchPageId = null; return id; }
+
+        /// <summary>
         /// When true, MagnesiumLabScene starts directly at Step 1 (bypassing the intro card).
         /// </summary>
         public static bool LaunchDirectlyToExperiment = true;
@@ -36,6 +43,7 @@ namespace ARVirtualLab.AppShell
         public static void GoToHome()
         {
             LaunchDirectlyToAR = false;
+            LaunchPageId = null;
             LaunchDirectlyToExperiment = true;
             Debug.Log("[AppNavigation] Returning to Home Screen");
             SceneManager.LoadScene(HOME_SCENE);
@@ -49,9 +57,10 @@ namespace ARVirtualLab.AppShell
         }
 
         /// <summary>Opens any experiment scene directly at Step 1 (used by the textbook scanner and the Home list).</summary>
-        public static void LaunchScene(string sceneName, bool arMode = false)
+        public static void LaunchScene(string sceneName, bool arMode = false, string pageId = null)
         {
             LaunchDirectlyToAR = arMode;
+            LaunchPageId = arMode ? pageId : null;
             LaunchDirectlyToExperiment = true;
             Debug.Log($"[AppNavigation] Launching {sceneName} (AR Mode: {arMode})");
             SceneManager.LoadScene(sceneName);
