@@ -687,7 +687,7 @@ namespace ARVirtualLab.AR
 
         private void PlaceOnPage(ARTrackedImage img)
         {
-            _reticleDistance = 1f;                       // the lab keeps its normal size: the page is the right distance by definition
+            _reticleDistance = 0.45f;                    // a printed page is small (about 14 x 21 cm): start the lab at under half its table size so it sits on the page; pinch to enlarge
             Debug.Log("[ARMode] page found, placing the lab on it");
             PlaceLab(new Pose(img.transform.position, img.transform.rotation), null);
             SetStatus("Lab placed on the page. Pinch with two fingers to resize it. Follow the steps to do the experiment", false, 6f);
