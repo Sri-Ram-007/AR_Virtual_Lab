@@ -187,6 +187,17 @@ namespace ARVirtualLab.AR
                 yield break;
             }
 
+            // An AR system left running by an earlier screen (the textbook scanner is portrait, the experiments are landscape)
+            // keeps the screen orientation it started with, which rolled the whole lab 90 degrees. Start it afresh here.
+            var xr0 = UnityEngine.XR.Management.XRGeneralSettings.Instance;
+            if (xr0 != null && xr0.Manager != null && xr0.Manager.isInitializationComplete)
+            {
+                Debug.Log("[ARMode] restarting the AR system left over from the previous screen (screen " + Screen.width + "x" + Screen.height + ", " + Screen.orientation + ")");
+                try { xr0.Manager.StopSubsystems(); xr0.Manager.DeinitializeLoader(); }
+                catch (Exception e) { Debug.LogWarning("[ARMode] XR restart: " + e.Message); }
+                yield return null;
+            }
+
             try
             {
                 var xr = UnityEngine.XR.Management.XRGeneralSettings.Instance;
