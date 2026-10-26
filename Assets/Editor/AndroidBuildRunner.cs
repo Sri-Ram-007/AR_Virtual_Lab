@@ -20,8 +20,8 @@ namespace ARVirtualLab.Editor
         public const string AppName     = "EduAR";
         public const string CompanyName = "EduAR";
         public const string PackageName = "com.eduar.virtuallab";
-        public const string Version     = "0.3.1";
-        public const int    VersionCode = 4;
+        public const string Version     = "0.3.2";
+        public const int    VersionCode = 5;
 
         // adb from the Android SDK Unity is configured with, so Build And Run works on Windows and macOS alike
         private static string ADB_PATH

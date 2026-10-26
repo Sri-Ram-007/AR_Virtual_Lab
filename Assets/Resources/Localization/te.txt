@@ -635,3 +635,4 @@ Why is the ribbon cleaned first?	రిబ్బన్ను మొదట ఎం
 Place in front of me	నా ముందు ఉంచండి
 Steady view: on	స్థిర దృశ్యం: ఆన్
 Steady view: off	స్థిర దృశ్యం: ఆఫ్
+Lab placed. Walk around it and pinch with two fingers to resize it. If it slides, tap Steady view	ల్యాబ్ ఉంచబడింది. దాని చుట్టూ తిరిగి చూడండి, పరిమాణం మార్చడానికి రెండు వేళ్లతో పించ్ చేయండి. అది జారుతుంటే, స్థిర దృశ్యం నొక్కండి

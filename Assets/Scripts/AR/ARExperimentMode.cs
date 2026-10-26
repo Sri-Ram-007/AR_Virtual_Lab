@@ -264,7 +264,9 @@ namespace ARVirtualLab.AR
             _arCamera.farClipPlane = 30f;
             camGO.AddComponent<AudioListener>();
             var camMgr = camGO.AddComponent<ARCameraManager>();
-            camMgr.autoFocusRequested = false;      // ARCore tracks best with fixed focus: refocusing changes the image scale and can make the tracked position wander
+            // Autofocus: a phone held over a desk is only 40-70 cm from it, and most cameras' fixed focus is sharp from about 1 m.
+            // A blurred table has too little detail for ARCore to find a surface (testers' phones could not find one at all).
+            camMgr.autoFocusRequested = true;
             camGO.AddComponent<ARCameraBackground>();
             // ARCore's depth estimate lets a ray hit the table within a second or two, long before a flat surface has been fully
             // detected. It is only used for placing (no occlusion is drawn), and is ignored on phones that cannot do it.
@@ -595,12 +597,12 @@ namespace ARVirtualLab.AR
             ApplyPlacement();
 
             _phase = Phase.Placed;
-            SetSteady(true, false);
+            SetSteady(false, false);         // the lab stays on its spot as the phone moves; Steady view is only a fallback
             _reticle.SetActive(false);
             ShowExperiment();
             _blockPlacing = false;
             RefreshButtons();
-            SetStatus("Lab placed and held steady. Turn the phone to look around it, pinch with two fingers to resize it. Follow the steps to do the experiment", false, 6f);
+            SetStatus("Lab placed. Walk around it and pinch with two fingers to resize it. If it slides, tap Steady view", false, 6f);
         }
 
         /// <summary>
@@ -634,7 +636,8 @@ namespace ARVirtualLab.AR
         private void ToggleSteady() { SetSteady(_poseDriver != null && !_poseDriver.Holding, true); }
 
         /// <summary>Steady view freezes the camera's position (the phone can still turn), so ARCore's wandering cannot make the lab slide.
-        /// It is on from the moment the lab is placed; the button turns it off.</summary>
+        /// The price: the lab then moves along with the phone instead of staying on its spot, so it is off unless the student
+        /// turns it on (for phones whose tracking wanders).</summary>
         private void SetSteady(bool on, bool announce)
         {
             if (_poseDriver == null) return;
