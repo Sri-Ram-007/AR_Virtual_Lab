@@ -102,7 +102,10 @@ namespace ARVirtualLab.AR
         private bool _pinching;
         private float _lastPinchDistance;
 
-        private const float FrontButtonAfter = 4f;       // seconds of searching before "Place in front of me" is offered
+        // seconds of searching before "Place in front of me" is offered. A lab placed that way floats in front of the phone instead
+        // of standing on the real table, so it slides as the student walks: it is a last resort, offered once a surface has had time
+        // to appear (with autofocus most phones find one within a few seconds)
+        private const float FrontButtonAfter = 15f;
         private const float MinPlaneArea = 0.12f;      // m² — big enough for the lab
         private const float MaxPlaceDistance = 4f, MinPlaceDistance = 0.15f;   // metres from the phone to the spot the lab may be put on
         private float _reticleDistance;
