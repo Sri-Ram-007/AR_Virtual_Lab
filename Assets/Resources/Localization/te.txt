@@ -636,3 +636,24 @@ Place in front of me	నా ముందు ఉంచండి
 Steady view: on	స్థిర దృశ్యం: ఆన్
 Steady view: off	స్థిర దృశ్యం: ఆఫ్
 Lab placed. Walk around it and pinch with two fingers to resize it. If it slides, tap Steady view	ల్యాబ్ ఉంచబడింది. దాని చుట్టూ తిరిగి చూడండి, పరిమాణం మార్చడానికి రెండు వేళ్లతో పించ్ చేయండి. అది జారుతుంటే, స్థిర దృశ్యం నొక్కండి
+
+# AI mentor status lines and the AR tips (Nov 2026)
+Thinking.	ఆలోచిస్తోంది.
+Thinking..	ఆలోచిస్తోంది..
+Offline answer (no internet)	ఆఫ్‌లైన్ సమాధానం (ఇంటర్నెట్ లేదు)
+Offline answer (the AI could not answer)	ఆఫ్‌లైన్ సమాధానం (AI సమాధానం ఇవ్వలేకపోయింది)
+Offline answer (the AI gave no reply)	ఆఫ్‌లైన్ సమాధానం (AI ఏ జవాబూ ఇవ్వలేదు)
+Offline answer (too many questions, try again in a moment)	ఆఫ్‌లైన్ సమాధానం (ప్రశ్నలు ఎక్కువయ్యాయి, కొద్దిసేపటి తర్వాత మళ్లీ ప్రయత్నించండి)
+Offline answer (the AI key was not accepted)	ఆఫ్‌లైన్ సమాధానం (AI కీ అంగీకరించబడలేదు)
+Offline answer (the AI model name is out of date)	ఆఫ్‌లైన్ సమాధానం (AI మోడల్ పేరు పాతది)
+Hold the phone at arm's length above a table, bed or the floor (not close to it) and move it slowly to find a flat surface	ఫోన్‌ను చేయి చాచినంత దూరంలో బల్ల, మంచం లేదా నేలపై (దానికి మరీ దగ్గరగా కాకుండా) పట్టుకుని, సమతల ఉపరితలం కనిపించే వరకు నెమ్మదిగా కదిలించండి
+AR lost track. Hold the phone at arm's length, about half a metre or more above the surface, and move it slowly	AR స్థానాన్ని కోల్పోయింది. ఫోన్‌ను చేయి చాచినంత దూరంలో, ఉపరితలానికి సుమారు అర మీటరు లేదా అంతకంటే ఎత్తులో పట్టుకుని నెమ్మదిగా కదిలించండి
+You are moving too fast. Move the phone slowly and smoothly	మీరు చాలా వేగంగా కదిలిస్తున్నారు. ఫోన్‌ను నెమ్మదిగా, సాఫీగా కదిలించండి
+Not enough detail to see here. Aim at a surface with some texture (a book, a printed cloth) about {0} metre away	ఇక్కడ చూడటానికి తగినంత వివరం లేదు. సుమారు {0} మీటరు దూరంలో ఉన్న, కొంత నమూనా కలిగిన ఉపరితలం (పుస్తకం, అచ్చు బట్ట) వైపు గురిపెట్టండి
+It is too dark. Turn on more light	చాలా చీకటిగా ఉంది. ఇంకా వెలుతురు పెట్టండి
+AR is finding its place again. Hold the phone still for a moment	AR మళ్లీ తన స్థానాన్ని కనుగొంటోంది. ఫోన్‌ను ఒక్క క్షణం కదలకుండా పట్టుకోండి
+That surface is {0} m away. Aim the circle at a nearer spot, about {1} to {2} metres away	ఆ ఉపరితలం {0} మీ. దూరంలో ఉంది. వృత్తాన్ని సుమారు {1} నుండి {2} మీటర్ల దూరంలో ఉన్న దగ్గరి చోటు వైపు గురిపెట్టండి
+Too close. Move the phone back a little	మరీ దగ్గరగా ఉంది. ఫోన్‌ను కొంచెం వెనక్కి జరపండి
+Still searching. Stand about {0} metre from a table or floor, tilt the phone down a little and sweep it slowly side to side	ఇంకా వెతుకుతోంది. బల్ల లేదా నేల నుండి సుమారు {0} మీటరు దూరంలో నిలబడి, ఫోన్‌ను కొంచెం కిందికి వంచి నెమ్మదిగా అటూ ఇటూ కదిలించండి
+Steady view on. The lab stays still; turn the phone to look around it	స్థిర దృశ్యం ఆన్. ల్యాబ్ కదలకుండా ఉంటుంది; చుట్టూ చూడటానికి ఫోన్‌ను తిప్పండి
+Steady view off. The lab follows the phone's movement again	స్థిర దృశ్యం ఆఫ్. ల్యాబ్ మళ్లీ ఫోన్ కదలికను అనుసరిస్తుంది

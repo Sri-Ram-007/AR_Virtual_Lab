@@ -26,6 +26,9 @@ MISSING = ROOT / "Tools" / "Localization" / "te_missing.txt"
 SKIP = [
     "Core/", "Experiments/", "Results/", "Video/", "Localization/",
     "UI/ARUIController.cs", "AI/AIExplanationManager.cs",
+    # AI mentor: MentorKnowledge holds the AI's briefing (never shown) and the English answers, whose Telugu is in
+    # MentorTelugu (already Telugu). MentorBackend builds the request to the AI; its on-screen notes are rows in te.txt.
+    "AI/MentorKnowledge.cs", "AI/MentorTelugu.cs", "AI/MentorBackend.cs",
     "AR/ARLabManager.cs", "AR/ImageTargetManager.cs", "AR/ARTargetController.cs",
     "Standalone/StandaloneAppState.cs", "Standalone/StandaloneMagnesiumExperiment.cs",
     "Standalone/StandaloneInteractable.cs", "Standalone/StandaloneUIController.cs",
@@ -53,6 +56,12 @@ IGNORE = {
     "Base", "Rod", "Body", "Trough", "Cork", "Rise", "Span", "Drop", "Wax", "Wick", "Neck", "Cap", "Mid", "Rim",
     "t:GameObject", "Transparent", "Activity", "Page", "Opening",
     "Shadow", "Ring", "Dot",      # CircuitWire part names
+    "X", "Student", "Mentor", "Thinking",   # mentor: close glyph, bubble object names; "Thinking." / ".." / "..." are rows
+    # mentor greeting, built from the experiment name; Telugu mode shows MentorTelugu.Greeting instead
+    "Hi! I am your lab mentor for", ". Ask me anything about it, or tap one of the questions below.",
+    # AR heartbeat log line (Debug.Log spanning several source lines) and the sentence built from a measured distance
+    "|  spot", "F1", "F0", "anchor=", "hit=", "scale=", "why=", "fps=",
+    "That surface is", "m away. Aim the circle at a nearer spot, about {0} to {1} metres away",
     "Telugu",                     # language names are handled by Loc.Endonyms
     "legal.acceptedVersion", "Welcome", "Languages", "Links", "Version",
     "worldPos={0} bottomCorrection={1}", "finalPos={0}",
